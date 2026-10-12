@@ -1,0 +1,21 @@
+{
+  "name": "sistem-pengelolaan-sampah",
+  "version": "1.0.0",
+  "description": "Sistem Pengelolaan Sampah - Dinas Lingkungan Hidup Kabupaten Sukabumi",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "better-sqlite3": "^11.0.0",
+    "cors": "^2.8.6",
+    "express": "^4.21.0",
+    "express-session": "^1.18.0",
+    "multer": "^1.4.5-lts.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.0"
+  }
+}

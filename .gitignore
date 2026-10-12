@@ -1,0 +1,26 @@
+# Dependencies
+node_modules/
+
+# Database lokal (berisi data pengguna & laporan) - dibuat otomatis dari schema.sql
+database/*.sqlite
+database/*.sqlite-shm
+database/*.sqlite-wal
+
+# Foto laporan masyarakat
+public/uploads/*
+!public/uploads/.gitkeep
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# Build & log
+dist/
+*.log
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
