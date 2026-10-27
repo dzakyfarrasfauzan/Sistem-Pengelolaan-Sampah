@@ -14,6 +14,10 @@ import AdminLaporanMasyarakat from './pages/admin/LaporanMasyarakat'
 import PetugasDashboard from './pages/petugas/Dashboard'
 import PetugasJadwal from './pages/petugas/Jadwal'
 import PetugasLaporan from './pages/petugas/Laporan'
+import AdminPemeriksaan from './pages/admin/PemeriksaanKendaraan'
+import SopirLayout from './components/SopirLayout'
+import SopirDashboard from './pages/sopir/Dashboard'
+import SopirJadwal from './pages/sopir/Jadwal'
 
 function App() {
   return (
@@ -29,7 +33,9 @@ function App() {
           <Route path="dashboard" element={<AdminDashboard />} />
           <Route path="tps" element={<AdminTPS />} />
           <Route path="kendaraan" element={<AdminKendaraan />} />
-          <Route path="petugas" element={<AdminPetugas />} />
+          <Route path="petugas" element={<AdminPetugas key="petugas" role="petugas" />} />
+          <Route path="sopir" element={<AdminPetugas key="sopir" role="sopir" />} />
+          <Route path="pemeriksaan-kendaraan" element={<AdminPemeriksaan />} />
           <Route path="jadwal" element={<AdminJadwal />} />
           <Route path="laporan-masyarakat" element={<AdminLaporanMasyarakat />} />
         </Route>
@@ -41,6 +47,12 @@ function App() {
           <Route path="laporan" element={<PetugasLaporan />} />
         </Route>
         
+        {/* Sopir routes with Layout */}
+        <Route path="/sopir" element={<SopirLayout />}>
+          <Route path="dashboard" element={<SopirDashboard />} />
+          <Route path="jadwal" element={<SopirJadwal />} />
+        </Route>
+
         {/* Fallback */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

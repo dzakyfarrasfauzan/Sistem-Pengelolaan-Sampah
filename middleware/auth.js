@@ -38,4 +38,17 @@ function requirePetugas(req, res, next) {
     next();
 }
 
-module.exports = { requireLogin, requireAdmin, requirePetugas };
+/**
+ * Require user to be a sopir
+ */
+function requireSopir(req, res, next) {
+    if (!req.session.user) {
+        return res.status(401).json({ success: false, message: 'Unauthorized. Silakan login kembali.' });
+    }
+    if (req.session.user.role !== 'sopir') {
+        return res.status(403).json({ success: false, message: 'Akses ditolak. Anda bukan sopir.' });
+    }
+    next();
+}
+
+module.exports = { requireLogin, requireAdmin, requirePetugas, requireSopir };

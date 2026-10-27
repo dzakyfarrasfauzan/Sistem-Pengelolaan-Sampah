@@ -25,6 +25,8 @@ export default function Login() {
       if (res.data.success) {
         if (res.data.user.role === 'admin') {
           navigate('/admin/dashboard');
+        } else if (res.data.user.role === 'sopir') {
+          navigate('/sopir/dashboard');
         } else {
           navigate('/petugas/dashboard');
         }

@@ -3,7 +3,9 @@ import axios from 'axios';
 import { Plus, Edit2, Trash2, X, AlertTriangle } from 'lucide-react';
 import { API_URL } from '../../config';
 
-export default function Petugas() {
+export default function Petugas({ role = 'petugas' }) {
+  const label = role === 'sopir' ? 'Sopir' : 'Petugas Operasional';
+  const endpoint = `${API_URL}/admin/${role}`;
   const [list, setList] = useState([]);
   const [loading, setLoading] = useState(true);
   
@@ -16,7 +18,7 @@ export default function Petugas() {
 
   const fetchData = async () => {
     try {
-      const res = await axios.get(`${API_URL}/admin/petugas`, { withCredentials: true });
+      const res = await axios.get(endpoint, { withCredentials: true });
       if (res.data.success) {
         setList(res.data.data);
       }
@@ -50,7 +52,7 @@ export default function Petugas() {
     if (!petugasToDelete) return;
     setDeleting(true);
     try {
-      await axios.delete(`${API_URL}/admin/petugas/${petugasToDelete.id}`, { withCredentials: true });
+      await axios.delete(`${endpoint}/${petugasToDelete.id}`, { withCredentials: true });
       setPetugasToDelete(null);
       fetchData();
     } catch {
@@ -64,9 +66,9 @@ export default function Petugas() {
     e.preventDefault();
     try {
       if (isEdit) {
-        await axios.put(`${API_URL}/admin/petugas/${formData.id}`, formData, { withCredentials: true });
+        await axios.put(`${endpoint}/${formData.id}`, formData, { withCredentials: true });
       } else {
-        await axios.post(`${API_URL}/admin/petugas`, formData, { withCredentials: true });
+        await axios.post(endpoint, formData, { withCredentials: true });
       }
       setShowModal(false);
       fetchData();
@@ -80,9 +82,9 @@ export default function Petugas() {
   return (
     <div style={{ padding: '40px', fontFamily: 'Inter, sans-serif' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-        <h1 style={{ margin: 0, color: '#111827' }}>Kelola Akun Petugas</h1>
+        <h1 style={{ margin: 0, color: '#111827' }}>Kelola Akun {label}</h1>
         <button onClick={handleOpenAdd} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 20px', background: '#10b981', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}>
-          <Plus size={18} /> Tambah Petugas
+          <Plus size={18} /> Tambah {label}
         </button>
       </div>
 
@@ -90,7 +92,7 @@ export default function Petugas() {
         <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
           <thead>
             <tr style={{ background: '#f9fafb', color: '#4b5563', fontSize: '0.9rem' }}>
-              <th style={{ padding: '16px' }}>Nama Petugas</th>
+              <th style={{ padding: '16px' }}>Nama {label}</th>
               <th style={{ padding: '16px' }}>Username</th>
               <th style={{ padding: '16px' }}>Kontak</th>
               <th style={{ padding: '16px' }}>Status</th>
@@ -125,7 +127,7 @@ export default function Petugas() {
         <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 50, backdropFilter: 'blur(4px)' }}>
           <div style={{ background: 'white', padding: '30px', borderRadius: '16px', width: '100%', maxWidth: '400px', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)', maxHeight: '90vh', overflowY: 'auto' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-              <h2 style={{ margin: 0, fontSize: '1.2rem' }}>{isEdit ? 'Edit Petugas' : 'Tambah Petugas Baru'}</h2>
+              <h2 style={{ margin: 0, fontSize: '1.2rem' }}>{isEdit ? `Edit ${label}` : `Tambah ${label} Baru`}</h2>
               <button onClick={() => setShowModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#6b7280' }}><X size={20} /></button>
             </div>
             
@@ -165,9 +167,9 @@ export default function Petugas() {
             <div style={{ width: '56px', height: '56px', borderRadius: '50%', background: '#fee2e2', color: '#dc2626', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
               <AlertTriangle size={28} />
             </div>
-            <h3 style={{ margin: '0 0 8px', fontSize: '1.15rem', fontWeight: '800' }}>Hapus Akun Petugas?</h3>
+            <h3 style={{ margin: '0 0 8px', fontSize: '1.15rem', fontWeight: '800' }}>Hapus Akun {label}?</h3>
             <p style={{ color: '#6b7280', fontSize: '0.85rem', marginBottom: '24px', lineHeight: '1.5' }}>
-              Apakah Anda yakin ingin menghapus petugas <strong>{petugasToDelete.name}</strong>? Tindakan ini tidak dapat dibatalkan.
+              Apakah Anda yakin ingin menghapus {label.toLowerCase()} <strong>{petugasToDelete.name}</strong>? Tindakan ini tidak dapat dibatalkan.
             </p>
             <div style={{ display: 'flex', gap: '10px' }}>
               <button onClick={() => setPetugasToDelete(null)} style={{ flex: 1, padding: '10px', border: '1px solid #e5e7eb', background: 'white', color: '#4b5563', borderRadius: '8px', fontWeight: '600', cursor: 'pointer', fontFamily: 'inherit' }}>

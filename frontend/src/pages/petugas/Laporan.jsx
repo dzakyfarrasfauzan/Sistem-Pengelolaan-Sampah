@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { CheckCircle2, X, Send, UserCheck, Image as ImageIcon } from 'lucide-react';
 import { API_URL } from '../../config';
+import KameraLangsung from '../../components/KameraLangsung';
 
 export default function Laporan() {
   const [list, setList] = useState([]);
@@ -10,6 +11,7 @@ export default function Laporan() {
   const [formAction, setFormAction] = useState({ status: 'diproses', catatan_tindak_lanjut: '' });
   const [submitting, setSubmitting] = useState(false);
   const [successId, setSuccessId] = useState(null);
+  const [fotoFile, setFotoFile] = useState(null);
 
   const fetchData = async () => {
     setLoading(true);
@@ -35,15 +37,24 @@ export default function Laporan() {
   const handleOpenAction = (laporan) => {
     setActionModal(laporan);
     setFormAction({ status: 'diproses', catatan_tindak_lanjut: '' });
+    setFotoFile(null);
   };
 
   const handleSubmitAction = async (e) => {
     e.preventDefault();
+    if (formAction.status === 'selesai' && !fotoFile && !actionModal.foto_tindak_lanjut) {
+      alert('Foto kegiatan penanganan wajib diunggah saat laporan ditandai selesai');
+      return;
+    }
     setSubmitting(true);
     try {
+      const fd = new FormData();
+      fd.append('status', formAction.status);
+      fd.append('catatan_tindak_lanjut', formAction.catatan_tindak_lanjut);
+      if (fotoFile) fd.append('foto', fotoFile);
       await axios.put(
         `${API_URL}/petugas/laporan/${actionModal.id}`,
-        formAction,
+        fd,
         { withCredentials: true }
       );
       setSuccessId(actionModal.id);
@@ -78,7 +89,7 @@ export default function Laporan() {
     <div style={{ padding: '40px', fontFamily: 'Inter, sans-serif' }}>
       <h1 style={{ margin: '0 0 8px', color: '#111827' }}>Laporan Masyarakat</h1>
       <p style={{ color: '#6b7280', margin: '0 0 30px' }}>
-        Laporan mendesak yang butuh perhatian atau pengangkutan khusus. Update status saat Anda menangani.
+        Laporan masyarakat yang ditugaskan admin kepada Anda, diurutkan berdasarkan prioritas. Update status saat Anda menangani.
       </p>
 
       {/* Success toast */}
@@ -96,7 +107,7 @@ export default function Laporan() {
       {list.length === 0 ? (
         <div style={{ background: 'white', padding: '40px', textAlign: 'center', borderRadius: '16px', color: '#6b7280' }}>
           <CheckCircle2 size={40} color="#10b981" style={{ marginBottom: '12px' }} />
-          <div>Lingkungan aman, tidak ada laporan tumpukan sampah aktif.</div>
+          <div>Belum ada laporan yang ditugaskan kepada Anda.</div>
         </div>
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '20px' }}>
@@ -116,7 +127,7 @@ export default function Laporan() {
                     padding: '4px 10px', borderRadius: '20px', fontSize: '0.75rem', fontWeight: '700',
                     background: pColor.bg, color: pColor.text, border: `1px solid ${pColor.border}`
                   }}>
-                    🔴 PRIORITAS {l.prioritas.toUpperCase()}
+                    🔴 PRIORITAS {(l.prioritas || 'belum ditentukan').toUpperCase()}
                   </span>
                   <span style={{
                     padding: '4px 10px', borderRadius: '20px', fontSize: '0.75rem', fontWeight: '600',
@@ -208,6 +219,14 @@ export default function Laporan() {
                   <div style={{ fontSize: '0.83rem', color: '#4b5563', fontStyle: 'italic', background: '#f9fafb', padding: '8px 12px', borderRadius: '8px' }}>
                     💬 "{l.catatan_tindak_lanjut}"
                   </div>
+                )}
+
+                {/* Foto kegiatan penanganan */}
+                {l.foto_tindak_lanjut && (
+                  <a href={`${API_URL}/uploads/${l.foto_tindak_lanjut}`} target="_blank" rel="noopener noreferrer"
+                     style={{ fontSize: '0.83rem', color: '#2563eb', fontWeight: '600', textDecoration: 'none' }}>
+                    📷 Lihat foto kegiatan penanganan
+                  </a>
                 )}
 
                 {/* Tombol Aksi */}
@@ -303,6 +322,15 @@ export default function Laporan() {
                   onFocus={e => e.target.style.borderColor = '#2563eb'}
                   onBlur={e => e.target.style.borderColor = '#e5e7eb'}
                 />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', color: '#374151', fontSize: '0.9rem' }}>
+                  Foto Kegiatan {formAction.status === 'selesai'
+                    ? <span style={{ color: '#dc2626' }}>*</span>
+                    : <span style={{ color: '#9ca3af', fontWeight: '400' }}>(opsional)</span>}
+                </label>
+                <KameraLangsung onCapture={f => setFotoFile(f)} />
               </div>
 
               {/* Tombol Submit */}

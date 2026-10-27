@@ -11,10 +11,11 @@ export default function Jadwal() {
   const [tpsList, setTpsList] = useState([]);
   const [kendaraanList, setKendaraanList] = useState([]);
   const [petugasList, setPetugasList] = useState([]);
+  const [sopirList, setSopirList] = useState([]);
   
   // Modal state
   const [showModal, setShowModal] = useState(false);
-  const [formData, setFormData] = useState({ id: null, tps_id: '', kendaraan_id: '', petugas_id: '', tanggal: '', jam: '', status: 'menunggu', catatan: '' });
+  const [formData, setFormData] = useState({ id: null, tps_id: '', kendaraan_id: '', petugas_id: '', sopir_id: '', tanggal: '', jam: '', status: 'menunggu', catatan: '' });
   const [isEdit, setIsEdit] = useState(false);
   const [jadwalToDelete, setJadwalToDelete] = useState(null);
   const [deleting, setDeleting] = useState(false);
@@ -34,14 +35,16 @@ export default function Jadwal() {
 
   const fetchOptions = async () => {
     try {
-      const [tpsRes, kendRes, petRes] = await Promise.all([
+      const [tpsRes, kendRes, petRes, sopRes] = await Promise.all([
         axios.get(`${API_URL}/admin/tps`, { withCredentials: true }),
         axios.get(`${API_URL}/admin/kendaraan`, { withCredentials: true }),
-        axios.get(`${API_URL}/admin/petugas`, { withCredentials: true })
+        axios.get(`${API_URL}/admin/petugas`, { withCredentials: true }),
+        axios.get(`${API_URL}/admin/sopir`, { withCredentials: true })
       ]);
       if (tpsRes.data.success) setTpsList(tpsRes.data.data);
       if (kendRes.data.success) setKendaraanList(kendRes.data.data);
       if (petRes.data.success) setPetugasList(petRes.data.data);
+      if (sopRes.data.success) setSopirList(sopRes.data.data.filter(x => x.status === 'aktif'));
     } catch (err) {
       console.error("Gagal memuat opsi form", err);
     }
@@ -55,7 +58,7 @@ export default function Jadwal() {
   }, []);
 
   const handleOpenAdd = () => {
-    setFormData({ id: null, tps_id: '', kendaraan_id: '', petugas_id: '', tanggal: '', jam: '', status: 'menunggu', catatan: '' });
+    setFormData({ id: null, tps_id: '', kendaraan_id: '', petugas_id: '', sopir_id: '', tanggal: '', jam: '', status: 'menunggu', catatan: '' });
     setIsEdit(false);
     setShowModal(true);
   };
@@ -65,7 +68,9 @@ export default function Jadwal() {
       ...item,
       tps_id: item.tps_id || '',
       kendaraan_id: item.kendaraan_id || '',
+      kendaraan_awal: item.kendaraan_id || '',
       petugas_id: item.petugas_id || '',
+      sopir_id: item.sopir_id || '',
     });
     setIsEdit(true);
     setShowModal(true);
@@ -89,14 +94,15 @@ export default function Jadwal() {
     e.preventDefault();
     try {
       if (isEdit) {
-        await axios.put(`${API_URL}/admin/jadwal/${formData.id}`, formData, { withCredentials: true });
+        const res = await axios.put(`${API_URL}/admin/jadwal/${formData.id}`, formData, { withCredentials: true });
+        if (res.data.message) alert(res.data.message);
       } else {
         await axios.post(`${API_URL}/admin/jadwal`, formData, { withCredentials: true });
       }
       setShowModal(false);
       fetchData();
-    } catch {
-      alert('Terjadi kesalahan saat menyimpan data jadwal');
+    } catch (err) {
+      alert(err.response?.data?.message || 'Terjadi kesalahan saat menyimpan data jadwal');
     }
   };
 
@@ -118,14 +124,15 @@ export default function Jadwal() {
               <th style={{ padding: '16px' }}>Waktu</th>
               <th style={{ padding: '16px' }}>Lokasi TPS</th>
               <th style={{ padding: '16px' }}>Armada</th>
-              <th style={{ padding: '16px' }}>Petugas</th>
+              <th style={{ padding: '16px' }}>Petugas &amp; Sopir</th>
+              <th style={{ padding: '16px' }}>Pemeriksaan Armada</th>
               <th style={{ padding: '16px' }}>Status</th>
               <th style={{ padding: '16px', textAlign: 'center' }}>Aksi</th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
-              <tr><td colSpan="6" style={{ padding: '20px', textAlign: 'center' }}>Memuat data...</td></tr>
+              <tr><td colSpan="7" style={{ padding: '20px', textAlign: 'center' }}>Memuat data...</td></tr>
             ) : list.map(item => (
               <tr key={item.id} style={{ borderTop: '1px solid #f3f4f6' }}>
                 <td style={{ padding: '16px' }}>
@@ -137,11 +144,24 @@ export default function Jadwal() {
                   <div style={{ color: '#111827' }}>{item.nomor_polisi}</div>
                   <div style={{ fontSize: '0.85rem', color: '#6b7280' }}>{item.jenis_kendaraan}</div>
                 </td>
-                <td style={{ padding: '16px', color: '#4b5563' }}>{item.petugas_name}</td>
+                <td style={{ padding: '16px', color: '#4b5563' }}>
+                  <div>{item.petugas_name}</div>
+                  <div style={{ fontSize: '0.8rem', color: item.sopir_name ? '#6b7280' : '#dc2626' }}>Sopir: {item.sopir_name || 'belum dipilih'}</div>
+                </td>
+                <td style={{ padding: '16px', fontSize: '0.8rem' }}>
+                  <KondisiBadge label="Berangkat" kondisi={item.kondisi_berangkat} foto={item.foto_berangkat} />
+                  <KondisiBadge label="Pulang" kondisi={item.kondisi_pulang} foto={item.foto_pulang} />
+                </td>
                 <td style={{ padding: '16px' }}>
                   <span style={{ padding: '4px 10px', borderRadius: '20px', fontSize: '0.8rem', fontWeight: 'bold', background: item.status === 'selesai' ? '#d1fae5' : item.status === 'berjalan' ? '#fef3c7' : '#e0e7ff', color: item.status === 'selesai' ? '#059669' : item.status === 'berjalan' ? '#d97706' : '#4f46e5' }}>
                     {item.status.toUpperCase()}
                   </span>
+                  {item.foto_kegiatan && (
+                    <a href={`${API_URL}/uploads/${item.foto_kegiatan}`} target="_blank" rel="noopener noreferrer"
+                       style={{ display: 'block', marginTop: '6px', fontSize: '0.78rem', color: '#2563eb', fontWeight: '600', textDecoration: 'none' }}>
+                      📷 Foto kegiatan
+                    </a>
+                  )}
                 </td>
                 <td style={{ padding: '16px', textAlign: 'center' }}>
                   <button onClick={() => handleOpenEdit(item)} style={{ background: '#f3f4f6', color: '#3b82f6', border: 'none', padding: '8px', borderRadius: '8px', cursor: 'pointer', marginRight: '8px' }}><Edit2 size={16} /></button>
@@ -181,17 +201,31 @@ export default function Jadwal() {
               </select>
 
               <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500', fontSize: '0.9rem' }}>Pilih Kendaraan (Armada)</label>
-              <select required value={formData.kendaraan_id} onChange={e => setFormData({...formData, kendaraan_id: e.target.value})} style={inputStyle}>
+              <select required value={formData.kendaraan_id} onChange={e => setFormData({...formData, kendaraan_id: e.target.value})} style={inputStyle}
+                disabled={isEdit && formData.status !== 'menunggu'}>
                 <option value="" disabled>-- Pilih Kendaraan --</option>
-                {kendaraanList.map(k => <option key={k.id} value={k.id}>{k.nomor_polisi} ({k.jenis_kendaraan})</option>)}
+                {kendaraanList
+                  .filter(k => k.status_penggunaan !== 'maintenance' || String(k.id) === String(formData.kendaraan_awal))
+                  .map(k => <option key={k.id} value={k.id}>{k.nomor_polisi} ({k.jenis_kendaraan}){k.status_penggunaan === 'maintenance' ? ' - maintenance' : ''}</option>)}
               </select>
+              {isEdit && String(formData.kendaraan_id) !== String(formData.kendaraan_awal) && (
+                <div style={{ marginTop: '-10px', marginBottom: '15px', fontSize: '0.8rem', color: '#d97706' }}>
+                  Armada diganti: sopir perlu memeriksa armada pengganti sebelum berangkat.
+                </div>
+              )}
 
-              <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500', fontSize: '0.9rem' }}>Pilih Petugas Lapangan</label>
+              <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500', fontSize: '0.9rem' }}>Pilih Petugas Operasional</label>
               <select required value={formData.petugas_id} onChange={e => setFormData({...formData, petugas_id: e.target.value})} style={inputStyle}>
-                <option value="" disabled>-- Pilih Petugas --</option>
+                <option value="" disabled>-- Pilih Petugas Operasional --</option>
                 {petugasList.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
               </select>
               
+              <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500', fontSize: '0.9rem' }}>Pilih Sopir</label>
+              <select required value={formData.sopir_id} onChange={e => setFormData({...formData, sopir_id: e.target.value})} style={inputStyle}>
+                <option value="" disabled>-- Pilih Sopir --</option>
+                {sopirList.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+              </select>
+
               <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500', fontSize: '0.9rem' }}>Status</label>
               <select value={formData.status} onChange={e => setFormData({...formData, status: e.target.value})} style={inputStyle}>
                 <option value="menunggu">Menunggu</option>
@@ -231,6 +265,22 @@ export default function Jadwal() {
             </div>
           </div>
         </div>
+      )}
+    </div>
+  );
+}
+
+// Badge hasil pemeriksaan armada oleh sopir
+function KondisiBadge({ label, kondisi, foto }) {
+  const warna = !kondisi ? ['#f3f4f6', '#9ca3af'] : kondisi === 'baik' ? ['#d1fae5', '#059669'] : kondisi === 'rusak ringan' ? ['#fef3c7', '#d97706'] : ['#fee2e2', '#dc2626'];
+  return (
+    <div style={{ marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '6px', whiteSpace: 'nowrap' }}>
+      <span style={{ color: '#6b7280', minWidth: '62px' }}>{label}:</span>
+      <span style={{ padding: '2px 8px', borderRadius: '12px', fontWeight: '700', background: warna[0], color: warna[1] }}>
+        {kondisi ? kondisi.toUpperCase() : 'BELUM'}
+      </span>
+      {foto && (
+        <a href={`${API_URL}/uploads/${foto}`} target="_blank" rel="noopener noreferrer" style={{ color: '#2563eb', textDecoration: 'none' }}>📷</a>
       )}
     </div>
   );

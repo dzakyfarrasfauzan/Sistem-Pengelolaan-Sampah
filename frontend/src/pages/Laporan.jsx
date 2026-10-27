@@ -275,10 +275,15 @@ export default function Laporan() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setStatus({ ...status, loading: true });
+    // Foto kondisi sampah wajib diambil langsung dari kamera
+    if (!foto) {
+      setStatus({ ...status, loading: false, error: 'Foto kondisi sampah wajib diambil terlebih dahulu.' });
+      return;
+    }
+    setStatus({ ...status, loading: true, error: '' });
     const form = new FormData();
     Object.keys(formData).forEach(key => form.append(key, formData[key]));
-    if (foto) form.append('foto', foto);
+    form.append('foto', foto);
     try {
       const res = await axios.post(`${API_URL}/api/public/laporan`, form, {
         headers: { 'Content-Type': 'multipart/form-data' }
@@ -446,7 +451,7 @@ export default function Laporan() {
             {/* Foto Bukti */}
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '18px', fontSize: '0.85rem', fontWeight: '700', color: '#374151', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                <Camera size={16} color="#059669" /> Foto Bukti
+                <Camera size={16} color="#059669" /> Foto Bukti <span style={{ color: '#dc2626' }}>*</span>
               </div>
               <div style={{ background: '#f9fafb', border: '2px dashed #d1d5db', borderRadius: '20px', padding: '32px', textAlign: 'center' }}>
                 {fotoPreview ? (

@@ -40,19 +40,17 @@ router.post('/laporan', (req, res, next) => {
         try {
             const { nama_pelapor, nomor_telepon, deskripsi, latitude, longitude, alamat_lokasi, patokan } = req.body;
 
-            const kodeLaporan = 'LP-' + Date.now();
-
-            let prioritas = 'sedang';
-            const descLower = (deskripsi || '').toLowerCase();
-            const highPriorityWords = ['menumpuk', 'darurat', 'bau', 'parah', 'berbahaya', 'limbah', 'tumpah', 'meluap'];
-            for (const word of highPriorityWords) {
-                if (descLower.includes(word)) {
-                    prioritas = 'tinggi';
-                    break;
-                }
+            // Foto kondisi sampah wajib dilampirkan
+            if (!req.file) {
+                return res.status(400).json({ success: false, message: 'Foto kondisi sampah wajib dilampirkan' });
             }
 
-            const foto = req.file ? req.file.filename : null;
+            const kodeLaporan = 'LP-' + Date.now();
+
+            // Prioritas tidak ditentukan otomatis; admin yang menentukan prioritas laporan
+            const prioritas = null;
+
+            const foto = req.file.filename;
 
             // Backend fallback: reverse geocode if lat/long exist but no address
             let finalAlamat = alamat_lokasi || null;

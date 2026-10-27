@@ -4,13 +4,13 @@
 -- Database Schema
 -- ============================================
 
--- Tabel Users (Admin & Petugas)
+-- Tabel Users (Admin, Petugas Angkutan & Sopir)
 CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL,
     username TEXT UNIQUE NOT NULL,
     password TEXT NOT NULL,
-    role TEXT NOT NULL CHECK(role IN ('admin','petugas')),
+    role TEXT NOT NULL CHECK(role IN ('admin','petugas','sopir')),
     phone TEXT,
     address TEXT,
     status TEXT DEFAULT 'aktif' CHECK(status IN ('aktif','nonaktif')),
@@ -48,10 +48,12 @@ CREATE TABLE IF NOT EXISTS jadwal_pengangkutan (
     tps_id INTEGER NOT NULL REFERENCES tps(id),
     kendaraan_id INTEGER NOT NULL REFERENCES kendaraan(id),
     petugas_id INTEGER NOT NULL REFERENCES users(id),
+    sopir_id INTEGER REFERENCES users(id),
     tanggal DATE NOT NULL,
     jam TIME NOT NULL,
     status TEXT DEFAULT 'menunggu' CHECK(status IN ('menunggu','berjalan','selesai','batal')),
     catatan TEXT,
+    foto_kegiatan TEXT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
@@ -67,10 +69,12 @@ CREATE TABLE IF NOT EXISTS laporan_masyarakat (
     latitude REAL,
     longitude REAL,
     alamat_lokasi TEXT,
-    prioritas TEXT DEFAULT 'sedang' CHECK(prioritas IN ('tinggi','sedang','rendah')),
+    prioritas TEXT CHECK(prioritas IN ('tinggi','sedang','rendah')), -- NULL = belum ditentukan admin
     status TEXT DEFAULT 'masuk' CHECK(status IN ('masuk','diproses','selesai')),
     ditangani_oleh INTEGER REFERENCES users(id),
     catatan_tindak_lanjut TEXT,
+    foto_tindak_lanjut TEXT,
+    patokan TEXT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
@@ -85,6 +89,21 @@ CREATE TABLE IF NOT EXISTS laporan_pengangkutan (
     tanggal_pengangkutan DATE NOT NULL,
     status_pengangkutan TEXT DEFAULT 'selesai' CHECK(status_pengangkutan IN ('selesai','gagal','sebagian')),
     catatan TEXT,
+    foto_kegiatan TEXT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Tabel Pemeriksaan Kendaraan (oleh Sopir, sesuai SOP kesiapan armada)
+CREATE TABLE IF NOT EXISTS pemeriksaan_kendaraan (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    jadwal_id INTEGER NOT NULL REFERENCES jadwal_pengangkutan(id),
+    kendaraan_id INTEGER NOT NULL REFERENCES kendaraan(id),
+    sopir_id INTEGER NOT NULL REFERENCES users(id),
+    jenis TEXT NOT NULL CHECK(jenis IN ('sebelum berangkat','sesudah pulang')),
+    kondisi TEXT NOT NULL CHECK(kondisi IN ('baik','rusak ringan','rusak berat')),
+    catatan TEXT,
+    foto TEXT NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(jadwal_id, jenis)
 );

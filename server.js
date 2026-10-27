@@ -56,6 +56,9 @@ app.use('/admin', require('./routes/admin'));
 // Petugas routes
 app.use('/petugas', require('./routes/petugas'));
 
+// Sopir routes
+app.use('/sopir', require('./routes/sopir'));
+
 // API routes
 app.use('/api', require('./routes/api'));
 

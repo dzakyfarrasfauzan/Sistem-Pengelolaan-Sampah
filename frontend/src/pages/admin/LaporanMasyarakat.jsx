@@ -11,6 +11,8 @@ export default function LaporanMasyarakat() {
   const [editingReport, setEditingReport] = useState(null);
   const [editStatus, setEditStatus] = useState('');
   const [editPrioritas, setEditPrioritas] = useState('');
+  const [editPetugas, setEditPetugas] = useState('');
+  const [petugasList, setPetugasList] = useState([]);
   const [updating, setUpdating] = useState(false);
   const [reportToDelete, setReportToDelete] = useState(null);
   const [activeTab, setActiveTab] = useState('semua');
@@ -28,9 +30,20 @@ export default function LaporanMasyarakat() {
     }
   };
 
+  const fetchPetugas = async () => {
+    try {
+      const res = await axios.get(`${API_URL}/admin/petugas`, { withCredentials: true });
+      if (res.data.success) {
+        setPetugasList((res.data.data || []).filter(p => p.status === 'aktif'));
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   useEffect(() => {
     const load = async () => {
-      await fetchData();
+      await Promise.all([fetchData(), fetchPetugas()]);
     };
     load();
   }, []);
@@ -53,18 +66,30 @@ export default function LaporanMasyarakat() {
 
   const handleUpdateStatus = async (e) => {
     e.preventDefault();
+    if (editPetugas && !editPrioritas) {
+      alert('Tentukan prioritas laporan terlebih dahulu sebelum menugaskan petugas');
+      return;
+    }
     setUpdating(true);
     try {
       await axios.put(`${API_URL}/admin/laporan-masyarakat/${editingReport.id}`, {
         status: editStatus,
-        prioritas: editPrioritas
+        prioritas: editPrioritas || null,
+        ditangani_oleh: editPetugas || null
       }, { withCredentials: true });
       
       setEditingReport(null);
       fetchData();
       // Update selected report view if open
       if (selectedReport && selectedReport.id === editingReport.id) {
-        setSelectedReport(prev => ({ ...prev, status: editStatus, prioritas: editPrioritas }));
+        const petugas = petugasList.find(p => String(p.id) === String(editPetugas));
+        setSelectedReport(prev => ({
+          ...prev,
+          status: editStatus,
+          prioritas: editPrioritas || null,
+          ditangani_oleh: editPetugas ? Number(editPetugas) : null,
+          nama_petugas: petugas ? petugas.name : null
+        }));
       }
     } catch (err) {
       console.error(err);
@@ -77,14 +102,16 @@ export default function LaporanMasyarakat() {
   const startEdit = (report) => {
     setEditingReport(report);
     setEditStatus(report.status);
-    setEditPrioritas(report.prioritas);
+    setEditPrioritas(report.prioritas || '');
+    setEditPetugas(report.ditangani_oleh ? String(report.ditangani_oleh) : '');
   };
 
   const getPriorityInfo = (prioritas) => {
     switch(prioritas) {
       case 'tinggi': return { bg: '#fef2f2', text: '#dc2626', border: '#fecaca', label: 'Tinggi' };
       case 'sedang': return { bg: '#fffbeb', text: '#d97706', border: '#fde68a', label: 'Sedang' };
-      default: return { bg: '#f0fdf4', text: '#15803d', border: '#bbf7d0', label: 'Rendah' };
+      case 'rendah': return { bg: '#f0fdf4', text: '#15803d', border: '#bbf7d0', label: 'Rendah' };
+      default: return { bg: '#f3f4f6', text: '#6b7280', border: '#e5e7eb', label: 'Belum Ditentukan' };
     }
   };
 
@@ -408,6 +435,12 @@ export default function LaporanMasyarakat() {
                       💬 "{selectedReport.catatan_tindak_lanjut}"
                     </div>
                   )}
+                  {selectedReport.foto_tindak_lanjut && (
+                    <a href={`${API_URL}/uploads/${selectedReport.foto_tindak_lanjut}`} target="_blank" rel="noopener noreferrer">
+                      <img src={`${API_URL}/uploads/${selectedReport.foto_tindak_lanjut}`} alt="Foto kegiatan penanganan"
+                        style={{ marginTop: '10px', width: '100%', maxHeight: '180px', objectFit: 'cover', borderRadius: '8px', border: '1px solid #dbeafe', cursor: 'zoom-in' }} />
+                    </a>
+                  )}
                   <div style={{ marginTop: '8px', fontSize: '0.78rem', color: '#60a5fa' }}>
                     Diperbarui: {new Date(selectedReport.updated_at).toLocaleString('id-ID')}
                   </div>
@@ -425,7 +458,7 @@ export default function LaporanMasyarakat() {
                   display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px'
                 }}
               >
-                <Edit2 size={16} /> Ubah Status / Prioritas
+                <Edit2 size={16} /> Tentukan Prioritas & Tugaskan
               </button>
             </div>
           </div>
@@ -470,10 +503,28 @@ export default function LaporanMasyarakat() {
                   onChange={e => setEditPrioritas(e.target.value)}
                   style={{ width: '100%', padding: '12px', borderRadius: '10px', border: '1.5px solid #e5e7eb', outline: 'none', fontFamily: 'inherit' }}
                 >
+                  <option value="">Belum ditentukan</option>
                   <option value="rendah">Rendah</option>
                   <option value="sedang">Sedang</option>
                   <option value="tinggi">Tinggi</option>
                 </select>
+              </div>
+
+              <div>
+                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', color: '#374151', fontSize: '0.9rem' }}>Tugaskan ke Petugas</label>
+                <select 
+                  value={editPetugas} 
+                  onChange={e => setEditPetugas(e.target.value)}
+                  style={{ width: '100%', padding: '12px', borderRadius: '10px', border: '1.5px solid #e5e7eb', outline: 'none', fontFamily: 'inherit' }}
+                >
+                  <option value="">Belum ditugaskan</option>
+                  {petugasList.map(p => (
+                    <option key={p.id} value={p.id}>{p.name}</option>
+                  ))}
+                </select>
+                <div style={{ marginTop: '6px', fontSize: '0.78rem', color: '#6b7280' }}>
+                  Laporan hanya tampil di akun petugas yang ditugaskan.
+                </div>
               </div>
 
               <div style={{ display: 'flex', gap: '12px', marginTop: '10px' }}>
