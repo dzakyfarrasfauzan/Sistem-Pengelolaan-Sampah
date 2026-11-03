@@ -71,6 +71,10 @@ export default function Home() {
           </span>
         </div>
         <nav style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <Link to="/cek-status" style={{
+            padding: '8px 18px', borderRadius: '10px', border: '1.5px solid #064e3b',
+            color: '#064e3b', fontWeight: '600', fontSize: '0.9rem',
+          }}>Cek Status Laporan</Link>
           <Link to="/login" style={{
             padding: '8px 18px', borderRadius: '10px',
             background: '#064e3b', color: 'white', fontWeight: '600', fontSize: '0.9rem',
@@ -78,7 +82,7 @@ export default function Home() {
           }}
             onMouseOver={e => { e.currentTarget.style.background = '#047857'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
             onMouseOut={e => { e.currentTarget.style.background = '#064e3b'; e.currentTarget.style.transform = 'translateY(0)'; }}
-          >Login Admin / Petugas</Link>
+          >Login Petugas</Link>
         </nav>
       </header>
 
@@ -171,6 +175,12 @@ export default function Home() {
               onMouseOut={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 8px 24px rgba(5, 150, 105, 0.3), inset 0 1px 0 rgba(255,255,255,0.15)'; }}
             >
               <Camera size={20} /> Laporkan Sekarang <ArrowRight size={18} />
+            </button>
+            <button onClick={() => navigate('/cek-status')} style={{
+              padding: '16px 32px', fontSize: '1.05rem', background: 'white', color: '#047857',
+              border: '2px solid #059669', borderRadius: '14px', cursor: 'pointer', fontWeight: '700', fontFamily: 'inherit',
+            }}>
+              Cek Status Laporan
             </button>
           </div>
 

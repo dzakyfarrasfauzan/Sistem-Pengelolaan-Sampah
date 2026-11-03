@@ -321,10 +321,15 @@ export default function Laporan() {
             <div style={{ fontSize: '2rem', fontWeight: '800', color: '#059669', letterSpacing: '2px' }}>{status.kode}</div>
             <div style={{ fontSize: '0.8rem', color: '#9ca3af', marginTop: '8px' }}>Simpan kode ini untuk mengecek status laporan Anda.</div>
           </div>
-          <button onClick={() => navigate('/')} style={{
+          <button onClick={() => navigate('/cek-status', { state: { kode: status.kode } })} style={{
             width: '100%', padding: '16px', background: 'linear-gradient(135deg, #059669, #047857)',
             color: 'white', border: 'none', borderRadius: '14px', fontSize: '1rem',
-            fontWeight: '700', cursor: 'pointer', fontFamily: 'inherit',
+            fontWeight: '700', cursor: 'pointer', fontFamily: 'inherit', marginBottom: '10px',
+          }}>Cek Status Laporan</button>
+          <button onClick={() => navigate('/')} style={{
+            width: '100%', padding: '14px', background: 'white', color: '#047857',
+            border: '1.5px solid #a7f3d0', borderRadius: '14px', fontSize: '1rem',
+            fontWeight: '600', cursor: 'pointer', fontFamily: 'inherit',
           }}>Kembali ke Beranda</button>
         </div>
       </div>

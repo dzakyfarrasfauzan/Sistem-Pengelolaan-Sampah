@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import axios from 'axios';
 import { ArrowLeft, Search, FileSearch, CheckCircle2, Clock, AlertCircle, Calendar, User, FileText, MapPin, Loader2 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { API_URL } from '../config';
 
 export default function CekStatus() {
-  const [search, setSearch] = useState('');
+  const location = useLocation();
+  // Kode laporan terisi otomatis bila datang dari halaman laporan berhasil dikirim
+  const [search, setSearch] = useState(location.state?.kode || '');
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
