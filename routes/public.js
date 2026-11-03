@@ -29,6 +29,16 @@ function reverseGeocode(lat, lon) {
     });
 }
 
+// Kode laporan mudah dibaca: LP-TanggalWIB-NomorUrutHarian, contoh LP-20261103-001
+function buatKodeLaporan() {
+    const wib = new Date(Date.now() + 7 * 60 * 60 * 1000);
+    const tanggal = wib.toISOString().slice(0, 10).replace(/-/g, '');
+    const awalan = `LP-${tanggal}-`;
+    const terakhir = db.prepare("SELECT kode_laporan FROM laporan_masyarakat WHERE kode_laporan LIKE ? ORDER BY kode_laporan DESC LIMIT 1").get(`${awalan}%`);
+    const urut = terakhir ? parseInt(terakhir.kode_laporan.slice(awalan.length), 10) + 1 : 1;
+    return awalan + String(urut).padStart(3, '0');
+}
+
 // POST /api/public/laporan
 router.post('/laporan', (req, res, next) => {
     upload.single('foto')(req, res, async function (err) {
@@ -45,7 +55,7 @@ router.post('/laporan', (req, res, next) => {
                 return res.status(400).json({ success: false, message: 'Foto kondisi sampah wajib dilampirkan' });
             }
 
-            const kodeLaporan = 'LP-' + Date.now();
+            const kodeLaporan = buatKodeLaporan();
 
             // Prioritas tidak ditentukan otomatis; admin yang menentukan prioritas laporan
             const prioritas = null;
@@ -98,7 +108,8 @@ router.post('/cek-status', (req, res) => {
             return res.status(400).json({ success: false, message: 'Masukkan kode laporan atau nomor telepon' });
         }
 
-        const searchTrimmed = search.trim();
+        // Kode laporan tidak membedakan huruf besar/kecil (lp-... sama dengan LP-...)
+        const searchTrimmed = search.trim().toUpperCase();
 
         const results = db.prepare(`
             SELECT kode_laporan, nama_pelapor, deskripsi, foto, latitude, longitude, alamat_lokasi, patokan,
@@ -130,7 +141,7 @@ router.post('/penilaian', (req, res) => {
         }
         // Nomor telepon dipakai untuk memastikan yang menilai adalah pelapor itu sendiri
         const laporan = db.prepare('SELECT id, status, rating FROM laporan_masyarakat WHERE kode_laporan = ? AND nomor_telepon = ?')
-            .get((kode_laporan || '').trim(), (nomor_telepon || '').trim());
+            .get((kode_laporan || '').trim().toUpperCase(), (nomor_telepon || '').trim());
         if (!laporan) return res.status(404).json({ success: false, message: 'Laporan tidak ditemukan atau nomor telepon tidak sesuai' });
         if (laporan.status !== 'selesai') return res.status(400).json({ success: false, message: 'Laporan belum selesai ditangani' });
         if (laporan.rating) return res.status(400).json({ success: false, message: 'Laporan ini sudah dinilai' });
