@@ -8,6 +8,7 @@ const express = require('express');
 const router = express.Router();
 const db = require('../database/db');
 const { requirePengawas } = require('../middleware/auth');
+const notifikasi = require('../utils/notifikasi');
 
 router.use(requirePengawas);
 
@@ -59,11 +60,16 @@ router.get('/laporan', (req, res) => {
 router.put('/laporan/:id/teguran', (req, res) => {
     try {
         const teguran = (req.body.teguran || '').trim();
-        const laporan = db.prepare('SELECT id, status FROM laporan_masyarakat WHERE id = ?').get(req.params.id);
+        const laporan = db.prepare('SELECT id, status, kode_laporan FROM laporan_masyarakat WHERE id = ?').get(req.params.id);
         if (!laporan) return res.status(404).json({ success: false, message: 'Laporan tidak ditemukan' });
         if (laporan.status === 'selesai') return res.status(400).json({ success: false, message: 'Laporan sudah selesai ditangani' });
         db.prepare('UPDATE laporan_masyarakat SET teguran_pengawas = ?, teguran_at = CASE WHEN ? IS NULL THEN NULL ELSE CURRENT_TIMESTAMP END WHERE id = ?')
           .run(teguran || null, teguran || null, laporan.id);
+        if (teguran) {
+            notifikasi.kirim({ peran: 'admin' }, {
+                jenis: 'teguran', judul: 'Teguran dari Bidang', pesan: `${laporan.kode_laporan}: ${teguran}`, tautan: '/admin/laporan-masyarakat',
+            });
+        }
         res.json({ success: true, message: teguran ? 'Teguran dikirim ke admin Korwil' : 'Teguran dihapus' });
     } catch (err) { res.status(500).json({ success: false, message: err.message }); }
 });

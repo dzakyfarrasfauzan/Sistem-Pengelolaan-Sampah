@@ -100,4 +100,36 @@ router.get('/laporan-masyarakat/:id', (req, res) => {
     }
 });
 
+// ============================================
+// Notifikasi akun yang sedang login (riwayat 30 hari)
+// ============================================
+const notifikasi = require('../utils/notifikasi');
+
+router.get('/notifikasi', (req, res) => {
+    try {
+        notifikasi.bersihkan();
+        if (req.session.user.role === 'pengawas') notifikasi.periksaLaporanTerlambat();
+        const userId = req.session.user.id;
+        const list = db.prepare('SELECT * FROM notifikasi WHERE user_id = ? ORDER BY created_at DESC, id DESC LIMIT 100').all(userId);
+        const belumDibaca = db.prepare('SELECT COUNT(*) AS c FROM notifikasi WHERE user_id = ? AND dibaca = 0').get(userId).c;
+        res.json({ success: true, data: list, belumDibaca, masaSimpanHari: notifikasi.MASA_SIMPAN_HARI });
+    } catch (err) {
+        res.status(500).json({ success: false, message: err.message });
+    }
+});
+
+router.put('/notifikasi/baca-semua', (req, res) => {
+    try {
+        db.prepare('UPDATE notifikasi SET dibaca = 1 WHERE user_id = ?').run(req.session.user.id);
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ success: false, message: err.message }); }
+});
+
+router.put('/notifikasi/:id/baca', (req, res) => {
+    try {
+        db.prepare('UPDATE notifikasi SET dibaca = 1 WHERE id = ? AND user_id = ?').run(req.params.id, req.session.user.id);
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ success: false, message: err.message }); }
+});
+
 module.exports = router;

@@ -11,6 +11,7 @@ import {
   LogOut
 } from 'lucide-react';
 import { API_URL } from '../config';
+import NotifikasiLonceng from './NotifikasiLonceng';
 
 export default function AdminLayout() {
   const navigate = useNavigate();
@@ -79,6 +80,7 @@ export default function AdminLayout() {
             Panel Administrasi
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <NotifikasiLonceng />
             <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: '#10b981', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' }}>
               A
             </div>

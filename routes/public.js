@@ -3,6 +3,7 @@ const router = express.Router();
 const db = require('../database/db');
 const upload = require('../middleware/upload');
 const https = require('https');
+const notifikasi = require('../utils/notifikasi');
 
 // Reverse geocoding via Nominatim (OpenStreetMap) - backend fallback
 function reverseGeocode(lat, lon) {
@@ -91,6 +92,14 @@ router.post('/laporan', (req, res, next) => {
                 prioritas
             );
 
+            const isiNotif = {
+                jenis: 'laporan_baru',
+                judul: 'Laporan masyarakat baru',
+                pesan: `${kodeLaporan} dari ${nama_pelapor}${finalAlamat ? ` di ${finalAlamat}` : ''}. Tentukan prioritas dan tugaskan sopir.`,
+            };
+            notifikasi.kirim({ peran: 'admin' }, { ...isiNotif, tautan: '/admin/laporan-masyarakat' });
+            notifikasi.kirim({ peran: 'pengawas' }, { ...isiNotif, pesan: `${kodeLaporan} masuk ke admin Korwil${finalAlamat ? ` (${finalAlamat})` : ''}.`, tautan: '/pengawas/laporan' });
+
             res.json({ success: true, kodeLaporan: kodeLaporan, message: 'Laporan berhasil dikirim' });
         } catch (error) {
             console.error('Laporan submit error:', error.message);
@@ -148,6 +157,10 @@ router.post('/penilaian', (req, res) => {
 
         db.prepare('UPDATE laporan_masyarakat SET rating = ?, ulasan = ?, dinilai_at = CURRENT_TIMESTAMP WHERE id = ?')
           .run(nilai, (ulasan || '').trim() || null, laporan.id);
+        const kode = (kode_laporan || '').trim().toUpperCase();
+        const isi = { jenis: 'penilaian', judul: `Penilaian pelapor: ${'★'.repeat(nilai)}`, pesan: `${kode} dinilai ${nilai} dari 5${(ulasan || '').trim() ? `: "${ulasan.trim()}"` : ''}.` };
+        notifikasi.kirim({ peran: 'admin' }, { ...isi, tautan: '/admin/laporan-masyarakat' });
+        notifikasi.kirim({ peran: 'pengawas' }, { ...isi, tautan: '/pengawas/laporan' });
         res.json({ success: true, message: 'Terima kasih atas penilaian Anda' });
     } catch (err) {
         console.error('Penilaian error:', err.message);

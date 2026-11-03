@@ -3,6 +3,7 @@ const router = express.Router();
 const db = require('../database/db');
 const bcrypt = require('bcryptjs');
 const { requireAdmin } = require('../middleware/auth');
+const notifikasi = require('../utils/notifikasi');
 
 router.use(requireAdmin);
 
@@ -193,6 +194,12 @@ function cekTim(sopirId, kruIds) {
     return null;
 }
 const normalKru = (v) => [...new Set((Array.isArray(v) ? v : []).map(Number).filter(Boolean))];
+// Ringkasan jadwal untuk isi notifikasi sopir
+const infoJadwal = (id) => db.prepare(`
+    SELECT j.tanggal, j.jam, t.nama_tps, k.nomor_polisi FROM jadwal_pengangkutan j
+    LEFT JOIN tps t ON t.id = j.tps_id LEFT JOIN kendaraan k ON k.id = j.kendaraan_id WHERE j.id = ?`).get(id);
+const teksJadwal = (j) => `${j.nama_tps}, ${j.tanggal} pukul ${j.jam}, armada ${j.nomor_polisi}`;
+
 const simpanKru = (jadwalId, kruIds) => {
     db.prepare('DELETE FROM jadwal_kru WHERE jadwal_id = ?').run(jadwalId);
     const ins = db.prepare('INSERT INTO jadwal_kru (jadwal_id, kru_id) VALUES (?, ?)');
@@ -240,8 +247,13 @@ router.post('/jadwal', (req, res) => {
         const simpan = db.transaction(() => {
             const { lastInsertRowid } = db.prepare(`INSERT INTO jadwal_pengangkutan (tps_id, kendaraan_id, sopir_id, tanggal, jam, catatan) VALUES (?, ?, ?, ?, ?, ?)`).run(tps_id, kendaraan_id, sopir_id, tanggal, jam, catatan || null);
             simpanKru(lastInsertRowid, kruIds);
+            return lastInsertRowid;
         });
-        simpan();
+        const jadwalId = simpan();
+        notifikasi.kirim(Number(sopir_id), {
+            jenis: 'jadwal_baru', judul: 'Jadwal pengangkutan baru',
+            pesan: `${teksJadwal(infoJadwal(jadwalId))}. Periksa armada sebelum berangkat.`, tautan: '/sopir/jadwal',
+        });
         res.json({ success: true });
     } catch (err) { res.status(500).json({ success: false, message: err.message }); }
 });
@@ -270,6 +282,12 @@ router.put('/jadwal/:id', (req, res) => {
             if (gantiArmada) db.prepare("DELETE FROM pemeriksaan_kendaraan WHERE jadwal_id = ? AND jenis = 'sebelum berangkat'").run(req.params.id);
         });
         simpan();
+        const info = infoJadwal(req.params.id);
+        if (String(lama.sopir_id) !== String(sopir_id)) {
+            notifikasi.kirim(Number(sopir_id), { jenis: 'jadwal_baru', judul: 'Jadwal pengangkutan baru', pesan: `${teksJadwal(info)}. Periksa armada sebelum berangkat.`, tautan: '/sopir/jadwal' });
+        } else if (gantiArmada) {
+            notifikasi.kirim(Number(sopir_id), { jenis: 'armada_diganti', judul: 'Armada diganti', pesan: `${teksJadwal(info)}. Periksa armada pengganti sebelum berangkat.`, tautan: '/sopir/jadwal' });
+        }
         res.json({ success: true, message: gantiArmada ? 'Armada diganti, sopir perlu memeriksa armada pengganti sebelum berangkat' : undefined });
     } catch (err) { res.status(500).json({ success: false, message: err.message }); }
 });
@@ -339,10 +357,19 @@ router.put('/laporan-masyarakat/:id', (req, res) => {
             if (!sopir) return res.status(400).json({ success: false, message: 'Sopir tidak ditemukan atau tidak aktif' });
         }
 
+        const lamaLaporan = db.prepare('SELECT kode_laporan, alamat_lokasi, ditangani_oleh FROM laporan_masyarakat WHERE id = ?').get(req.params.id);
+        if (!lamaLaporan) return res.status(404).json({ success: false, message: 'Laporan tidak ditemukan' });
         db.prepare(`UPDATE laporan_masyarakat SET status = ?, prioritas = ?, ditangani_oleh = ?,
                     selesai_at = CASE WHEN ? = 'selesai' THEN COALESCE(selesai_at, CURRENT_TIMESTAMP) ELSE NULL END,
                     updated_at = CURRENT_TIMESTAMP WHERE id = ?`)
           .run(status, prio, petugasId, status, req.params.id);
+        if (petugasId && petugasId !== lamaLaporan.ditangani_oleh && status !== 'selesai') {
+            notifikasi.kirim(petugasId, {
+                jenis: 'laporan_ditugaskan', judul: `Laporan masyarakat ditugaskan (prioritas ${prio})`,
+                pesan: `${lamaLaporan.kode_laporan}${lamaLaporan.alamat_lokasi ? ` di ${lamaLaporan.alamat_lokasi}` : ''}. Segera tangani bersama kru.`,
+                tautan: '/sopir/laporan',
+            });
+        }
         res.json({ success: true });
     } catch (err) {
         res.status(500).json({ success: false, message: err.message });

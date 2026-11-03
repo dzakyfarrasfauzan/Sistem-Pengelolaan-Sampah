@@ -9,6 +9,7 @@ const router = express.Router();
 const db = require('../database/db');
 const { requireSopir } = require('../middleware/auth');
 const upload = require('../middleware/upload');
+const notifikasi = require('../utils/notifikasi');
 
 const uploadFoto = (req, res, next) => {
     upload.single('foto')(req, res, (err) => {
@@ -102,6 +103,15 @@ router.post('/jadwal/:id/pemeriksaan', uploadFoto, (req, res) => {
         });
         simpan();
 
+        if (kondisi !== 'baik') {
+            const k = db.prepare('SELECT nomor_polisi FROM kendaraan WHERE id = ?').get(jadwal.kendaraan_id);
+            notifikasi.kirim({ peran: 'admin' }, {
+                jenis: 'kendaraan_rusak', judul: `Kendaraan ${kondisi}`,
+                pesan: `${k ? k.nomor_polisi : 'Kendaraan'} dilaporkan ${kondisi} oleh ${req.session.user.name} (pemeriksaan ${jenis})${catatan ? `: ${catatan}` : ''}.`
+                    + (kondisi === 'rusak berat' && jenis === 'sebelum berangkat' ? ' Ganti armada pada jadwal ini.' : ''),
+                tautan: '/admin/pemeriksaan-kendaraan',
+            });
+        }
         res.json({ success: true, message: 'Hasil pemeriksaan kendaraan berhasil disimpan', status_kendaraan: statusKendaraan });
     } catch (err) { res.status(500).json({ success: false, message: err.message }); }
 });
@@ -138,6 +148,13 @@ router.put('/jadwal/:id/status', uploadFoto, (req, res) => {
             }
         });
         simpan();
+        if (status === 'selesai') {
+            const t = db.prepare('SELECT nama_tps FROM tps WHERE id = ?').get(jadwal.tps_id);
+            notifikasi.kirim({ peran: 'admin' }, {
+                jenis: 'pengangkutan_selesai', judul: 'Pengangkutan selesai',
+                pesan: `${req.session.user.name} menyelesaikan pengangkutan ${t ? t.nama_tps : ''} (${jadwal.tanggal}).`, tautan: '/admin/jadwal',
+            });
+        }
         res.json({ success: true, message: status === 'selesai' ? 'Pengangkutan selesai. Lanjutkan pemeriksaan armada sesudah pulang.' : 'Pengangkutan dimulai' });
     } catch (err) { res.status(500).json({ success: false, message: err.message }); }
 });
@@ -174,6 +191,12 @@ router.put('/laporan/:id', uploadFoto, (req, res) => {
                 updated_at = CURRENT_TIMESTAMP
             WHERE id = ?
         `).run(status, catatan_tindak_lanjut || null, foto, status, laporan.id);
+        if (status === 'selesai') {
+            const l = db.prepare('SELECT kode_laporan FROM laporan_masyarakat WHERE id = ?').get(laporan.id);
+            const isi = { jenis: 'laporan_selesai', judul: 'Laporan masyarakat selesai ditangani', pesan: `${l.kode_laporan} sudah ditangani oleh ${req.session.user.name}.` };
+            notifikasi.kirim({ peran: 'admin' }, { ...isi, pesan: isi.pesan + ' Kabari pelapor lewat WhatsApp.', tautan: '/admin/laporan-masyarakat' });
+            notifikasi.kirim({ peran: 'pengawas' }, { ...isi, tautan: '/pengawas/laporan' });
+        }
         res.json({ success: true, message: 'Status laporan berhasil diperbarui' });
     } catch (err) { res.status(500).json({ success: false, message: err.message }); }
 });

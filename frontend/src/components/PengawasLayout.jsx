@@ -7,6 +7,7 @@ import {
   LogOut
 } from 'lucide-react';
 import { API_URL } from '../config';
+import NotifikasiLonceng from './NotifikasiLonceng';
 
 export default function PengawasLayout() {
   const navigate = useNavigate();
@@ -66,6 +67,7 @@ export default function PengawasLayout() {
       <main style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
         <header style={{ height: '70px', background: 'white', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', padding: '0 40px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <NotifikasiLonceng />
             <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: '#a855f7', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' }}>
               B
             </div>

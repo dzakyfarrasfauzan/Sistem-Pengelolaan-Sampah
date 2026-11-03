@@ -147,6 +147,7 @@ tambahKolom('laporan_masyarakat', 'ulasan', 'TEXT');
 tambahKolom('laporan_masyarakat', 'dinilai_at', 'DATETIME');
 tambahKolom('laporan_masyarakat', 'teguran_pengawas', 'TEXT');
 tambahKolom('laporan_masyarakat', 'teguran_at', 'DATETIME');
+tambahKolom('laporan_masyarakat', 'notif_terlambat_at', 'DATETIME');
 
 // Seed default data if tables are empty
 try {

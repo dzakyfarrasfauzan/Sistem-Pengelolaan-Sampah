@@ -91,6 +91,7 @@ CREATE TABLE IF NOT EXISTS laporan_masyarakat (
     dinilai_at DATETIME,
     teguran_pengawas TEXT,
     teguran_at DATETIME,
+    notif_terlambat_at DATETIME,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
@@ -123,3 +124,16 @@ CREATE TABLE IF NOT EXISTS pemeriksaan_kendaraan (
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     UNIQUE(jadwal_id, jenis)
 );
+
+-- Tabel Notifikasi (pemberitahuan untuk admin, sopir, dan pengawas; disimpan 30 hari)
+CREATE TABLE IF NOT EXISTS notifikasi (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    jenis TEXT NOT NULL,
+    judul TEXT NOT NULL,
+    pesan TEXT NOT NULL,
+    tautan TEXT,
+    dibaca INTEGER NOT NULL DEFAULT 0,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX IF NOT EXISTS idx_notifikasi_user ON notifikasi(user_id, id);
