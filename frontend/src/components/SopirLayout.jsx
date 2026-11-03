@@ -3,6 +3,7 @@ import axios from 'axios';
 import {
   LayoutDashboard,
   ClipboardCheck,
+  MessageSquareWarning,
   LogOut
 } from 'lucide-react';
 import { API_URL } from '../config';
@@ -40,12 +41,13 @@ export default function SopirLayout() {
       <aside style={{ width: '280px', background: '#0c4a6e', color: 'white', display: 'flex', flexDirection: 'column', boxShadow: '4px 0 10px rgba(0,0,0,0.1)', zIndex: 20 }}>
         <div style={{ padding: '24px', textAlign: 'center', borderBottom: '1px solid rgba(255,255,255,0.1)', marginBottom: '20px' }}>
           <h2 style={{ color: '#bae6fd', margin: 0, fontSize: '1.5rem', fontWeight: 'bold' }}>DLH SOPIR</h2>
-          <p style={{ margin: '4px 0 0', fontSize: '0.85rem', color: '#7dd3fc' }}>Panel Kesiapan Armada</p>
+          <p style={{ margin: '4px 0 0', fontSize: '0.85rem', color: '#7dd3fc' }}>Pemimpin Tim Petugas Operasional</p>
         </div>
 
         <nav style={{ flex: 1 }}>
           <NavLink to="/sopir/dashboard" style={navStyles}><LayoutDashboard size={20} /> Dashboard</NavLink>
-          <NavLink to="/sopir/jadwal" style={navStyles}><ClipboardCheck size={20} /> Pemeriksaan Armada</NavLink>
+          <NavLink to="/sopir/jadwal" style={navStyles}><ClipboardCheck size={20} /> Jadwal &amp; Armada</NavLink>
+          <NavLink to="/sopir/laporan" style={navStyles}><MessageSquareWarning size={20} /> Laporan Prioritas</NavLink>
         </nav>
 
         <div style={{ padding: '20px' }}>

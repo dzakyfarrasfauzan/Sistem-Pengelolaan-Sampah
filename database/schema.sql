@@ -4,13 +4,17 @@
 -- Database Schema
 -- ============================================
 
--- Tabel Users (Admin, Petugas Angkutan & Sopir)
+-- Tabel Users
+-- admin    : admin Korwil yang mengelola data, jadwal, dan laporan masyarakat
+-- pengawas : akun Bidang untuk memantau penanganan laporan masyarakat
+-- sopir    : petugas operasional berperan sopir (pemimpin tim, dapat login)
+-- kru      : petugas operasional berperan kru pengangkut (data saja, tidak login)
 CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL,
-    username TEXT UNIQUE NOT NULL,
-    password TEXT NOT NULL,
-    role TEXT NOT NULL CHECK(role IN ('admin','petugas','sopir')),
+    username TEXT UNIQUE,
+    password TEXT,
+    role TEXT NOT NULL CHECK(role IN ('admin','pengawas','sopir','kru')),
     phone TEXT,
     address TEXT,
     status TEXT DEFAULT 'aktif' CHECK(status IN ('aktif','nonaktif')),
@@ -47,7 +51,6 @@ CREATE TABLE IF NOT EXISTS jadwal_pengangkutan (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     tps_id INTEGER NOT NULL REFERENCES tps(id),
     kendaraan_id INTEGER NOT NULL REFERENCES kendaraan(id),
-    petugas_id INTEGER NOT NULL REFERENCES users(id),
     sopir_id INTEGER REFERENCES users(id),
     tanggal DATE NOT NULL,
     jam TIME NOT NULL,
@@ -56,6 +59,13 @@ CREATE TABLE IF NOT EXISTS jadwal_pengangkutan (
     foto_kegiatan TEXT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Tabel Kru pada Jadwal (satu jadwal: satu sopir dan beberapa kru)
+CREATE TABLE IF NOT EXISTS jadwal_kru (
+    jadwal_id INTEGER NOT NULL REFERENCES jadwal_pengangkutan(id) ON DELETE CASCADE,
+    kru_id INTEGER NOT NULL REFERENCES users(id),
+    PRIMARY KEY (jadwal_id, kru_id)
 );
 
 -- Tabel Laporan Masyarakat
@@ -75,6 +85,12 @@ CREATE TABLE IF NOT EXISTS laporan_masyarakat (
     catatan_tindak_lanjut TEXT,
     foto_tindak_lanjut TEXT,
     patokan TEXT,
+    selesai_at DATETIME,
+    rating INTEGER CHECK(rating BETWEEN 1 AND 5),
+    ulasan TEXT,
+    dinilai_at DATETIME,
+    teguran_pengawas TEXT,
+    teguran_at DATETIME,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
@@ -85,7 +101,7 @@ CREATE TABLE IF NOT EXISTS laporan_pengangkutan (
     jadwal_id INTEGER REFERENCES jadwal_pengangkutan(id),
     tps_id INTEGER NOT NULL REFERENCES tps(id),
     kendaraan_id INTEGER NOT NULL REFERENCES kendaraan(id),
-    petugas_id INTEGER NOT NULL REFERENCES users(id),
+    sopir_id INTEGER NOT NULL REFERENCES users(id),
     tanggal_pengangkutan DATE NOT NULL,
     status_pengangkutan TEXT DEFAULT 'selesai' CHECK(status_pengangkutan IN ('selesai','gagal','sebagian')),
     catatan TEXT,

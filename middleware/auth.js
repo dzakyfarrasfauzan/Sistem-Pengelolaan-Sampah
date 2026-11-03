@@ -13,42 +13,22 @@ function requireLogin(req, res, next) {
 }
 
 /**
- * Require user to be an admin
+ * Membatasi akses sesuai peran akun (admin, pengawas, sopir)
  */
-function requireAdmin(req, res, next) {
-    if (!req.session.user) {
-        return res.status(401).json({ success: false, message: 'Unauthorized. Silakan login kembali.' });
-    }
-    if (req.session.user.role !== 'admin') {
-        return res.status(403).json({ success: false, message: 'Akses ditolak. Anda bukan admin.' });
-    }
-    next();
+function requireRole(role, label) {
+    return (req, res, next) => {
+        if (!req.session.user) {
+            return res.status(401).json({ success: false, message: 'Unauthorized. Silakan login kembali.' });
+        }
+        if (req.session.user.role !== role) {
+            return res.status(403).json({ success: false, message: `Akses ditolak. Anda bukan ${label}.` });
+        }
+        next();
+    };
 }
 
-/**
- * Require user to be a petugas
- */
-function requirePetugas(req, res, next) {
-    if (!req.session.user) {
-        return res.status(401).json({ success: false, message: 'Unauthorized. Silakan login kembali.' });
-    }
-    if (req.session.user.role !== 'petugas') {
-        return res.status(403).json({ success: false, message: 'Akses ditolak. Anda bukan petugas.' });
-    }
-    next();
-}
+const requireAdmin = requireRole('admin', 'admin');
+const requirePengawas = requireRole('pengawas', 'pengawas bidang');
+const requireSopir = requireRole('sopir', 'sopir');
 
-/**
- * Require user to be a sopir
- */
-function requireSopir(req, res, next) {
-    if (!req.session.user) {
-        return res.status(401).json({ success: false, message: 'Unauthorized. Silakan login kembali.' });
-    }
-    if (req.session.user.role !== 'sopir') {
-        return res.status(403).json({ success: false, message: 'Akses ditolak. Anda bukan sopir.' });
-    }
-    next();
-}
-
-module.exports = { requireLogin, requireAdmin, requirePetugas, requireSopir };
+module.exports = { requireLogin, requireAdmin, requirePengawas, requireSopir };

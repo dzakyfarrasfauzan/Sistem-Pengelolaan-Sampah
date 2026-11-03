@@ -53,8 +53,8 @@ app.use('/', require('./routes/auth'));
 // Admin routes
 app.use('/admin', require('./routes/admin'));
 
-// Petugas routes
-app.use('/petugas', require('./routes/petugas'));
+// Pengawas (Bidang) routes
+app.use('/pengawas', require('./routes/pengawas'));
 
 // Sopir routes
 app.use('/sopir', require('./routes/sopir'));

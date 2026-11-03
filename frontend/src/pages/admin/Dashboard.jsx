@@ -61,8 +61,8 @@ export default function Dashboard() {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '24px', marginBottom: '24px' }}>
         <StatCard title="Total TPS" value={stats?.totalTps || 0} icon={<Trash2 size={24} />} color="#3b82f6" />
         <StatCard title="Total Kendaraan" value={stats?.totalKendaraan || 0} icon={<Truck size={24} />} color="#f59e0b" />
-        <StatCard title="Petugas Operasional" value={stats?.totalPetugas || 0} icon={<Users size={24} />} color="#10b981" />
         <StatCard title="Sopir" value={stats?.totalSopir || 0} icon={<UserCog size={24} />} color="#0ea5e9" />
+        <StatCard title="Kru" value={stats?.totalKru || 0} icon={<Users size={24} />} color="#10b981" />
         <StatCard title="Jadwal Hari Ini" value={stats?.jadwalHariIni || 0} icon={<BarChart3 size={24} />} color="#8b5cf6" />
       </div>
 
@@ -73,6 +73,12 @@ export default function Dashboard() {
         <StatCard title="Laporan Selesai" value={stats?.laporanSelesai || 0} icon={<CheckCircle size={24} />} color="#10b981" />
         <StatCard title="Kendaraan Perlu Perbaikan" value={stats?.kendaraanPerluPerbaikan || 0} icon={<Wrench size={24} />} color="#f97316" />
       </div>
+
+      {stats?.teguranPengawas > 0 && (
+        <div style={{ background: '#fef2f2', border: '1px solid #fecaca', color: '#991b1b', padding: '16px 20px', borderRadius: '12px', marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '10px', fontWeight: '600' }}>
+          <AlertTriangle size={20} /> Ada {stats.teguranPengawas} teguran dari Bidang untuk laporan masyarakat yang belum selesai. Lihat di menu Laporan Publik.
+        </div>
+      )}
 
       {/* Recent Reports Table */}
       <div style={{ background: 'white', borderRadius: '16px', padding: '24px', boxShadow: '0 4px 6px rgba(0,0,0,0.02)' }}>

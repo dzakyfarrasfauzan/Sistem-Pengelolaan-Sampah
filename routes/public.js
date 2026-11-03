@@ -101,7 +101,10 @@ router.post('/cek-status', (req, res) => {
         const searchTrimmed = search.trim();
 
         const results = db.prepare(`
-            SELECT * FROM laporan_masyarakat
+            SELECT kode_laporan, nama_pelapor, deskripsi, foto, latitude, longitude, alamat_lokasi, patokan,
+                   prioritas, status, catatan_tindak_lanjut, foto_tindak_lanjut, selesai_at,
+                   rating, ulasan, dinilai_at, created_at, updated_at
+            FROM laporan_masyarakat
             WHERE kode_laporan = ? OR nomor_telepon = ?
             ORDER BY created_at DESC
         `).all(searchTrimmed, searchTrimmed);
@@ -114,6 +117,30 @@ router.post('/cek-status', (req, res) => {
     } catch (err) {
         console.error('Cek status error:', err.message);
         res.status(500).json({ success: false, message: 'Terjadi kesalahan saat mencari laporan' });
+    }
+});
+
+// POST /api/public/penilaian - pelapor menilai penanganan laporan yang sudah selesai
+router.post('/penilaian', (req, res) => {
+    try {
+        const { kode_laporan, nomor_telepon, rating, ulasan } = req.body;
+        const nilai = Number(rating);
+        if (!Number.isInteger(nilai) || nilai < 1 || nilai > 5) {
+            return res.status(400).json({ success: false, message: 'Pilih penilaian bintang 1 sampai 5' });
+        }
+        // Nomor telepon dipakai untuk memastikan yang menilai adalah pelapor itu sendiri
+        const laporan = db.prepare('SELECT id, status, rating FROM laporan_masyarakat WHERE kode_laporan = ? AND nomor_telepon = ?')
+            .get((kode_laporan || '').trim(), (nomor_telepon || '').trim());
+        if (!laporan) return res.status(404).json({ success: false, message: 'Laporan tidak ditemukan atau nomor telepon tidak sesuai' });
+        if (laporan.status !== 'selesai') return res.status(400).json({ success: false, message: 'Laporan belum selesai ditangani' });
+        if (laporan.rating) return res.status(400).json({ success: false, message: 'Laporan ini sudah dinilai' });
+
+        db.prepare('UPDATE laporan_masyarakat SET rating = ?, ulasan = ?, dinilai_at = CURRENT_TIMESTAMP WHERE id = ?')
+          .run(nilai, (ulasan || '').trim() || null, laporan.id);
+        res.json({ success: true, message: 'Terima kasih atas penilaian Anda' });
+    } catch (err) {
+        console.error('Penilaian error:', err.message);
+        res.status(500).json({ success: false, message: 'Terjadi kesalahan saat menyimpan penilaian' });
     }
 });
 

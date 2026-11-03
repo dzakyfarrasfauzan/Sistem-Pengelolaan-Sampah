@@ -44,11 +44,11 @@ router.get('/kendaraan/:id', (req, res) => {
 });
 
 // ============================================
-// Petugas API
+// Petugas Operasional API (sopir dan kru)
 // ============================================
 router.get('/petugas/:id', (req, res) => {
     try {
-        const petugas = db.prepare("SELECT id, name, username, phone, address, status, created_at, updated_at FROM users WHERE id = ? AND role = 'petugas'").get(req.params.id);
+        const petugas = db.prepare("SELECT id, name, username, role AS peran, phone, address, status, created_at, updated_at FROM users WHERE id = ? AND role IN ('sopir','kru')").get(req.params.id);
         if (!petugas) {
             return res.status(404).json({ error: 'Petugas tidak ditemukan' });
         }
@@ -65,11 +65,12 @@ router.get('/petugas/:id', (req, res) => {
 router.get('/jadwal/:id', (req, res) => {
     try {
         const jadwal = db.prepare(`
-            SELECT j.*, t.nama_tps, k.nomor_polisi, k.jenis_kendaraan, u.name as petugas_name
+            SELECT j.*, t.nama_tps, k.nomor_polisi, k.jenis_kendaraan, s.name as sopir_name,
+                   (SELECT GROUP_CONCAT(u.name, ', ') FROM jadwal_kru jk JOIN users u ON u.id = jk.kru_id WHERE jk.jadwal_id = j.id) as kru_names
             FROM jadwal_pengangkutan j
             LEFT JOIN tps t ON j.tps_id = t.id
             LEFT JOIN kendaraan k ON j.kendaraan_id = k.id
-            LEFT JOIN users u ON j.petugas_id = u.id
+            LEFT JOIN users s ON j.sopir_id = s.id
             WHERE j.id = ?
         `).get(req.params.id);
 

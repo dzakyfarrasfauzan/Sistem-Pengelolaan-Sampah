@@ -10,12 +10,12 @@ export default function Jadwal() {
   // Options for dropdowns
   const [tpsList, setTpsList] = useState([]);
   const [kendaraanList, setKendaraanList] = useState([]);
-  const [petugasList, setPetugasList] = useState([]);
+  const [kruList, setKruList] = useState([]);
   const [sopirList, setSopirList] = useState([]);
   
   // Modal state
   const [showModal, setShowModal] = useState(false);
-  const [formData, setFormData] = useState({ id: null, tps_id: '', kendaraan_id: '', petugas_id: '', sopir_id: '', tanggal: '', jam: '', status: 'menunggu', catatan: '' });
+  const [formData, setFormData] = useState({ id: null, tps_id: '', kendaraan_id: '', sopir_id: '', kru_ids: [], tanggal: '', jam: '', status: 'menunggu', catatan: '' });
   const [isEdit, setIsEdit] = useState(false);
   const [jadwalToDelete, setJadwalToDelete] = useState(null);
   const [deleting, setDeleting] = useState(false);
@@ -35,16 +35,18 @@ export default function Jadwal() {
 
   const fetchOptions = async () => {
     try {
-      const [tpsRes, kendRes, petRes, sopRes] = await Promise.all([
+      const [tpsRes, kendRes, petRes] = await Promise.all([
         axios.get(`${API_URL}/admin/tps`, { withCredentials: true }),
         axios.get(`${API_URL}/admin/kendaraan`, { withCredentials: true }),
-        axios.get(`${API_URL}/admin/petugas`, { withCredentials: true }),
-        axios.get(`${API_URL}/admin/sopir`, { withCredentials: true })
+        axios.get(`${API_URL}/admin/petugas`, { withCredentials: true })
       ]);
       if (tpsRes.data.success) setTpsList(tpsRes.data.data);
       if (kendRes.data.success) setKendaraanList(kendRes.data.data);
-      if (petRes.data.success) setPetugasList(petRes.data.data);
-      if (sopRes.data.success) setSopirList(sopRes.data.data.filter(x => x.status === 'aktif'));
+      if (petRes.data.success) {
+        const aktif = petRes.data.data.filter(x => x.status === 'aktif');
+        setSopirList(aktif.filter(x => x.peran === 'sopir'));
+        setKruList(aktif.filter(x => x.peran === 'kru'));
+      }
     } catch (err) {
       console.error("Gagal memuat opsi form", err);
     }
@@ -58,7 +60,7 @@ export default function Jadwal() {
   }, []);
 
   const handleOpenAdd = () => {
-    setFormData({ id: null, tps_id: '', kendaraan_id: '', petugas_id: '', sopir_id: '', tanggal: '', jam: '', status: 'menunggu', catatan: '' });
+    setFormData({ id: null, tps_id: '', kendaraan_id: '', sopir_id: '', kru_ids: [], tanggal: '', jam: '', status: 'menunggu', catatan: '' });
     setIsEdit(false);
     setShowModal(true);
   };
@@ -69,8 +71,8 @@ export default function Jadwal() {
       tps_id: item.tps_id || '',
       kendaraan_id: item.kendaraan_id || '',
       kendaraan_awal: item.kendaraan_id || '',
-      petugas_id: item.petugas_id || '',
       sopir_id: item.sopir_id || '',
+      kru_ids: item.kru_ids ? String(item.kru_ids).split(',').map(Number) : [],
     });
     setIsEdit(true);
     setShowModal(true);
@@ -90,8 +92,14 @@ export default function Jadwal() {
     }
   };
 
+  const toggleKru = (id) => {
+    const ada = formData.kru_ids.includes(id);
+    setFormData({ ...formData, kru_ids: ada ? formData.kru_ids.filter(k => k !== id) : [...formData.kru_ids, id] });
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (formData.kru_ids.length === 0) { alert('Pilih minimal satu kru'); return; }
     try {
       if (isEdit) {
         const res = await axios.put(`${API_URL}/admin/jadwal/${formData.id}`, formData, { withCredentials: true });
@@ -124,7 +132,7 @@ export default function Jadwal() {
               <th style={{ padding: '16px' }}>Waktu</th>
               <th style={{ padding: '16px' }}>Lokasi TPS</th>
               <th style={{ padding: '16px' }}>Armada</th>
-              <th style={{ padding: '16px' }}>Petugas &amp; Sopir</th>
+              <th style={{ padding: '16px' }}>Sopir &amp; Kru</th>
               <th style={{ padding: '16px' }}>Pemeriksaan Armada</th>
               <th style={{ padding: '16px' }}>Status</th>
               <th style={{ padding: '16px', textAlign: 'center' }}>Aksi</th>
@@ -145,8 +153,8 @@ export default function Jadwal() {
                   <div style={{ fontSize: '0.85rem', color: '#6b7280' }}>{item.jenis_kendaraan}</div>
                 </td>
                 <td style={{ padding: '16px', color: '#4b5563' }}>
-                  <div>{item.petugas_name}</div>
-                  <div style={{ fontSize: '0.8rem', color: item.sopir_name ? '#6b7280' : '#dc2626' }}>Sopir: {item.sopir_name || 'belum dipilih'}</div>
+                  <div style={{ fontWeight: '600', color: item.sopir_name ? '#111827' : '#dc2626' }}>Sopir: {item.sopir_name || 'belum dipilih'}</div>
+                  <div style={{ fontSize: '0.8rem', color: '#6b7280' }}>Kru: {item.kru_names || '-'}</div>
                 </td>
                 <td style={{ padding: '16px', fontSize: '0.8rem' }}>
                   <KondisiBadge label="Berangkat" kondisi={item.kondisi_berangkat} foto={item.foto_berangkat} />
@@ -214,17 +222,22 @@ export default function Jadwal() {
                 </div>
               )}
 
-              <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500', fontSize: '0.9rem' }}>Pilih Petugas Operasional</label>
-              <select required value={formData.petugas_id} onChange={e => setFormData({...formData, petugas_id: e.target.value})} style={inputStyle}>
-                <option value="" disabled>-- Pilih Petugas Operasional --</option>
-                {petugasList.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-              </select>
-              
-              <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500', fontSize: '0.9rem' }}>Pilih Sopir</label>
+              <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500', fontSize: '0.9rem' }}>Pilih Sopir (Pemimpin Tim)</label>
               <select required value={formData.sopir_id} onChange={e => setFormData({...formData, sopir_id: e.target.value})} style={inputStyle}>
                 <option value="" disabled>-- Pilih Sopir --</option>
                 {sopirList.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
               </select>
+
+              <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500', fontSize: '0.9rem' }}>Pilih Kru ({formData.kru_ids.length} dipilih)</label>
+              <div style={{ border: '1px solid #d1d5db', borderRadius: '8px', padding: '8px 12px', marginBottom: '15px', maxHeight: '160px', overflowY: 'auto' }}>
+                {kruList.length === 0 && <div style={{ fontSize: '0.85rem', color: '#9ca3af' }}>Belum ada data kru aktif</div>}
+                {kruList.map(k => (
+                  <label key={k.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '4px 0', fontSize: '0.9rem', cursor: 'pointer' }}>
+                    <input type="checkbox" checked={formData.kru_ids.includes(k.id)} onChange={() => toggleKru(k.id)} />
+                    {k.name}
+                  </label>
+                ))}
+              </div>
 
               <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500', fontSize: '0.9rem' }}>Status</label>
               <select value={formData.status} onChange={e => setFormData({...formData, status: e.target.value})} style={inputStyle}>

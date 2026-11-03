@@ -3,12 +3,12 @@ import axios from 'axios';
 import {
   LayoutDashboard,
   CalendarDays,
-  FileText,
+  MessageSquareWarning,
   LogOut
 } from 'lucide-react';
 import { API_URL } from '../config';
 
-export default function PetugasLayout() {
+export default function PengawasLayout() {
   const navigate = useNavigate();
 
   const handleLogout = async () => {
@@ -28,26 +28,26 @@ export default function PetugasLayout() {
     margin: '8px 16px',
     borderRadius: '12px',
     color: isActive ? '#fff' : '#d1d5db',
-    background: isActive ? 'linear-gradient(90deg, #3b82f6 0%, #2563eb 100%)' : 'transparent',
+    background: isActive ? 'linear-gradient(90deg, #a855f7 0%, #7e22ce 100%)' : 'transparent',
     textDecoration: 'none',
     fontWeight: '500',
     transition: 'all 0.3s ease',
-    boxShadow: isActive ? '0 4px 12px rgba(59, 130, 246, 0.3)' : 'none'
+    boxShadow: isActive ? '0 4px 12px rgba(168, 85, 247, 0.3)' : 'none'
   });
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh', background: '#f3f4f6', fontFamily: 'Inter, sans-serif' }}>
       {/* Sidebar */}
-      <aside style={{ width: '280px', background: '#1e3a8a', color: 'white', display: 'flex', flexDirection: 'column', boxShadow: '4px 0 10px rgba(0,0,0,0.1)', zIndex: 20 }}>
+      <aside style={{ width: '280px', background: '#3b0764', color: 'white', display: 'flex', flexDirection: 'column', boxShadow: '4px 0 10px rgba(0,0,0,0.1)', zIndex: 20 }}>
         <div style={{ padding: '24px', textAlign: 'center', borderBottom: '1px solid rgba(255,255,255,0.1)', marginBottom: '20px' }}>
-          <h2 style={{ color: '#bfdbfe', margin: 0, fontSize: '1.5rem', fontWeight: 'bold' }}>DLH PETUGAS</h2>
-          <p style={{ margin: '4px 0 0', fontSize: '0.85rem', color: '#93c5fd' }}>Panel Operasional</p>
+          <h2 style={{ color: '#e9d5ff', margin: 0, fontSize: '1.5rem', fontWeight: 'bold' }}>DLH BIDANG</h2>
+          <p style={{ margin: '4px 0 0', fontSize: '0.85rem', color: '#d8b4fe' }}>Pengawasan Pelayanan Pengaduan</p>
         </div>
 
         <nav style={{ flex: 1 }}>
-          <NavLink to="/petugas/dashboard" style={navStyles}><LayoutDashboard size={20} /> Dashboard</NavLink>
-          <NavLink to="/petugas/jadwal" style={navStyles}><CalendarDays size={20} /> Jadwal Saya</NavLink>
-          <NavLink to="/petugas/laporan" style={navStyles}><FileText size={20} /> Laporan Prioritas</NavLink>
+          <NavLink to="/pengawas/dashboard" style={navStyles}><LayoutDashboard size={20} /> Dashboard</NavLink>
+          <NavLink to="/pengawas/laporan" style={navStyles}><MessageSquareWarning size={20} /> Pemantauan Laporan</NavLink>
+          <NavLink to="/pengawas/jadwal" style={navStyles}><CalendarDays size={20} /> Jadwal Pengangkutan</NavLink>
         </nav>
 
         <div style={{ padding: '20px' }}>
@@ -66,12 +66,12 @@ export default function PetugasLayout() {
       <main style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
         <header style={{ height: '70px', background: 'white', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', padding: '0 40px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: '#3b82f6', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' }}>
-              P
+            <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: '#a855f7', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' }}>
+              B
             </div>
             <div style={{ display: 'flex', flexDirection: 'column' }}>
-              <span style={{ fontSize: '0.95rem', fontWeight: '600', color: '#111827' }}>Akun Petugas</span>
-              <span style={{ fontSize: '0.8rem', color: '#6b7280' }}>Shift Aktif</span>
+              <span style={{ fontSize: '0.95rem', fontWeight: '600', color: '#111827' }}>Akun Pengawas Bidang</span>
+              <span style={{ fontSize: '0.8rem', color: '#6b7280' }}>Pemantauan Korwil</span>
             </div>
           </div>
         </header>

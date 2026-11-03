@@ -4,20 +4,21 @@ import Login from './pages/Login'
 import Laporan from './pages/Laporan'
 import CekStatus from './pages/CekStatus'
 import AdminLayout from './components/AdminLayout'
-import PetugasLayout from './components/PetugasLayout'
 import AdminDashboard from './pages/admin/Dashboard'
 import AdminTPS from './pages/admin/TPS'
 import AdminKendaraan from './pages/admin/Kendaraan'
 import AdminPetugas from './pages/admin/Petugas'
 import AdminJadwal from './pages/admin/Jadwal'
 import AdminLaporanMasyarakat from './pages/admin/LaporanMasyarakat'
-import PetugasDashboard from './pages/petugas/Dashboard'
-import PetugasJadwal from './pages/petugas/Jadwal'
-import PetugasLaporan from './pages/petugas/Laporan'
 import AdminPemeriksaan from './pages/admin/PemeriksaanKendaraan'
 import SopirLayout from './components/SopirLayout'
 import SopirDashboard from './pages/sopir/Dashboard'
 import SopirJadwal from './pages/sopir/Jadwal'
+import SopirLaporan from './pages/sopir/Laporan'
+import PengawasLayout from './components/PengawasLayout'
+import PengawasDashboard from './pages/pengawas/Dashboard'
+import PengawasLaporan from './pages/pengawas/Laporan'
+import PengawasJadwal from './pages/pengawas/Jadwal'
 
 function App() {
   return (
@@ -33,24 +34,24 @@ function App() {
           <Route path="dashboard" element={<AdminDashboard />} />
           <Route path="tps" element={<AdminTPS />} />
           <Route path="kendaraan" element={<AdminKendaraan />} />
-          <Route path="petugas" element={<AdminPetugas key="petugas" role="petugas" />} />
-          <Route path="sopir" element={<AdminPetugas key="sopir" role="sopir" />} />
+          <Route path="petugas" element={<AdminPetugas />} />
           <Route path="pemeriksaan-kendaraan" element={<AdminPemeriksaan />} />
           <Route path="jadwal" element={<AdminJadwal />} />
           <Route path="laporan-masyarakat" element={<AdminLaporanMasyarakat />} />
         </Route>
 
-        {/* Petugas routes with Layout */}
-        <Route path="/petugas" element={<PetugasLayout />}>
-          <Route path="dashboard" element={<PetugasDashboard />} />
-          <Route path="jadwal" element={<PetugasJadwal />} />
-          <Route path="laporan" element={<PetugasLaporan />} />
-        </Route>
-        
-        {/* Sopir routes with Layout */}
+        {/* Sopir (pemimpin tim petugas operasional) */}
         <Route path="/sopir" element={<SopirLayout />}>
           <Route path="dashboard" element={<SopirDashboard />} />
           <Route path="jadwal" element={<SopirJadwal />} />
+          <Route path="laporan" element={<SopirLaporan />} />
+        </Route>
+
+        {/* Pengawas Bidang */}
+        <Route path="/pengawas" element={<PengawasLayout />}>
+          <Route path="dashboard" element={<PengawasDashboard />} />
+          <Route path="laporan" element={<PengawasLaporan />} />
+          <Route path="jadwal" element={<PengawasJadwal />} />
         </Route>
 
         {/* Fallback */}

@@ -12,7 +12,8 @@ router.post('/login', (req, res) => {
             return res.status(400).json({ success: false, message: 'Username dan password harus diisi' });
         }
 
-        const user = db.prepare('SELECT * FROM users WHERE username = ? AND status = ?').get(username, 'aktif');
+        // Hanya admin, pengawas, dan sopir yang memiliki akun login; kru tidak login
+        const user = db.prepare("SELECT * FROM users WHERE username = ? AND status = 'aktif' AND role IN ('admin','pengawas','sopir') AND password IS NOT NULL").get(username);
 
         if (!user) {
             return res.status(401).json({ success: false, message: 'Username atau password salah' });

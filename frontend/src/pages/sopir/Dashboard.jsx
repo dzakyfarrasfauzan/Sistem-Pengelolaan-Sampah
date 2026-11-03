@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import { Truck, ClipboardCheck, AlertTriangle } from 'lucide-react';
+import { Truck, ClipboardCheck, AlertTriangle, CheckCircle, MessageSquareWarning } from 'lucide-react';
 import { API_URL } from '../../config';
 
 const Kartu = ({ judul, nilai, icon, bg, fg }) => (
@@ -37,13 +37,15 @@ export default function SopirDashboard() {
 
   return (
     <div style={{ padding: '40px' }}>
-      <h2 style={{ margin: '0 0 30px', color: '#111827', fontSize: '1.8rem' }}>Ringkasan Kesiapan Armada</h2>
+      <h2 style={{ margin: '0 0 30px', color: '#111827', fontSize: '1.8rem' }}>Ringkasan Tugas Sopir</h2>
       {errorMsg && <div style={{ background: '#fee2e2', color: '#dc2626', padding: '15px', borderRadius: '8px', marginBottom: '20px', fontWeight: 'bold' }}>{errorMsg}</div>}
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '24px', marginBottom: '40px' }}>
         <Kartu judul="Total Jadwal" nilai={stats?.totalJadwal || 0} icon={<Truck size={24} />} bg="#e0f2fe" fg="#0284c7" />
         <Kartu judul="Belum Diperiksa" nilai={stats?.belumDiperiksa || 0} icon={<AlertTriangle size={24} />} bg="#fef3c7" fg="#d97706" />
-        <Kartu judul="Pemeriksaan Dikirim" nilai={stats?.totalPemeriksaan || 0} icon={<ClipboardCheck size={24} />} bg="#d1fae5" fg="#059669" />
+        <Kartu judul="Pemeriksaan Dikirim" nilai={stats?.totalPemeriksaan || 0} icon={<ClipboardCheck size={24} />} bg="#ede9fe" fg="#7c3aed" />
+        <Kartu judul="Pengangkutan Selesai" nilai={stats?.jadwalSelesai || 0} icon={<CheckCircle size={24} />} bg="#d1fae5" fg="#059669" />
+        <Kartu judul="Laporan Ditugaskan" nilai={stats?.laporanDitugaskan || 0} icon={<MessageSquareWarning size={24} />} bg="#fee2e2" fg="#dc2626" />
       </div>
 
       <div style={{ background: 'white', borderRadius: '16px', padding: '24px', boxShadow: '0 4px 6px rgba(0,0,0,0.02)' }}>
@@ -56,6 +58,7 @@ export default function SopirDashboard() {
                 <span style={{ background: '#e0f2fe', color: '#0284c7', padding: '4px 8px', borderRadius: '6px', fontSize: '0.8rem', fontWeight: '600' }}>📅 {j.tanggal}</span>
                 <span style={{ background: '#f3f4f6', padding: '4px 8px', borderRadius: '6px', fontSize: '0.8rem', fontWeight: '600' }}>Pukul {j.jam}</span>
                 <span style={{ background: '#f3f4f6', padding: '4px 8px', borderRadius: '6px', fontSize: '0.8rem', fontWeight: '600' }}>Truk {j.nomor_polisi}</span>
+                <span style={{ background: '#fef3c7', color: '#92400e', padding: '4px 8px', borderRadius: '6px', fontSize: '0.8rem', fontWeight: '600' }}>Kru: {j.kru_names || '-'}</span>
               </div>
             </div>
             <button onClick={() => navigate('/sopir/jadwal')} style={{ padding: '10px 20px', background: j.kondisi_berangkat ? '#d1fae5' : '#0ea5e9', color: j.kondisi_berangkat ? '#059669' : 'white', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}>

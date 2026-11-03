@@ -10,6 +10,28 @@ export default function CekStatus() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [searched, setSearched] = useState(false);
+  // Penilaian pelapor setelah laporan selesai ditangani
+  const [nilai, setNilai] = useState(0);
+  const [ulasan, setUlasan] = useState('');
+  const [telepon, setTelepon] = useState('');
+  const [mengirim, setMengirim] = useState(false);
+
+  const kirimPenilaian = async () => {
+    if (!nilai) { alert('Pilih jumlah bintang terlebih dahulu'); return; }
+    if (!telepon.trim()) { alert('Masukkan nomor telepon yang dipakai saat melapor'); return; }
+    setMengirim(true);
+    try {
+      const res = await axios.post(`${API_URL}/api/public/penilaian`, {
+        kode_laporan: result.kode_laporan, nomor_telepon: telepon, rating: nilai, ulasan
+      });
+      alert(res.data.message);
+      setResult({ ...result, rating: nilai, ulasan });
+    } catch (err) {
+      alert(err.response?.data?.message || 'Gagal mengirim penilaian');
+    } finally {
+      setMengirim(false);
+    }
+  };
   const navigate = useNavigate();
 
   const handleSearch = async (e) => {
@@ -266,6 +288,55 @@ export default function CekStatus() {
                         <div style={{ fontSize: '0.8rem', color: '#9ca3af', fontWeight: '500', marginBottom: '2px' }}>Lokasi</div>
                         <div style={{ fontWeight: '500', color: '#374151', fontSize: '0.95rem', lineHeight: '1.6' }}>{result.alamat_lokasi}</div>
                       </div>
+                    </div>
+                  </>
+                )}
+
+                {/* Kabar penanganan untuk pelapor */}
+                {result.status === 'selesai' && (
+                  <>
+                    <div style={{ margin: '24px 0', borderTop: '1px solid #f3f4f6' }} />
+                    <div style={{ background: '#ecfdf5', border: '1px solid #a7f3d0', borderRadius: '14px', padding: '18px' }}>
+                      <div style={{ fontWeight: '700', color: '#047857', marginBottom: '6px' }}>Laporan Anda sudah ditangani</div>
+                      {result.selesai_at && (
+                        <div style={{ fontSize: '0.82rem', color: '#059669', marginBottom: '8px' }}>
+                          Selesai pada {new Date(result.selesai_at.replace(' ', 'T') + 'Z').toLocaleString('id-ID')}
+                        </div>
+                      )}
+                      {result.catatan_tindak_lanjut && <div style={{ fontSize: '0.9rem', color: '#374151', lineHeight: '1.6' }}>{result.catatan_tindak_lanjut}</div>}
+                      {result.foto_tindak_lanjut && (
+                        <img src={`${API_URL}/uploads/${result.foto_tindak_lanjut}`} alt="Foto hasil penanganan"
+                          style={{ marginTop: '12px', width: '100%', maxHeight: '240px', objectFit: 'cover', borderRadius: '10px' }} />
+                      )}
+                    </div>
+
+                    <div style={{ marginTop: '18px', border: '1px solid #fde68a', background: '#fffbeb', borderRadius: '14px', padding: '18px' }}>
+                      <div style={{ fontWeight: '700', color: '#92400e', marginBottom: '8px' }}>Penilaian Pelayanan</div>
+                      {result.rating ? (
+                        <>
+                          <div style={{ fontSize: '1.4rem', color: '#f59e0b' }}>{'★'.repeat(result.rating)}{'☆'.repeat(5 - result.rating)}</div>
+                          {result.ulasan && <div style={{ fontSize: '0.9rem', color: '#374151', marginTop: '6px', fontStyle: 'italic' }}>"{result.ulasan}"</div>}
+                          <div style={{ fontSize: '0.8rem', color: '#92400e', marginTop: '6px' }}>Terima kasih atas penilaian Anda.</div>
+                        </>
+                      ) : (
+                        <>
+                          <div style={{ fontSize: '0.88rem', color: '#78350f', marginBottom: '10px' }}>Seberapa puas Anda dengan penanganan laporan ini?</div>
+                          <div style={{ display: 'flex', gap: '6px', marginBottom: '12px' }}>
+                            {[1, 2, 3, 4, 5].map(b => (
+                              <button key={b} type="button" onClick={() => setNilai(b)} aria-label={`${b} bintang`}
+                                style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '2rem', color: b <= nilai ? '#f59e0b' : '#d1d5db', padding: 0, lineHeight: 1 }}>★</button>
+                            ))}
+                          </div>
+                          <textarea rows={2} value={ulasan} onChange={e => setUlasan(e.target.value)} placeholder="Saran atau komentar (opsional)"
+                            style={{ width: '100%', padding: '10px', borderRadius: '10px', border: '1px solid #fcd34d', boxSizing: 'border-box', fontFamily: 'inherit', marginBottom: '10px' }} />
+                          <input value={telepon} onChange={e => setTelepon(e.target.value)} placeholder="Nomor telepon saat melapor (untuk verifikasi)"
+                            style={{ width: '100%', padding: '10px', borderRadius: '10px', border: '1px solid #fcd34d', boxSizing: 'border-box', fontFamily: 'inherit', marginBottom: '10px' }} />
+                          <button type="button" onClick={kirimPenilaian} disabled={mengirim}
+                            style={{ width: '100%', padding: '12px', background: '#f59e0b', color: 'white', border: 'none', borderRadius: '10px', fontWeight: '700', cursor: 'pointer' }}>
+                            {mengirim ? 'Mengirim...' : 'Kirim Penilaian'}
+                          </button>
+                        </>
+                      )}
                     </div>
                   </>
                 )}

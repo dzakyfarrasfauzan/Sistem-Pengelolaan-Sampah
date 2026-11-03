@@ -13,8 +13,9 @@ router.get('/dashboard', (req, res) => {
         const stats = {
             totalTps: db.prepare('SELECT COUNT(*) as count FROM tps').get().count,
             totalKendaraan: db.prepare('SELECT COUNT(*) as count FROM kendaraan').get().count,
-            totalPetugas: db.prepare("SELECT COUNT(*) as count FROM users WHERE role = 'petugas'").get().count,
-            totalSopir: db.prepare("SELECT COUNT(*) as count FROM users WHERE role = 'sopir'").get().count,
+            totalSopir: db.prepare("SELECT COUNT(*) as count FROM users WHERE role = 'sopir' AND status = 'aktif'").get().count,
+            totalKru: db.prepare("SELECT COUNT(*) as count FROM users WHERE role = 'kru' AND status = 'aktif'").get().count,
+            teguranPengawas: db.prepare("SELECT COUNT(*) as count FROM laporan_masyarakat WHERE teguran_pengawas IS NOT NULL AND status != 'selesai'").get().count,
             kendaraanPerluPerbaikan: db.prepare("SELECT COUNT(*) as count FROM kendaraan WHERE kondisi != 'baik'").get().count,
             jadwalHariIni: db.prepare('SELECT COUNT(*) as count FROM jadwal_pengangkutan WHERE tanggal = ?').get(today).count,
             laporanMasuk: db.prepare("SELECT COUNT(*) as count FROM laporan_masyarakat WHERE status = 'masuk'").get().count,
@@ -56,6 +57,7 @@ router.delete('/tps/:id', (req, res) => {
         const deleteTps = db.transaction((id) => {
             db.prepare('DELETE FROM pemeriksaan_kendaraan WHERE jadwal_id IN (SELECT id FROM jadwal_pengangkutan WHERE tps_id = ?)').run(id);
             db.prepare('DELETE FROM laporan_pengangkutan WHERE tps_id = ?').run(id);
+            db.prepare('DELETE FROM jadwal_kru WHERE jadwal_id IN (SELECT id FROM jadwal_pengangkutan WHERE tps_id = ?)').run(id);
             db.prepare('DELETE FROM jadwal_pengangkutan WHERE tps_id = ?').run(id);
             db.prepare('DELETE FROM tps WHERE id = ?').run(id);
         });
@@ -90,6 +92,7 @@ router.delete('/kendaraan/:id', (req, res) => {
         const deleteKendaraan = db.transaction((id) => {
             db.prepare('DELETE FROM pemeriksaan_kendaraan WHERE kendaraan_id = ? OR jadwal_id IN (SELECT id FROM jadwal_pengangkutan WHERE kendaraan_id = ?)').run(id, id);
             db.prepare('DELETE FROM laporan_pengangkutan WHERE kendaraan_id = ?').run(id);
+            db.prepare('DELETE FROM jadwal_kru WHERE jadwal_id IN (SELECT id FROM jadwal_pengangkutan WHERE kendaraan_id = ?)').run(id);
             db.prepare('DELETE FROM jadwal_pengangkutan WHERE kendaraan_id = ?').run(id);
             db.prepare('DELETE FROM kendaraan WHERE id = ?').run(id);
         });
@@ -98,63 +101,103 @@ router.delete('/kendaraan/:id', (req, res) => {
     } catch (err) { res.status(500).json({ success: false, message: err.message }); }
 });
 
-// Akun Petugas Angkutan & Sopir (CRUD yang sama, dibedakan berdasarkan peran)
-function kelolaAkun(pathUrl, role) {
-    router.get(pathUrl, (req, res) => {
-        try {
-            const list = db.prepare("SELECT id, name, username, role, phone, address, status, created_at FROM users WHERE role = ? ORDER BY created_at DESC").all(role);
-            res.json({ success: true, data: list });
-        } catch (err) { res.status(500).json({ success: false, message: err.message }); }
-    });
-    router.post(pathUrl, (req, res) => {
-        try {
-            const { name, username, password, phone, address } = req.body;
-            const hashedPassword = bcrypt.hashSync(password, 10);
-            db.prepare(`INSERT INTO users (name, username, password, role, phone, address, status) VALUES (?, ?, ?, ?, ?, ?, 'aktif')`).run(name, username, hashedPassword, role, phone || null, address || null);
-            res.json({ success: true });
-        } catch (err) { res.status(500).json({ success: false, message: err.message }); }
-    });
-    router.put(`${pathUrl}/:id`, (req, res) => {
-        try {
-            const { name, username, password, phone, address, status } = req.body;
-            if (password && password.trim() !== '') {
-                const hashedPassword = bcrypt.hashSync(password, 10);
-                db.prepare(`UPDATE users SET name = ?, username = ?, password = ?, phone = ?, address = ?, status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ? AND role = ?`).run(name, username, hashedPassword, phone || null, address || null, status || 'aktif', req.params.id, role);
-            } else {
-                db.prepare(`UPDATE users SET name = ?, username = ?, phone = ?, address = ?, status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ? AND role = ?`).run(name, username, phone || null, address || null, status || 'aktif', req.params.id, role);
-            }
-            res.json({ success: true });
-        } catch (err) { res.status(500).json({ success: false, message: err.message }); }
-    });
-    router.delete(`${pathUrl}/:id`, (req, res) => {
-        try {
-            const hapus = db.transaction((id) => {
-                if (role === 'petugas') {
-                    const jadwalIds = db.prepare('SELECT id FROM jadwal_pengangkutan WHERE petugas_id = ?').all(id).map(j => j.id);
-                    for (const jid of jadwalIds) db.prepare('DELETE FROM pemeriksaan_kendaraan WHERE jadwal_id = ?').run(jid);
-                    db.prepare('DELETE FROM laporan_pengangkutan WHERE petugas_id = ?').run(id);
-                    db.prepare('DELETE FROM jadwal_pengangkutan WHERE petugas_id = ?').run(id);
-                    db.prepare('UPDATE laporan_masyarakat SET ditangani_oleh = NULL WHERE ditangani_oleh = ?').run(id);
-                } else {
-                    db.prepare('DELETE FROM pemeriksaan_kendaraan WHERE sopir_id = ?').run(id);
-                    db.prepare('UPDATE jadwal_pengangkutan SET sopir_id = NULL WHERE sopir_id = ?').run(id);
-                }
-                db.prepare('DELETE FROM users WHERE id = ? AND role = ?').run(id, role);
-            });
-            hapus(req.params.id);
-            res.json({ success: true });
-        } catch (err) { res.status(500).json({ success: false, message: err.message }); }
-    });
-}
-kelolaAkun('/petugas', 'petugas');
-kelolaAkun('/sopir', 'sopir');
+// ============================================
+// Petugas Operasional: sopir dan kru dalam satu data, dibedakan dengan kolom peran.
+// Hanya sopir yang memiliki akun login; kru cukup dicatat datanya.
+// ============================================
+const PERAN = ['sopir', 'kru'];
+const dipakaiJadwal = (id) =>
+    db.prepare('SELECT 1 FROM jadwal_pengangkutan WHERE sopir_id = ? UNION SELECT 1 FROM jadwal_kru WHERE kru_id = ? LIMIT 1').get(id, id);
 
-// Validasi sopir pada jadwal: harus akun sopir yang aktif
-function cekSopir(sopirId) {
+router.get('/petugas', (req, res) => {
+    try {
+        const list = db.prepare(`
+            SELECT id, name, username, role AS peran, phone, address, status, created_at
+            FROM users WHERE role IN ('sopir','kru')
+            ORDER BY CASE role WHEN 'sopir' THEN 1 ELSE 2 END, name
+        `).all();
+        res.json({ success: true, data: list });
+    } catch (err) { res.status(500).json({ success: false, message: err.message }); }
+});
+
+router.post('/petugas', (req, res) => {
+    try {
+        const { name, peran, username, password, phone, address } = req.body;
+        if (!name || !name.trim()) return res.status(400).json({ success: false, message: 'Nama wajib diisi' });
+        if (!PERAN.includes(peran)) return res.status(400).json({ success: false, message: 'Peran harus sopir atau kru' });
+        if (peran === 'sopir' && (!username || !password)) {
+            return res.status(400).json({ success: false, message: 'Sopir wajib memiliki username dan password untuk login' });
+        }
+        db.prepare(`INSERT INTO users (name, username, password, role, phone, address, status) VALUES (?, ?, ?, ?, ?, ?, 'aktif')`).run(
+            name.trim(),
+            peran === 'sopir' ? username.trim() : null,
+            peran === 'sopir' ? bcrypt.hashSync(password, 10) : null,
+            peran, phone || null, address || null
+        );
+        res.json({ success: true });
+    } catch (err) {
+        if (err.message.includes('UNIQUE')) return res.status(400).json({ success: false, message: 'Username sudah dipakai' });
+        res.status(500).json({ success: false, message: err.message });
+    }
+});
+
+router.put('/petugas/:id', (req, res) => {
+    try {
+        const { name, peran, username, password, phone, address, status } = req.body;
+        const lama = db.prepare("SELECT * FROM users WHERE id = ? AND role IN ('sopir','kru')").get(req.params.id);
+        if (!lama) return res.status(404).json({ success: false, message: 'Petugas tidak ditemukan' });
+        if (!PERAN.includes(peran)) return res.status(400).json({ success: false, message: 'Peran harus sopir atau kru' });
+        if (peran !== lama.role && dipakaiJadwal(lama.id)) {
+            return res.status(400).json({ success: false, message: 'Peran tidak dapat diubah karena petugas sudah tercantum pada jadwal' });
+        }
+        let user = null, pass = null;
+        if (peran === 'sopir') {
+            if (!username) return res.status(400).json({ success: false, message: 'Sopir wajib memiliki username' });
+            user = username.trim();
+            pass = password && password.trim() !== '' ? bcrypt.hashSync(password, 10) : lama.password;
+            if (!pass) return res.status(400).json({ success: false, message: 'Isi password untuk akun login sopir' });
+        }
+        db.prepare(`UPDATE users SET name = ?, username = ?, password = ?, role = ?, phone = ?, address = ?, status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`)
+          .run(name, user, pass, peran, phone || null, address || null, status || 'aktif', lama.id);
+        res.json({ success: true });
+    } catch (err) {
+        if (err.message.includes('UNIQUE')) return res.status(400).json({ success: false, message: 'Username sudah dipakai' });
+        res.status(500).json({ success: false, message: err.message });
+    }
+});
+
+router.delete('/petugas/:id', (req, res) => {
+    try {
+        const id = req.params.id;
+        const riwayat = dipakaiJadwal(id)
+            || db.prepare('SELECT 1 FROM laporan_masyarakat WHERE ditangani_oleh = ? LIMIT 1').get(id)
+            || db.prepare('SELECT 1 FROM pemeriksaan_kendaraan WHERE sopir_id = ? LIMIT 1').get(id);
+        if (riwayat) {
+            return res.status(400).json({ success: false, message: 'Petugas sudah memiliki riwayat jadwal atau penanganan laporan. Ubah statusnya menjadi nonaktif.' });
+        }
+        db.prepare("DELETE FROM users WHERE id = ? AND role IN ('sopir','kru')").run(id);
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ success: false, message: err.message }); }
+});
+
+// Validasi tim pada jadwal: satu sopir aktif dan minimal satu kru aktif
+function cekTim(sopirId, kruIds) {
     if (!sopirId) return 'Sopir wajib dipilih';
     const sopir = db.prepare("SELECT id FROM users WHERE id = ? AND role = 'sopir' AND status = 'aktif'").get(sopirId);
-    return sopir ? null : 'Sopir tidak ditemukan atau tidak aktif';
+    if (!sopir) return 'Sopir tidak ditemukan atau tidak aktif';
+    if (!Array.isArray(kruIds) || kruIds.length === 0) return 'Pilih minimal satu kru';
+    for (const k of kruIds) {
+        const kru = db.prepare("SELECT id FROM users WHERE id = ? AND role = 'kru' AND status = 'aktif'").get(k);
+        if (!kru) return 'Kru tidak ditemukan atau tidak aktif';
+    }
+    return null;
 }
+const normalKru = (v) => [...new Set((Array.isArray(v) ? v : []).map(Number).filter(Boolean))];
+const simpanKru = (jadwalId, kruIds) => {
+    db.prepare('DELETE FROM jadwal_kru WHERE jadwal_id = ?').run(jadwalId);
+    const ins = db.prepare('INSERT INTO jadwal_kru (jadwal_id, kru_id) VALUES (?, ?)');
+    for (const k of kruIds) ins.run(jadwalId, k);
+};
 
 // Validasi kendaraan pada jadwal: kendaraan dalam perbaikan tidak dapat dijadwalkan
 function cekKendaraan(kendaraanId) {
@@ -165,13 +208,14 @@ function cekKendaraan(kendaraanId) {
 
 // Query jadwal beserta nama sopir dan hasil pemeriksaan armada
 const SELECT_JADWAL = `
-    SELECT j.*, t.nama_tps, k.nomor_polisi, k.jenis_kendaraan, u.name as petugas_name, s.name as sopir_name,
+    SELECT j.*, t.nama_tps, k.nomor_polisi, k.jenis_kendaraan, s.name as sopir_name,
+           (SELECT GROUP_CONCAT(u.name, ', ') FROM jadwal_kru jk JOIN users u ON u.id = jk.kru_id WHERE jk.jadwal_id = j.id) as kru_names,
+           (SELECT GROUP_CONCAT(jk.kru_id) FROM jadwal_kru jk WHERE jk.jadwal_id = j.id) as kru_ids,
            pb.kondisi as kondisi_berangkat, pb.foto as foto_berangkat,
            pp.kondisi as kondisi_pulang, pp.foto as foto_pulang
     FROM jadwal_pengangkutan j
     LEFT JOIN tps t ON j.tps_id = t.id
     LEFT JOIN kendaraan k ON j.kendaraan_id = k.id
-    LEFT JOIN users u ON j.petugas_id = u.id
     LEFT JOIN users s ON j.sopir_id = s.id
     LEFT JOIN pemeriksaan_kendaraan pb ON pb.jadwal_id = j.id AND pb.jenis = 'sebelum berangkat'
     LEFT JOIN pemeriksaan_kendaraan pp ON pp.jadwal_id = j.id AND pp.jenis = 'sesudah pulang'
@@ -187,21 +231,27 @@ router.get('/jadwal', (req, res) => {
 
 router.post('/jadwal', (req, res) => {
     try {
-        const { tps_id, kendaraan_id, petugas_id, sopir_id, tanggal, jam, catatan } = req.body;
-        const errSopir = cekSopir(sopir_id);
-        if (errSopir) return res.status(400).json({ success: false, message: errSopir });
+        const { tps_id, kendaraan_id, sopir_id, tanggal, jam, catatan } = req.body;
+        const kruIds = normalKru(req.body.kru_ids);
+        const errTim = cekTim(sopir_id, kruIds);
+        if (errTim) return res.status(400).json({ success: false, message: errTim });
         const errKendaraan = cekKendaraan(kendaraan_id);
         if (errKendaraan) return res.status(400).json({ success: false, message: errKendaraan });
-        db.prepare(`INSERT INTO jadwal_pengangkutan (tps_id, kendaraan_id, petugas_id, sopir_id, tanggal, jam, catatan) VALUES (?, ?, ?, ?, ?, ?, ?)`).run(tps_id, kendaraan_id, petugas_id, sopir_id, tanggal, jam, catatan || null);
+        const simpan = db.transaction(() => {
+            const { lastInsertRowid } = db.prepare(`INSERT INTO jadwal_pengangkutan (tps_id, kendaraan_id, sopir_id, tanggal, jam, catatan) VALUES (?, ?, ?, ?, ?, ?)`).run(tps_id, kendaraan_id, sopir_id, tanggal, jam, catatan || null);
+            simpanKru(lastInsertRowid, kruIds);
+        });
+        simpan();
         res.json({ success: true });
     } catch (err) { res.status(500).json({ success: false, message: err.message }); }
 });
 
 router.put('/jadwal/:id', (req, res) => {
     try {
-        const { tps_id, kendaraan_id, petugas_id, sopir_id, tanggal, jam, status, catatan } = req.body;
-        const errSopir = cekSopir(sopir_id);
-        if (errSopir) return res.status(400).json({ success: false, message: errSopir });
+        const { tps_id, kendaraan_id, sopir_id, tanggal, jam, status, catatan } = req.body;
+        const kruIds = normalKru(req.body.kru_ids);
+        const errTim = cekTim(sopir_id, kruIds);
+        if (errTim) return res.status(400).json({ success: false, message: errTim });
 
         const lama = db.prepare('SELECT * FROM jadwal_pengangkutan WHERE id = ?').get(req.params.id);
         if (!lama) return res.status(404).json({ success: false, message: 'Jadwal tidak ditemukan' });
@@ -214,7 +264,8 @@ router.put('/jadwal/:id', (req, res) => {
         }
 
         const simpan = db.transaction(() => {
-            db.prepare(`UPDATE jadwal_pengangkutan SET tps_id = ?, kendaraan_id = ?, petugas_id = ?, sopir_id = ?, tanggal = ?, jam = ?, status = ?, catatan = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`).run(tps_id, kendaraan_id, petugas_id, sopir_id, tanggal, jam, status || 'menunggu', catatan || null, req.params.id);
+            db.prepare(`UPDATE jadwal_pengangkutan SET tps_id = ?, kendaraan_id = ?, sopir_id = ?, tanggal = ?, jam = ?, status = ?, catatan = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`).run(tps_id, kendaraan_id, sopir_id, tanggal, jam, status || 'menunggu', catatan || null, req.params.id);
+            simpanKru(req.params.id, kruIds);
             // Armada diganti: hasil pemeriksaan armada lama tidak berlaku, sopir memeriksa armada pengganti
             if (gantiArmada) db.prepare("DELETE FROM pemeriksaan_kendaraan WHERE jadwal_id = ? AND jenis = 'sebelum berangkat'").run(req.params.id);
         });
@@ -228,6 +279,7 @@ router.delete('/jadwal/:id', (req, res) => {
         const deleteJadwal = db.transaction((id) => {
             db.prepare('DELETE FROM pemeriksaan_kendaraan WHERE jadwal_id = ?').run(id);
             db.prepare('DELETE FROM laporan_pengangkutan WHERE jadwal_id = ?').run(id);
+            db.prepare('DELETE FROM jadwal_kru WHERE jadwal_id = ?').run(id);
             db.prepare('DELETE FROM jadwal_pengangkutan WHERE id = ?').run(id);
         });
         deleteJadwal(req.params.id);
@@ -260,7 +312,7 @@ router.get('/pemeriksaan-kendaraan', (req, res) => {
 router.get('/laporan-masyarakat', (req, res) => {
     try {
         const list = db.prepare(`
-            SELECT lm.*, u.name as nama_petugas, u.phone as phone_petugas
+            SELECT lm.*, u.name as nama_petugas, u.phone as phone_petugas, u.role as peran_petugas
             FROM laporan_masyarakat lm
             LEFT JOIN users u ON lm.ditangani_oleh = u.id
             ORDER BY lm.created_at DESC
@@ -279,15 +331,18 @@ router.put('/laporan-masyarakat/:id', (req, res) => {
 
         // Laporan hanya boleh ditugaskan setelah admin menentukan prioritasnya
         if (petugasId && !prio) {
-            return res.status(400).json({ success: false, message: 'Tentukan prioritas laporan sebelum menugaskan petugas' });
+            return res.status(400).json({ success: false, message: 'Tentukan prioritas laporan sebelum menugaskan sopir' });
         }
+        // Laporan ditugaskan kepada sopir sebagai pemimpin tim petugas operasional
         if (petugasId) {
-            const petugas = db.prepare("SELECT id FROM users WHERE id = ? AND role = 'petugas' AND status = 'aktif'").get(petugasId);
-            if (!petugas) return res.status(400).json({ success: false, message: 'Petugas tidak ditemukan atau tidak aktif' });
+            const sopir = db.prepare("SELECT id FROM users WHERE id = ? AND role = 'sopir' AND status = 'aktif'").get(petugasId);
+            if (!sopir) return res.status(400).json({ success: false, message: 'Sopir tidak ditemukan atau tidak aktif' });
         }
 
-        db.prepare('UPDATE laporan_masyarakat SET status = ?, prioritas = ?, ditangani_oleh = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?')
-          .run(status, prio, petugasId, req.params.id);
+        db.prepare(`UPDATE laporan_masyarakat SET status = ?, prioritas = ?, ditangani_oleh = ?,
+                    selesai_at = CASE WHEN ? = 'selesai' THEN COALESCE(selesai_at, CURRENT_TIMESTAMP) ELSE NULL END,
+                    updated_at = CURRENT_TIMESTAMP WHERE id = ?`)
+          .run(status, prio, petugasId, status, req.params.id);
         res.json({ success: true });
     } catch (err) {
         res.status(500).json({ success: false, message: err.message });

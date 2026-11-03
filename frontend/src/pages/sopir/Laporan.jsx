@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
-import { CheckCircle2, X, Send, UserCheck, Image as ImageIcon } from 'lucide-react';
+import { CheckCircle2, X, Send, Image as ImageIcon } from 'lucide-react';
 import { API_URL } from '../../config';
-import KameraLangsung from '../../components/KameraLangsung';
+import PilihFoto from '../../components/PilihFoto';
 
 export default function Laporan() {
   const [list, setList] = useState([]);
@@ -16,7 +16,7 @@ export default function Laporan() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const res = await axios.get(`${API_URL}/petugas/laporan`, { withCredentials: true });
+      const res = await axios.get(`${API_URL}/sopir/laporan`, { withCredentials: true });
       if (res.data.success) {
         setList(res.data.data || []);
       }
@@ -53,7 +53,7 @@ export default function Laporan() {
       fd.append('catatan_tindak_lanjut', formAction.catatan_tindak_lanjut);
       if (fotoFile) fd.append('foto', fotoFile);
       await axios.put(
-        `${API_URL}/petugas/laporan/${actionModal.id}`,
+        `${API_URL}/sopir/laporan/${actionModal.id}`,
         fd,
         { withCredentials: true }
       );
@@ -202,18 +202,6 @@ export default function Laporan() {
                   <div style={{ color: '#6b7280', marginTop: '2px' }}>📞 {l.nomor_telepon}</div>
                 </div>
 
-                {/* Sudah ditangani oleh siapa */}
-                {l.ditangani_oleh && (
-                  <div style={{
-                    background: '#eff6ff', padding: '10px 14px', borderRadius: '8px',
-                    fontSize: '0.82rem', color: '#2563eb', display: 'flex', alignItems: 'center', gap: '8px',
-                    border: '1px solid #bfdbfe'
-                  }}>
-                    <UserCheck size={14} />
-                    <span>Ditangani oleh: <strong>{l.nama_petugas}</strong></span>
-                  </div>
-                )}
-
                 {/* Catatan tindak lanjut sebelumnya */}
                 {l.catatan_tindak_lanjut && (
                   <div style={{ fontSize: '0.83rem', color: '#4b5563', fontStyle: 'italic', background: '#f9fafb', padding: '8px 12px', borderRadius: '8px' }}>
@@ -251,7 +239,7 @@ export default function Laporan() {
         </div>
       )}
 
-      {/* Modal Aksi Petugas */}
+      {/* Modal Aksi Sopir */}
       {actionModal && (
         <div style={{
           position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(4px)',
@@ -330,7 +318,7 @@ export default function Laporan() {
                     ? <span style={{ color: '#dc2626' }}>*</span>
                     : <span style={{ color: '#9ca3af', fontWeight: '400' }}>(opsional)</span>}
                 </label>
-                <KameraLangsung onCapture={f => setFotoFile(f)} />
+                <PilihFoto onChange={f => setFotoFile(f)} />
               </div>
 
               {/* Tombol Submit */}

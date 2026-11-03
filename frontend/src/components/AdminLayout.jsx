@@ -7,8 +7,7 @@ import {
   Users,
   CalendarDays,
   MessageSquareWarning,
-  UserCog,
-  ClipboardCheck,
+    ClipboardCheck,
   LogOut
 } from 'lucide-react';
 import { API_URL } from '../config';
@@ -55,7 +54,6 @@ export default function AdminLayout() {
           <NavLink to="/admin/tps" style={navStyles}><Trash2 size={20} /> Data TPS</NavLink>
           <NavLink to="/admin/kendaraan" style={navStyles}><Truck size={20} /> Kendaraan</NavLink>
           <NavLink to="/admin/petugas" style={navStyles}><Users size={20} /> Petugas Operasional</NavLink>
-          <NavLink to="/admin/sopir" style={navStyles}><UserCog size={20} /> Sopir</NavLink>
           <NavLink to="/admin/jadwal" style={navStyles}><CalendarDays size={20} /> Jadwal</NavLink>
           <NavLink to="/admin/pemeriksaan-kendaraan" style={navStyles}><ClipboardCheck size={20} /> Pemeriksaan Armada</NavLink>
           <NavLink to="/admin/laporan-masyarakat" style={navStyles}><MessageSquareWarning size={20} /> Laporan Publik</NavLink>

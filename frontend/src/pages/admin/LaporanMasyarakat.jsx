@@ -4,6 +4,15 @@ import { MessageSquareWarning, Eye, Trash2, Edit2, Check, X, MapPin, Phone, Cale
 import { API_URL } from '../../config';
 
 
+// Tautan WhatsApp untuk mengabarkan pelapor bahwa laporannya sudah ditangani
+function linkWhatsApp(l) {
+  let nomor = String(l.nomor_telepon || '').replace(/\D/g, '');
+  if (nomor.startsWith('0')) nomor = '62' + nomor.slice(1);
+  const pesan = `Halo ${l.nama_pelapor}, laporan Anda dengan kode ${l.kode_laporan} sudah selesai ditangani oleh DLH Kabupaten Sukabumi. ` +
+    `Silakan cek hasilnya dan beri penilaian di halaman Cek Status Laporan. Terima kasih atas partisipasi Anda.`;
+  return `https://wa.me/${nomor}?text=${encodeURIComponent(pesan)}`;
+}
+
 export default function LaporanMasyarakat() {
   const [list, setList] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -34,7 +43,8 @@ export default function LaporanMasyarakat() {
     try {
       const res = await axios.get(`${API_URL}/admin/petugas`, { withCredentials: true });
       if (res.data.success) {
-        setPetugasList((res.data.data || []).filter(p => p.status === 'aktif'));
+        // Laporan ditugaskan kepada sopir sebagai pemimpin tim petugas operasional
+        setPetugasList((res.data.data || []).filter(p => p.status === 'aktif' && p.peran === 'sopir'));
       }
     } catch (err) {
       console.error(err);
@@ -67,7 +77,7 @@ export default function LaporanMasyarakat() {
   const handleUpdateStatus = async (e) => {
     e.preventDefault();
     if (editPetugas && !editPrioritas) {
-      alert('Tentukan prioritas laporan terlebih dahulu sebelum menugaskan petugas');
+      alert('Tentukan prioritas laporan terlebih dahulu sebelum menugaskan sopir');
       return;
     }
     setUpdating(true);
@@ -244,6 +254,12 @@ export default function LaporanMasyarakat() {
                         background: getStatusInfo(l.status).bg, color: getStatusInfo(l.status).text,
                         border: `1px solid ${getStatusInfo(l.status).border}`
                       }}>{getStatusInfo(l.status).label}</span>
+                      {l.teguran_pengawas && l.status !== 'selesai' && (
+                        <div style={{ marginTop: '6px', fontSize: '0.72rem', fontWeight: '700', color: '#dc2626' }}>⚠ Teguran Bidang</div>
+                      )}
+                      {l.rating && (
+                        <div style={{ marginTop: '6px', fontSize: '0.75rem', color: '#d97706' }}>{'★'.repeat(l.rating)}{'☆'.repeat(5 - l.rating)}</div>
+                      )}
                     </td>
 
                     {/* === KOLOM DITANGANI OLEH (B) === */}
@@ -260,7 +276,7 @@ export default function LaporanMasyarakat() {
                           </div>
                           <div>
                             <div style={{ fontSize: '0.82rem', fontWeight: '600', color: '#1e40af' }}>{l.nama_petugas}</div>
-                            <div style={{ fontSize: '0.72rem', color: '#60a5fa' }}>Petugas</div>
+                            <div style={{ fontSize: '0.72rem', color: '#60a5fa' }}>Sopir &amp; tim</div>
                           </div>
                         </div>
                       ) : (
@@ -423,11 +439,20 @@ export default function LaporanMasyarakat() {
                 </div>
               )}
 
+              {/* Teguran dari pengawas bidang */}
+              {selectedReport.teguran_pengawas && selectedReport.status !== 'selesai' && (
+                <div style={{ background: '#fef2f2', padding: '16px', borderRadius: '12px', border: '1px solid #fecaca' }}>
+                  <div style={{ fontSize: '0.8rem', color: '#dc2626', fontWeight: '700', textTransform: 'uppercase', marginBottom: '6px' }}>Teguran dari Bidang</div>
+                  <div style={{ fontSize: '0.9rem', color: '#7f1d1d', lineHeight: '1.6' }}>{selectedReport.teguran_pengawas}</div>
+                  {selectedReport.teguran_at && <div style={{ marginTop: '6px', fontSize: '0.75rem', color: '#ef4444' }}>{new Date(selectedReport.teguran_at.replace(' ', 'T') + 'Z').toLocaleString('id-ID')}</div>}
+                </div>
+              )}
+
               {/* Petugas yang menangani */}
               {selectedReport.ditangani_oleh && (
                 <div style={{ background: '#eff6ff', padding: '16px', borderRadius: '12px', border: '1px solid #bfdbfe' }}>
                   <div style={{ fontSize: '0.8rem', color: '#2563eb', fontWeight: '700', textTransform: 'uppercase', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <UserCheck size={14} /> Ditangani Oleh Petugas
+                    <UserCheck size={14} /> Ditangani Oleh Sopir dan Tim
                   </div>
                   <div style={{ fontWeight: '700', color: '#1e40af', fontSize: '0.95rem' }}>{selectedReport.nama_petugas}</div>
                   {selectedReport.catatan_tindak_lanjut && (
@@ -444,6 +469,25 @@ export default function LaporanMasyarakat() {
                   <div style={{ marginTop: '8px', fontSize: '0.78rem', color: '#60a5fa' }}>
                     Diperbarui: {new Date(selectedReport.updated_at).toLocaleString('id-ID')}
                   </div>
+                </div>
+              )}
+
+              {/* Umpan balik ke pelapor */}
+              {selectedReport.status === 'selesai' && (
+                <div style={{ background: '#f0fdf4', padding: '16px', borderRadius: '12px', border: '1px solid #bbf7d0' }}>
+                  <div style={{ fontSize: '0.8rem', color: '#15803d', fontWeight: '700', textTransform: 'uppercase', marginBottom: '8px' }}>Umpan Balik Pelapor</div>
+                  {selectedReport.rating ? (
+                    <div style={{ marginBottom: '10px' }}>
+                      <div style={{ fontSize: '1.1rem', color: '#d97706' }}>{'★'.repeat(selectedReport.rating)}{'☆'.repeat(5 - selectedReport.rating)}</div>
+                      {selectedReport.ulasan && <div style={{ fontSize: '0.85rem', color: '#374151', marginTop: '4px', fontStyle: 'italic' }}>"{selectedReport.ulasan}"</div>}
+                    </div>
+                  ) : (
+                    <div style={{ fontSize: '0.85rem', color: '#4b5563', marginBottom: '10px' }}>Pelapor belum memberi penilaian.</div>
+                  )}
+                  <a href={linkWhatsApp(selectedReport)} target="_blank" rel="noopener noreferrer"
+                    style={{ display: 'block', textAlign: 'center', padding: '10px', background: '#16a34a', color: 'white', borderRadius: '8px', fontWeight: '700', fontSize: '0.85rem', textDecoration: 'none' }}>
+                    Kabari Pelapor via WhatsApp
+                  </a>
                 </div>
               )}
             </div>
@@ -511,7 +555,7 @@ export default function LaporanMasyarakat() {
               </div>
 
               <div>
-                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', color: '#374151', fontSize: '0.9rem' }}>Tugaskan ke Petugas</label>
+                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', color: '#374151', fontSize: '0.9rem' }}>Tugaskan ke Sopir (Pemimpin Tim)</label>
                 <select 
                   value={editPetugas} 
                   onChange={e => setEditPetugas(e.target.value)}
@@ -523,7 +567,7 @@ export default function LaporanMasyarakat() {
                   ))}
                 </select>
                 <div style={{ marginTop: '6px', fontSize: '0.78rem', color: '#6b7280' }}>
-                  Laporan hanya tampil di akun petugas yang ditugaskan.
+                  Laporan hanya tampil di akun sopir yang ditugaskan.
                 </div>
               </div>
 

@@ -3,15 +3,21 @@ import axios from 'axios';
 import { Plus, Edit2, Trash2, X, AlertTriangle } from 'lucide-react';
 import { API_URL } from '../../config';
 
-export default function Petugas({ role = 'petugas' }) {
-  const label = role === 'sopir' ? 'Sopir' : 'Petugas Operasional';
-  const endpoint = `${API_URL}/admin/${role}`;
+// Petugas operasional = sopir dan kru dalam satu data, dibedakan dengan kolom peran.
+// Hanya sopir (pemimpin tim) yang memiliki akun login; kru cukup dicatat datanya.
+const KOSONG = { id: null, name: '', peran: 'kru', username: '', password: '', phone: '', address: '', status: 'aktif' };
+
+const label = 'Petugas Operasional';
+const endpoint = `${API_URL}/admin/petugas`;
+
+export default function Petugas() {
   const [list, setList] = useState([]);
   const [loading, setLoading] = useState(true);
   
   // Modal state
   const [showModal, setShowModal] = useState(false);
-  const [formData, setFormData] = useState({ id: null, name: '', username: '', password: '', phone: '', address: '', status: 'aktif' });
+  const [formData, setFormData] = useState(KOSONG);
+  const [filter, setFilter] = useState('semua');
   const [isEdit, setIsEdit] = useState(false);
   const [petugasToDelete, setPetugasToDelete] = useState(null);
   const [deleting, setDeleting] = useState(false);
@@ -37,13 +43,13 @@ export default function Petugas({ role = 'petugas' }) {
   }, []);
 
   const handleOpenAdd = () => {
-    setFormData({ id: null, name: '', username: '', password: '', phone: '', address: '', status: 'aktif' });
+    setFormData(KOSONG);
     setIsEdit(false);
     setShowModal(true);
   };
 
   const handleOpenEdit = (item) => {
-    setFormData({ ...item, password: '' }); // clear password, only send if changed
+    setFormData({ ...item, username: item.username || '', phone: item.phone || '', address: item.address || '', password: '' }); // password hanya dikirim bila diganti
     setIsEdit(true);
     setShowModal(true);
   };
@@ -55,8 +61,9 @@ export default function Petugas({ role = 'petugas' }) {
       await axios.delete(`${endpoint}/${petugasToDelete.id}`, { withCredentials: true });
       setPetugasToDelete(null);
       fetchData();
-    } catch {
-      alert('Gagal menghapus data');
+    } catch (err) {
+      alert(err.response?.data?.message || 'Gagal menghapus data');
+      setPetugasToDelete(null);
     } finally {
       setDeleting(false);
     }
@@ -72,8 +79,8 @@ export default function Petugas({ role = 'petugas' }) {
       }
       setShowModal(false);
       fetchData();
-    } catch {
-      alert('Terjadi kesalahan saat menyimpan data. Pastikan username belum digunakan.');
+    } catch (err) {
+      alert(err.response?.data?.message || 'Terjadi kesalahan saat menyimpan data');
     }
   };
 
@@ -82,17 +89,29 @@ export default function Petugas({ role = 'petugas' }) {
   return (
     <div style={{ padding: '40px', fontFamily: 'Inter, sans-serif' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-        <h1 style={{ margin: 0, color: '#111827' }}>Kelola Akun {label}</h1>
+        <div>
+          <h1 style={{ margin: 0, color: '#111827' }}>Kelola {label}</h1>
+          <p style={{ margin: '6px 0 0', color: '#6b7280', fontSize: '0.9rem' }}>Satu tim per kendaraan terdiri dari sopir sebagai pemimpin dan beberapa kru. Hanya sopir yang login.</p>
+        </div>
         <button onClick={handleOpenAdd} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 20px', background: '#10b981', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}>
           <Plus size={18} /> Tambah {label}
         </button>
+      </div>
+
+      <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
+        {[['semua', 'Semua'], ['sopir', 'Sopir'], ['kru', 'Kru']].map(([v, t]) => (
+          <button key={v} onClick={() => setFilter(v)} style={{ padding: '8px 16px', borderRadius: '20px', border: '1px solid #d1d5db', cursor: 'pointer', fontWeight: '600', background: filter === v ? '#111827' : 'white', color: filter === v ? 'white' : '#374151' }}>
+            {t} ({v === 'semua' ? list.length : list.filter(p => p.peran === v).length})
+          </button>
+        ))}
       </div>
 
       <div style={{ background: 'white', borderRadius: '16px', boxShadow: '0 4px 6px rgba(0,0,0,0.02)', overflow: 'hidden' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
           <thead>
             <tr style={{ background: '#f9fafb', color: '#4b5563', fontSize: '0.9rem' }}>
-              <th style={{ padding: '16px' }}>Nama {label}</th>
+              <th style={{ padding: '16px' }}>Nama</th>
+              <th style={{ padding: '16px' }}>Peran</th>
               <th style={{ padding: '16px' }}>Username</th>
               <th style={{ padding: '16px' }}>Kontak</th>
               <th style={{ padding: '16px' }}>Status</th>
@@ -101,11 +120,16 @@ export default function Petugas({ role = 'petugas' }) {
           </thead>
           <tbody>
             {loading ? (
-              <tr><td colSpan="5" style={{ padding: '20px', textAlign: 'center' }}>Memuat data...</td></tr>
-            ) : list.map(item => (
+              <tr><td colSpan="6" style={{ padding: '20px', textAlign: 'center' }}>Memuat data...</td></tr>
+            ) : list.filter(item => filter === 'semua' || item.peran === filter).map(item => (
               <tr key={item.id} style={{ borderTop: '1px solid #f3f4f6' }}>
                 <td style={{ padding: '16px', fontWeight: 'bold', color: '#111827' }}>{item.name}</td>
-                <td style={{ padding: '16px', color: '#4b5563' }}>{item.username}</td>
+                <td style={{ padding: '16px' }}>
+                  <span style={{ padding: '4px 10px', borderRadius: '20px', fontSize: '0.8rem', fontWeight: 'bold', background: item.peran === 'sopir' ? '#e0f2fe' : '#fef3c7', color: item.peran === 'sopir' ? '#0369a1' : '#b45309' }}>
+                    {item.peran === 'sopir' ? 'SOPIR' : 'KRU'}
+                  </span>
+                </td>
+                <td style={{ padding: '16px', color: '#4b5563' }}>{item.username || <span style={{ color: '#9ca3af' }}>Tidak login</span>}</td>
                 <td style={{ padding: '16px' }}>{item.phone}</td>
                 <td style={{ padding: '16px' }}>
                   <span style={{ padding: '4px 10px', borderRadius: '20px', fontSize: '0.8rem', fontWeight: 'bold', background: item.status === 'aktif' ? '#d1fae5' : '#fee2e2', color: item.status === 'aktif' ? '#059669' : '#dc2626' }}>
@@ -135,11 +159,21 @@ export default function Petugas({ role = 'petugas' }) {
               <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500', fontSize: '0.9rem' }}>Nama Lengkap</label>
               <input required value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} style={inputStyle} />
               
-              <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500', fontSize: '0.9rem' }}>Username (Untuk Login)</label>
-              <input required value={formData.username} onChange={e => setFormData({...formData, username: e.target.value})} style={inputStyle} disabled={isEdit} />
-              
-              <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500', fontSize: '0.9rem' }}>{isEdit ? 'Password Baru (Kosongkan jika tidak diganti)' : 'Password'}</label>
-              <input type="password" required={!isEdit} value={formData.password} onChange={e => setFormData({...formData, password: e.target.value})} style={inputStyle} />
+              <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500', fontSize: '0.9rem' }}>Peran</label>
+              <select value={formData.peran} onChange={e => setFormData({...formData, peran: e.target.value})} style={inputStyle}>
+                <option value="sopir">Sopir (pemimpin tim, dapat login)</option>
+                <option value="kru">Kru (pengangkut sampah, tidak login)</option>
+              </select>
+
+              {formData.peran === 'sopir' && (
+                <>
+                  <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500', fontSize: '0.9rem' }}>Username (Untuk Login)</label>
+                  <input required value={formData.username} onChange={e => setFormData({...formData, username: e.target.value})} style={inputStyle} />
+
+                  <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500', fontSize: '0.9rem' }}>{isEdit && formData.username ? 'Password Baru (Kosongkan jika tidak diganti)' : 'Password'}</label>
+                  <input type="password" required={!isEdit} value={formData.password} onChange={e => setFormData({...formData, password: e.target.value})} style={inputStyle} />
+                </>
+              )}
               
               <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500', fontSize: '0.9rem' }}>Nomor HP</label>
               <input value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} style={inputStyle} />
@@ -147,7 +181,7 @@ export default function Petugas({ role = 'petugas' }) {
               <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500', fontSize: '0.9rem' }}>Alamat Domisili</label>
               <textarea value={formData.address} onChange={e => setFormData({...formData, address: e.target.value})} style={{...inputStyle, resize: 'vertical'}} />
               
-              <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500', fontSize: '0.9rem' }}>Status Akun</label>
+              <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500', fontSize: '0.9rem' }}>Status</label>
               <select value={formData.status} onChange={e => setFormData({...formData, status: e.target.value})} style={inputStyle}>
                 <option value="aktif">Aktif</option>
                 <option value="nonaktif">Nonaktif</option>
@@ -167,7 +201,7 @@ export default function Petugas({ role = 'petugas' }) {
             <div style={{ width: '56px', height: '56px', borderRadius: '50%', background: '#fee2e2', color: '#dc2626', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
               <AlertTriangle size={28} />
             </div>
-            <h3 style={{ margin: '0 0 8px', fontSize: '1.15rem', fontWeight: '800' }}>Hapus Akun {label}?</h3>
+            <h3 style={{ margin: '0 0 8px', fontSize: '1.15rem', fontWeight: '800' }}>Hapus {label}?</h3>
             <p style={{ color: '#6b7280', fontSize: '0.85rem', marginBottom: '24px', lineHeight: '1.5' }}>
               Apakah Anda yakin ingin menghapus {label.toLowerCase()} <strong>{petugasToDelete.name}</strong>? Tindakan ini tidak dapat dibatalkan.
             </p>
