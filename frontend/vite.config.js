@@ -5,7 +5,7 @@ import path from 'node:path'
 
 // Sertifikat HTTPS lokal (frontend/cert). Kamera dan GPS di HP hanya bisa
 // dipakai lewat HTTPS, jadi bila sertifikat ada, server dev memakai HTTPS.
-const certDir = path.resolve(__dirname, 'cert')
+const certDir = path.resolve(import.meta.dirname, 'cert')
 const https = fs.existsSync(path.join(certDir, 'key.pem'))
   ? { key: fs.readFileSync(path.join(certDir, 'key.pem')), cert: fs.readFileSync(path.join(certDir, 'cert.pem')) }
   : undefined
