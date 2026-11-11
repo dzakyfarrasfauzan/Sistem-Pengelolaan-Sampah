@@ -30,15 +30,7 @@ function reverseGeocode(lat, lon) {
     });
 }
 
-// Kode laporan mudah dibaca: LP-TanggalWIB-NomorUrutHarian, contoh LP-20261103-001
-function buatKodeLaporan() {
-    const wib = new Date(Date.now() + 7 * 60 * 60 * 1000);
-    const tanggal = wib.toISOString().slice(0, 10).replace(/-/g, '');
-    const awalan = `LP-${tanggal}-`;
-    const terakhir = db.prepare("SELECT kode_laporan FROM laporan_masyarakat WHERE kode_laporan LIKE ? ORDER BY kode_laporan DESC LIMIT 1").get(`${awalan}%`);
-    const urut = terakhir ? parseInt(terakhir.kode_laporan.slice(awalan.length), 10) + 1 : 1;
-    return awalan + String(urut).padStart(3, '0');
-}
+const { buatKodeLaporan } = require('../utils/laporan');
 
 // POST /api/public/laporan
 router.post('/laporan', (req, res, next) => {
@@ -95,7 +87,7 @@ router.post('/laporan', (req, res, next) => {
             const isiNotif = {
                 jenis: 'laporan_baru',
                 judul: 'Laporan masyarakat baru',
-                pesan: `${kodeLaporan} dari ${nama_pelapor}${finalAlamat ? ` di ${finalAlamat}` : ''}. Tentukan prioritas dan tugaskan sopir.`,
+                pesan: `${kodeLaporan} dari ${nama_pelapor}${finalAlamat ? ` di ${finalAlamat}` : ''}. Tentukan prioritas lalu jadwalkan pengangkutannya.`,
             };
             notifikasi.kirim({ peran: 'admin' }, { ...isiNotif, tautan: '/admin/laporan-masyarakat' });
             notifikasi.kirim({ peran: 'pengawas' }, { ...isiNotif, pesan: `${kodeLaporan} masuk ke admin Korwil${finalAlamat ? ` (${finalAlamat})` : ''}.`, tautan: '/pengawas/laporan' });

@@ -2,8 +2,8 @@
 // Jadwal pengangkutan per jalur layanan
 // - Jadwal rutin mingguan diisi admin sekali, lalu sistem membuat jadwal harian
 //   otomatis untuk 7 hari ke depan.
-// - Jadwal tambahan (permohonan pelayanan) diperiksa bentroknya dengan jadwal lain
-//   pada armada, sopir, dan kru yang sama.
+// - Jadwal tambahan dibuat admin dari laporan masyarakat (permohonan/pengaduan) dan
+//   diperiksa bentroknya dengan jadwal lain pada armada, sopir, dan kru yang sama.
 // ============================================
 const db = require('../database/db');
 const notifikasi = require('./notifikasi');
@@ -40,7 +40,13 @@ const KOLOM_JADWAL = `
     (SELECT GROUP_CONCAT(t.nama_tps, ', ') FROM jalur_tps jt JOIN tps t ON t.id = jt.tps_id WHERE jt.jalur_id = j.jalur_id) AS tps_names,
     k.nomor_polisi, k.jenis_kendaraan, k.kondisi AS kondisi_kendaraan, s.name AS sopir_name,
     (SELECT GROUP_CONCAT(u.name, ', ') FROM jadwal_kru jk JOIN users u ON u.id = jk.kru_id WHERE jk.jadwal_id = j.id) AS kru_names,
-    (SELECT GROUP_CONCAT(jk.kru_id) FROM jadwal_kru jk WHERE jk.jadwal_id = j.id) AS kru_ids`;
+    (SELECT GROUP_CONCAT(jk.kru_id) FROM jadwal_kru jk WHERE jk.jadwal_id = j.id) AS kru_ids,
+    (SELECT lm.kode_laporan FROM laporan_masyarakat lm WHERE lm.id = j.laporan_id) AS kode_laporan,
+    (SELECT lm.deskripsi FROM laporan_masyarakat lm WHERE lm.id = j.laporan_id) AS deskripsi_laporan,
+    (SELECT lm.patokan FROM laporan_masyarakat lm WHERE lm.id = j.laporan_id) AS patokan_laporan,
+    (SELECT lm.prioritas FROM laporan_masyarakat lm WHERE lm.id = j.laporan_id) AS prioritas_laporan,
+    (SELECT lm.latitude FROM laporan_masyarakat lm WHERE lm.id = j.laporan_id) AS lat_laporan,
+    (SELECT lm.longitude FROM laporan_masyarakat lm WHERE lm.id = j.laporan_id) AS lng_laporan`;
 const JOIN_JADWAL = `
     FROM jadwal_pengangkutan j
     LEFT JOIN jalur_layanan jl ON jl.id = j.jalur_id
@@ -142,7 +148,7 @@ function cekBentrokHarian({ tanggal, jam, durasi_jam, kendaraan_id, sopir_id, kr
         WHERE j.tanggal = ? AND j.status != 'batal' AND j.id != ?
     `).all(tanggal, kecualiId || 0).filter(o => beririsan(jam, durasi_jam, o.jam, o.durasi));
     return uraikanBentrok(lain, { kendaraan_id, sopir_id, kruIds },
-        (o) => `${o.lokasi_tampil || '-'}${o.jenis === 'rutin' ? ' [jadwal rutin]' : ' [jadwal tambahan]'}`);
+        (o) => `${o.lokasi_tampil || '-'}${o.jenis === 'rutin' ? ' [jadwal rutin]' : ' [jadwal tambahan dari laporan]'}`);
 }
 
 // Bentrok antar-jadwal rutin pada hari yang sama

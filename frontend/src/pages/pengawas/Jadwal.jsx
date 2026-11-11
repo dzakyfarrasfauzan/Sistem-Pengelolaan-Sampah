@@ -42,7 +42,7 @@ export default function PengawasJadwal() {
               return (
                 <tr key={j.id} style={{ borderTop: '1px solid #f3f4f6' }}>
                   <td style={{ padding: '14px' }}><div style={{ fontWeight: 700 }}>{j.tanggal}</div><div style={{ fontSize: '0.82rem', color: '#6b7280' }}>Pukul {j.jam}</div></td>
-                  <td style={{ padding: '14px' }}><div style={{ fontWeight: 600 }}>{j.lokasi_tampil}</div><div style={{ fontSize: '0.78rem', color: '#6b7280' }}>{j.jenis === 'rutin' ? 'Jadwal rutin' : `Tambahan${j.pemohon ? ` • ${j.pemohon}` : ''}`}{j.desa ? ` • ${j.desa}` : ''}</div></td>
+                  <td style={{ padding: '14px' }}><div style={{ fontWeight: 600 }}>{j.lokasi_tampil}</div><div style={{ fontSize: '0.78rem', color: '#6b7280' }}>{j.jenis === 'rutin' ? 'Jadwal rutin' : `Tambahan${j.kode_laporan ? ` • laporan ${j.kode_laporan}` : ''}${j.pemohon ? ` • ${j.pemohon}` : ''}`}{j.desa ? ` • ${j.desa}` : ''}</div></td>
                   <td style={{ padding: '14px' }}>{j.nomor_polisi}</td>
                   <td style={{ padding: '14px' }}><div style={{ fontWeight: 600 }}>{j.sopir_name || '-'}</div><div style={{ fontSize: '0.8rem', color: '#6b7280' }}>Kru: {j.kru_names || '-'}</div></td>
                   <td style={{ padding: '14px' }}><span style={{ padding: '4px 10px', borderRadius: '20px', fontSize: '0.8rem', fontWeight: 700, background: bg, color: fg }}>{j.status.toUpperCase()}</span></td>

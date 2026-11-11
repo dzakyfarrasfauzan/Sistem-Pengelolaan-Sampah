@@ -1,8 +1,8 @@
 // ============================================
 // Routes Sopir
 // Sopir adalah pemimpin tim petugas operasional (sopir + kru). Sopir memeriksa armada
-// sebelum berangkat dan sesudah pulang, memperbarui status pengangkutan, dan menangani
-// laporan masyarakat yang ditugaskan. Foto boleh diambil dari kamera maupun galeri.
+// sebelum berangkat dan sesudah pulang, dan memperbarui status pengangkutan. Laporan
+// masyarakat dikerjakan lewat jadwal tambahan; saat jadwalnya selesai, laporan ikut selesai.
 // ============================================
 const express = require('express');
 const router = express.Router();
@@ -11,6 +11,7 @@ const { requireSopir } = require('../middleware/auth');
 const upload = require('../middleware/upload');
 const notifikasi = require('../utils/notifikasi');
 const J = require('../utils/jadwal');
+const L = require('../utils/laporan');
 
 const uploadFoto = (req, res, next) => {
     upload.single('foto')(req, res, (err) => {
@@ -153,6 +154,8 @@ router.put('/jadwal/:id/status', uploadFoto, (req, res) => {
             }
         });
         simpan();
+        // Jadwal tambahan dari laporan masyarakat: laporan ikut selesai dengan foto pengangkutan
+        if (status === 'selesai' && jadwal.laporan_id) L.selesaikanDariJadwal(jadwal, { foto, catatan, namaSopir: req.session.user.name });
         if (status === 'selesai') {
             const t = db.prepare('SELECT COALESCE(jl.nama_jalur, j.lokasi) AS nama FROM jadwal_pengangkutan j LEFT JOIN jalur_layanan jl ON jl.id = j.jalur_id WHERE j.id = ?').get(jadwal.id);
             notifikasi.kirim({ peran: 'admin' }, {
@@ -168,9 +171,11 @@ router.put('/jadwal/:id/status', uploadFoto, (req, res) => {
 router.get('/laporan', (req, res) => {
     try {
         const list = db.prepare(`
-            SELECT * FROM laporan_masyarakat
-            WHERE ditangani_oleh = ? AND status != 'selesai'
-            ORDER BY CASE prioritas WHEN 'tinggi' THEN 1 WHEN 'sedang' THEN 2 WHEN 'rendah' THEN 3 ELSE 4 END, created_at DESC
+            SELECT lm.*, jd.id AS jadwal_id, jd.tanggal AS jadwal_tanggal, jd.jam AS jadwal_jam, jd.status AS jadwal_status
+            FROM laporan_masyarakat lm
+            LEFT JOIN jadwal_pengangkutan jd ON jd.id = (SELECT MAX(id) FROM jadwal_pengangkutan WHERE laporan_id = lm.id AND status != 'batal')
+            WHERE lm.ditangani_oleh = ? AND lm.status != 'selesai'
+            ORDER BY CASE lm.prioritas WHEN 'tinggi' THEN 1 WHEN 'sedang' THEN 2 WHEN 'rendah' THEN 3 ELSE 4 END, lm.created_at DESC
         `).all(req.session.user.id);
         res.json({ success: true, data: list });
     } catch (err) { res.status(500).json({ success: false, message: err.message }); }
@@ -185,6 +190,9 @@ router.put('/laporan/:id', uploadFoto, (req, res) => {
 
         const laporan = db.prepare('SELECT id, foto_tindak_lanjut FROM laporan_masyarakat WHERE id = ? AND ditangani_oleh = ?').get(req.params.id, req.session.user.id);
         if (!laporan) return res.status(404).json({ success: false, message: 'Laporan tidak ditemukan atau tidak ditugaskan kepada Anda' });
+        // Laporan yang sudah dijadwalkan diselesaikan lewat jadwalnya (pemeriksaan armada, berjalan, selesai)
+        const jd = L.jadwalAktif(laporan.id);
+        if (jd) return res.status(400).json({ success: false, message: `Laporan ini dikerjakan lewat jadwal ${jd.tanggal} pukul ${jd.jam}. Selesaikan dari menu Jadwal.` });
         if (status === 'selesai' && !foto && !laporan.foto_tindak_lanjut) {
             return res.status(400).json({ success: false, message: 'Foto hasil penanganan wajib diunggah' });
         }

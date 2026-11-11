@@ -101,7 +101,7 @@ export default function PengawasLaporan() {
                     <span style={{ padding: '4px 10px', borderRadius: '20px', fontSize: '0.75rem', fontWeight: 700, background: bg, color: fg }}>{label}</span>
                     {l.terlambat === 1 && <div style={{ marginTop: '6px', fontSize: '0.72rem', fontWeight: 700, color: '#dc2626' }}>TERLAMBAT</div>}
                   </td>
-                  <td style={{ padding: '14px', fontSize: '0.85rem' }}>{l.nama_petugas || <span style={{ color: '#9ca3af' }}>Belum ditugaskan</span>}</td>
+                  <td style={{ padding: '14px', fontSize: '0.85rem' }}>{l.nama_petugas || <span style={{ color: '#9ca3af' }}>Belum dijadwalkan</span>}</td>
                   <td style={{ padding: '14px', fontSize: '0.85rem' }}>{formatUmur(l.umur_jam)}</td>
                   <td style={{ padding: '14px', color: '#d97706' }}>{l.rating ? '★'.repeat(l.rating) + '☆'.repeat(5 - l.rating) : <span style={{ color: '#9ca3af', fontSize: '0.8rem' }}>-</span>}</td>
                   <td style={{ padding: '14px' }}>
@@ -129,7 +129,7 @@ export default function PengawasLaporan() {
               <div><strong>Lokasi:</strong> {dipilih.alamat_lokasi || '-'}</div>
               <div><strong>Masuk:</strong> {waktu(dipilih.created_at)}</div>
               <div><strong>Status:</strong> {dipilih.status} ({formatUmur(dipilih.umur_jam)})</div>
-              <div><strong>Ditangani oleh:</strong> {dipilih.nama_petugas || 'Belum ditugaskan'}</div>
+              <div><strong>Ditangani oleh:</strong> {dipilih.nama_petugas || 'Belum dijadwalkan'}</div>
               {dipilih.catatan_tindak_lanjut && <div><strong>Tindak lanjut:</strong> {dipilih.catatan_tindak_lanjut}</div>}
             </div>
             {dipilih.foto_tindak_lanjut && <img src={`${API_URL}/uploads/${dipilih.foto_tindak_lanjut}`} alt="Foto penanganan" style={{ width: '100%', maxHeight: '200px', objectFit: 'cover', borderRadius: '10px', marginTop: '12px' }} />}

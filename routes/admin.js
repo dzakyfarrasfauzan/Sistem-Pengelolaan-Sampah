@@ -5,6 +5,8 @@ const bcrypt = require('bcryptjs');
 const { requireAdmin } = require('../middleware/auth');
 const notifikasi = require('../utils/notifikasi');
 const J = require('../utils/jadwal');
+const L = require('../utils/laporan');
+const upload = require('../middleware/upload');
 
 router.use(requireAdmin);
 
@@ -372,7 +374,7 @@ router.delete('/jadwal-rutin/:id', (req, res) => {
 });
 
 // ============================================
-// Jadwal Harian (hasil jadwal rutin + jadwal tambahan dari permohonan pelayanan)
+// Jadwal Harian (hasil jadwal rutin + jadwal tambahan dari laporan masyarakat)
 // ============================================
 router.get('/jadwal', (req, res) => {
     try {
@@ -384,47 +386,8 @@ router.get('/jadwal', (req, res) => {
     } catch (err) { res.status(500).json({ success: false, message: err.message }); }
 });
 
-// Data jadwal tambahan: memakai jalur yang ada, atau lokasi permohonan tersendiri
-function bacaJadwal(b) {
-    const jalur = b.jalur_id ? db.prepare('SELECT * FROM jalur_layanan WHERE id = ?').get(b.jalur_id) : null;
-    return {
-        jalur_id: jalur ? jalur.id : null,
-        lokasi: jalur ? null : (b.lokasi || '').trim() || null,
-        pemohon: (b.pemohon || '').trim() || null,
-        durasi_jam: angka(b.durasi_jam) || (jalur ? jalur.waktu_tempuh_jam : null) || 2,
-        ritase: Number(b.ritase) || 1,
-    };
-}
-
-router.post('/jadwal', (req, res) => {
-    try {
-        const b = req.body;
-        const kruIds = normalKru(b.kru_ids);
-        const d = bacaJadwal(b);
-        if (!d.jalur_id && !d.lokasi) return res.status(400).json({ success: false, message: 'Pilih jalur layanan atau isi lokasi permohonan' });
-        if (!b.tanggal || !b.jam) return res.status(400).json({ success: false, message: 'Tanggal dan jam wajib diisi' });
-        const errTim = cekTim(b.sopir_id, kruIds);
-        if (errTim) return res.status(400).json({ success: false, message: errTim });
-        const errKendaraan = cekKendaraan(b.kendaraan_id);
-        if (errKendaraan) return res.status(400).json({ success: false, message: errKendaraan });
-        if (!b.paksa) {
-            const bentrok = J.cekBentrokHarian({ tanggal: b.tanggal, jam: b.jam, durasi_jam: d.durasi_jam, kendaraan_id: b.kendaraan_id, sopir_id: b.sopir_id, kru_ids: kruIds });
-            if (bentrok.length) return tolakBentrok(res, bentrok);
-        }
-        const simpan = db.transaction(() => {
-            const { lastInsertRowid } = db.prepare(`INSERT INTO jadwal_pengangkutan (jenis, jalur_id, lokasi, pemohon, kendaraan_id, sopir_id, tanggal, jam, durasi_jam, ritase, catatan)
-                VALUES ('tambahan', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(d.jalur_id, d.lokasi, d.pemohon, b.kendaraan_id, b.sopir_id, b.tanggal, b.jam, d.durasi_jam, d.ritase, b.catatan || null);
-            simpanKru(lastInsertRowid, kruIds);
-            return lastInsertRowid;
-        });
-        const jadwalId = simpan();
-        notifikasi.kirim(Number(b.sopir_id), {
-            jenis: 'jadwal_baru', judul: 'Jadwal tambahan (permohonan pelayanan)',
-            pesan: `${teksJadwal(infoJadwal(jadwalId))}. Periksa armada sebelum berangkat.`, tautan: '/sopir/jadwal',
-        });
-        res.json({ success: true });
-    } catch (err) { res.status(500).json({ success: false, message: err.message }); }
-});
+// Jadwal tambahan berasal dari laporan masyarakat (lihat POST /laporan-masyarakat/:id/jadwalkan)
+const angkaDurasi = (v, cadangan) => angka(v) || cadangan || 2;
 
 router.put('/jadwal/:id', (req, res) => {
     try {
@@ -435,12 +398,13 @@ router.put('/jadwal/:id', (req, res) => {
 
         const lama = db.prepare('SELECT * FROM jadwal_pengangkutan WHERE id = ?').get(req.params.id);
         if (!lama) return res.status(404).json({ success: false, message: 'Jadwal tidak ditemukan' });
-        // Jadwal hasil jadwal rutin tetap memakai jalurnya; jadwal tambahan boleh diubah lokasinya
-        const d = lama.jenis === 'rutin'
-            ? { jalur_id: lama.jalur_id, lokasi: null, pemohon: null, durasi_jam: lama.durasi_jam, ritase: Number(b.ritase) || lama.ritase }
-            : bacaJadwal(b);
-        if (!d.jalur_id && !d.lokasi) return res.status(400).json({ success: false, message: 'Pilih jalur layanan atau isi lokasi permohonan' });
-        const tanggal = lama.jenis === 'rutin' ? lama.tanggal : b.tanggal;
+        // Jalur/lokasi tidak diubah di sini: jadwal rutin mengikuti jalurnya, jadwal tambahan mengikuti lokasi laporan
+        const d = {
+            jalur_id: lama.jalur_id, lokasi: lama.lokasi, pemohon: lama.pemohon,
+            durasi_jam: lama.jenis === 'rutin' ? lama.durasi_jam : angkaDurasi(b.durasi_jam, lama.durasi_jam),
+            ritase: Number(b.ritase) || lama.ritase,
+        };
+        const tanggal = lama.jenis === 'rutin' ? lama.tanggal : (b.tanggal || lama.tanggal);
         const status = b.status || lama.status;
 
         const gantiArmada = String(lama.kendaraan_id) !== String(b.kendaraan_id);
@@ -462,6 +426,12 @@ router.put('/jadwal/:id', (req, res) => {
             simpanKru(lama.id, kruIds);
             // Armada diganti: hasil pemeriksaan armada lama tidak berlaku, sopir memeriksa armada pengganti
             if (gantiArmada) db.prepare("DELETE FROM pemeriksaan_kendaraan WHERE jadwal_id = ? AND jenis = 'sebelum berangkat'").run(lama.id);
+            // Laporan masyarakat mengikuti jadwalnya
+            if (lama.laporan_id) {
+                if (status === 'batal') L.kembalikanKeMasuk(lama.laporan_id);
+                else db.prepare(`UPDATE laporan_masyarakat SET ditangani_oleh = ?, status = CASE WHEN status = 'selesai' THEN status ELSE 'diproses' END,
+                                 updated_at = CURRENT_TIMESTAMP WHERE id = ?`).run(b.sopir_id, lama.laporan_id);
+            }
         });
         simpan();
         const info = infoJadwal(lama.id);
@@ -486,13 +456,14 @@ router.delete('/jadwal/:id', (req, res) => {
             return res.json({ success: true, message: 'Jadwal rutin pada tanggal ini dibatalkan' });
         }
         const deleteJadwal = db.transaction((id) => {
+            if (jadwal.laporan_id) L.kembalikanKeMasuk(jadwal.laporan_id);
             db.prepare('DELETE FROM pemeriksaan_kendaraan WHERE jadwal_id = ?').run(id);
             db.prepare('DELETE FROM laporan_pengangkutan WHERE jadwal_id = ?').run(id);
             db.prepare('DELETE FROM jadwal_kru WHERE jadwal_id = ?').run(id);
             db.prepare('DELETE FROM jadwal_pengangkutan WHERE id = ?').run(id);
         });
         deleteJadwal(jadwal.id);
-        res.json({ success: true });
+        res.json({ success: true, message: jadwal.laporan_id ? 'Jadwal dihapus. Laporan masyarakatnya kembali berstatus masuk dan dapat dijadwalkan ulang.' : undefined });
     } catch (err) { res.status(500).json({ success: false, message: err.message }); }
 });
 
@@ -521,9 +492,15 @@ router.get('/pemeriksaan-kendaraan', (req, res) => {
 router.get('/laporan-masyarakat', (req, res) => {
     try {
         const list = db.prepare(`
-            SELECT lm.*, u.name as nama_petugas, u.phone as phone_petugas, u.role as peran_petugas
+            SELECT lm.*, u.name as nama_petugas, u.phone as phone_petugas, u.role as peran_petugas, a.name AS nama_pencatat,
+                   jd.id AS jadwal_id, jd.tanggal AS jadwal_tanggal, jd.jam AS jadwal_jam, jd.status AS jadwal_status,
+                   k.nomor_polisi AS jadwal_armada,
+                   (SELECT GROUP_CONCAT(x.name, ', ') FROM jadwal_kru jk JOIN users x ON x.id = jk.kru_id WHERE jk.jadwal_id = jd.id) AS jadwal_kru
             FROM laporan_masyarakat lm
             LEFT JOIN users u ON lm.ditangani_oleh = u.id
+            LEFT JOIN users a ON lm.dicatat_oleh = a.id
+            LEFT JOIN jadwal_pengangkutan jd ON jd.id = (SELECT MAX(id) FROM jadwal_pengangkutan WHERE laporan_id = lm.id AND status != 'batal')
+            LEFT JOIN kendaraan k ON k.id = jd.kendaraan_id
             ORDER BY lm.created_at DESC
         `).all();
         res.json({ success: true, data: list });
@@ -532,43 +509,93 @@ router.get('/laporan-masyarakat', (req, res) => {
     }
 });
 
+// Admin mencatat laporan yang masuk lewat telepon, WhatsApp, surat, atau pelapor yang datang langsung
+router.post('/laporan-masyarakat', (req, res) => {
+    upload.single('foto')(req, res, (errUpload) => {
+        if (errUpload) return res.status(400).json({ success: false, message: errUpload.message || 'Gagal mengunggah foto' });
+        try {
+            const b = req.body;
+            const wajib = { nama_pelapor: 'Nama pelapor', nomor_telepon: 'Nomor telepon', alamat_lokasi: 'Lokasi', deskripsi: 'Keterangan' };
+            for (const [k, nama] of Object.entries(wajib)) {
+                if (!(b[k] || '').trim()) return res.status(400).json({ success: false, message: `${nama} wajib diisi` });
+            }
+            if (!L.SUMBER.includes(b.sumber) || b.sumber === 'website') {
+                return res.status(400).json({ success: false, message: 'Pilih sumber laporan: telepon, WhatsApp, surat, atau datang langsung' });
+            }
+            const kode = L.buatKodeLaporan();
+            db.prepare(`INSERT INTO laporan_masyarakat (kode_laporan, nama_pelapor, nomor_telepon, deskripsi, foto, alamat_lokasi, patokan, sumber, dicatat_oleh, prioritas, status)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'masuk')`)
+              .run(kode, b.nama_pelapor.trim(), b.nomor_telepon.trim(), b.deskripsi.trim(), req.file ? req.file.filename : null,
+                   b.alamat_lokasi.trim(), (b.patokan || '').trim() || null, b.sumber, req.session.user.id, b.prioritas || null);
+            notifikasi.kirim({ peran: 'pengawas' }, {
+                jenis: 'laporan_baru', judul: 'Laporan masyarakat baru',
+                pesan: `${kode} dari ${b.nama_pelapor.trim()} (lewat ${b.sumber}) dicatat oleh admin Korwil.`, tautan: '/pengawas/laporan',
+            });
+            res.json({ success: true, kodeLaporan: kode, message: `Laporan ${kode} dicatat. Berikan kode ini kepada pelapor untuk cek status.` });
+        } catch (err) { res.status(500).json({ success: false, message: err.message }); }
+    });
+});
+
+// Admin menentukan prioritas laporan
 router.put('/laporan-masyarakat/:id', (req, res) => {
     try {
-        const { status, prioritas, ditangani_oleh } = req.body;
-        const prio = prioritas || null;
-        const petugasId = ditangani_oleh ? Number(ditangani_oleh) : null;
-
-        // Laporan hanya boleh ditugaskan setelah admin menentukan prioritasnya
-        if (petugasId && !prio) {
-            return res.status(400).json({ success: false, message: 'Tentukan prioritas laporan sebelum menugaskan sopir' });
-        }
-        // Laporan ditugaskan kepada sopir sebagai pemimpin tim petugas operasional
-        if (petugasId) {
-            const sopir = db.prepare("SELECT id FROM users WHERE id = ? AND role = 'sopir' AND status = 'aktif'").get(petugasId);
-            if (!sopir) return res.status(400).json({ success: false, message: 'Sopir tidak ditemukan atau tidak aktif' });
-        }
-
-        const lamaLaporan = db.prepare('SELECT kode_laporan, alamat_lokasi, ditangani_oleh FROM laporan_masyarakat WHERE id = ?').get(req.params.id);
-        if (!lamaLaporan) return res.status(404).json({ success: false, message: 'Laporan tidak ditemukan' });
-        db.prepare(`UPDATE laporan_masyarakat SET status = ?, prioritas = ?, ditangani_oleh = ?,
-                    selesai_at = CASE WHEN ? = 'selesai' THEN COALESCE(selesai_at, CURRENT_TIMESTAMP) ELSE NULL END,
-                    updated_at = CURRENT_TIMESTAMP WHERE id = ?`)
-          .run(status, prio, petugasId, status, req.params.id);
-        if (petugasId && petugasId !== lamaLaporan.ditangani_oleh && status !== 'selesai') {
-            notifikasi.kirim(petugasId, {
-                jenis: 'laporan_ditugaskan', judul: `Laporan masyarakat ditugaskan (prioritas ${prio})`,
-                pesan: `${lamaLaporan.kode_laporan}${lamaLaporan.alamat_lokasi ? ` di ${lamaLaporan.alamat_lokasi}` : ''}. Segera tangani bersama kru.`,
-                tautan: '/sopir/laporan',
-            });
-        }
+        const prio = req.body.prioritas || null;
+        if (prio && !['tinggi', 'sedang', 'rendah'].includes(prio)) return res.status(400).json({ success: false, message: 'Prioritas tidak valid' });
+        const r = db.prepare('UPDATE laporan_masyarakat SET prioritas = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?').run(prio, req.params.id);
+        if (!r.changes) return res.status(404).json({ success: false, message: 'Laporan tidak ditemukan' });
         res.json({ success: true });
     } catch (err) {
         res.status(500).json({ success: false, message: err.message });
     }
 });
 
+// Jadwalkan laporan masyarakat sebagai jadwal tambahan
+router.post('/laporan-masyarakat/:id/jadwalkan', (req, res) => {
+    try {
+        const b = req.body;
+        const laporan = db.prepare('SELECT * FROM laporan_masyarakat WHERE id = ?').get(req.params.id);
+        if (!laporan) return res.status(404).json({ success: false, message: 'Laporan tidak ditemukan' });
+        if (laporan.status === 'selesai') return res.status(400).json({ success: false, message: 'Laporan sudah selesai ditangani' });
+        const ada = L.jadwalAktif(laporan.id);
+        if (ada) return res.status(400).json({ success: false, message: `Laporan ini sudah dijadwalkan pada ${ada.tanggal} pukul ${ada.jam}. Ubah jadwalnya di menu Jadwal.` });
+
+        const prio = b.prioritas || laporan.prioritas;
+        if (!['tinggi', 'sedang', 'rendah'].includes(prio)) return res.status(400).json({ success: false, message: 'Tentukan prioritas laporan sebelum menjadwalkan' });
+        if (!b.tanggal || !b.jam) return res.status(400).json({ success: false, message: 'Tanggal dan jam wajib diisi' });
+        const kruIds = normalKru(b.kru_ids);
+        const errTim = cekTim(b.sopir_id, kruIds);
+        if (errTim) return res.status(400).json({ success: false, message: errTim });
+        const errKendaraan = cekKendaraan(b.kendaraan_id);
+        if (errKendaraan) return res.status(400).json({ success: false, message: errKendaraan });
+        const durasi = angkaDurasi(b.durasi_jam);
+        if (!b.paksa) {
+            const bentrok = J.cekBentrokHarian({ tanggal: b.tanggal, jam: b.jam, durasi_jam: durasi, kendaraan_id: b.kendaraan_id, sopir_id: b.sopir_id, kru_ids: kruIds });
+            if (bentrok.length) return tolakBentrok(res, bentrok);
+        }
+        const lokasi = laporan.alamat_lokasi || laporan.patokan || `Lokasi laporan ${laporan.kode_laporan}`;
+        const simpan = db.transaction(() => {
+            const { lastInsertRowid } = db.prepare(`INSERT INTO jadwal_pengangkutan (jenis, laporan_id, lokasi, pemohon, kendaraan_id, sopir_id, tanggal, jam, durasi_jam, ritase, catatan)
+                VALUES ('tambahan', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
+                .run(laporan.id, lokasi, laporan.nama_pelapor, b.kendaraan_id, b.sopir_id, b.tanggal, b.jam, durasi, Number(b.ritase) || 1, b.catatan || null);
+            simpanKru(lastInsertRowid, kruIds);
+            db.prepare(`UPDATE laporan_masyarakat SET prioritas = ?, status = 'diproses', ditangani_oleh = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`)
+              .run(prio, b.sopir_id, laporan.id);
+            return lastInsertRowid;
+        });
+        const jadwalId = simpan();
+        notifikasi.kirim(Number(b.sopir_id), {
+            jenis: 'jadwal_baru', judul: `Jadwal tambahan dari laporan ${laporan.kode_laporan} (prioritas ${prio})`,
+            pesan: `${teksJadwal(infoJadwal(jadwalId))}. Periksa armada sebelum berangkat.`, tautan: '/sopir/jadwal',
+        });
+        res.json({ success: true, message: `Laporan ${laporan.kode_laporan} dijadwalkan pada ${b.tanggal} pukul ${b.jam}.` });
+    } catch (err) { res.status(500).json({ success: false, message: err.message }); }
+});
+
 router.delete('/laporan-masyarakat/:id', (req, res) => {
     try {
+        if (db.prepare('SELECT 1 FROM jadwal_pengangkutan WHERE laporan_id = ? LIMIT 1').get(req.params.id)) {
+            return res.status(400).json({ success: false, message: 'Laporan sudah memiliki jadwal pengangkutan. Hapus jadwalnya terlebih dahulu.' });
+        }
         db.prepare('DELETE FROM laporan_masyarakat WHERE id = ?').run(req.params.id);
         res.json({ success: true });
     } catch (err) {

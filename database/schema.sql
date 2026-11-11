@@ -96,7 +96,8 @@ CREATE TABLE IF NOT EXISTS jadwal_pengangkutan (
     jenis TEXT NOT NULL DEFAULT 'tambahan' CHECK(jenis IN ('rutin','tambahan')),
     jadwal_rutin_id INTEGER REFERENCES jadwal_rutin(id) ON DELETE SET NULL,
     jalur_id INTEGER REFERENCES jalur_layanan(id),
-    lokasi TEXT,                    -- lokasi permohonan bila tidak memakai jalur
+    laporan_id INTEGER REFERENCES laporan_masyarakat(id), -- jadwal tambahan berasal dari laporan masyarakat
+    lokasi TEXT,                    -- lokasi laporan bila tidak memakai jalur
     pemohon TEXT,
     kendaraan_id INTEGER NOT NULL REFERENCES kendaraan(id),
     sopir_id INTEGER REFERENCES users(id),
@@ -129,6 +130,8 @@ CREATE TABLE IF NOT EXISTS laporan_masyarakat (
     latitude REAL,
     longitude REAL,
     alamat_lokasi TEXT,
+    sumber TEXT DEFAULT 'website' CHECK(sumber IN ('website','telepon','whatsapp','surat','datang langsung')),
+    dicatat_oleh INTEGER REFERENCES users(id), -- admin yang mencatat laporan dari telepon/WhatsApp/surat
     prioritas TEXT CHECK(prioritas IN ('tinggi','sedang','rendah')), -- NULL = belum ditentukan admin
     status TEXT DEFAULT 'masuk' CHECK(status IN ('masuk','diproses','selesai')),
     ditangani_oleh INTEGER REFERENCES users(id),

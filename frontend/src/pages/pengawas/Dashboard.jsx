@@ -66,7 +66,7 @@ export default function PengawasDashboard() {
             <div>
               <div style={{ fontWeight: 700, color: '#7f1d1d' }}>{l.kode_laporan} — {l.alamat_lokasi || 'Lokasi tidak diketahui'}</div>
               <div style={{ fontSize: '0.85rem', color: '#991b1b', marginTop: '4px' }}>
-                Status: {l.status} • Sudah {formatUmur(l.umur_jam)} • {l.nama_petugas ? `Ditugaskan ke ${l.nama_petugas}` : 'Belum ditugaskan'}
+                Status: {l.status} • Sudah {formatUmur(l.umur_jam)} • {l.nama_petugas ? `Dijadwalkan ke ${l.nama_petugas}` : 'Belum dijadwalkan'}
                 {l.teguran_pengawas ? ' • Sudah ditegur' : ''}
               </div>
             </div>

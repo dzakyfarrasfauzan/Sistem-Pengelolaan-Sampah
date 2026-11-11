@@ -201,7 +201,19 @@ export default function SopirJadwal() {
                 {j.alamat_pelayanan && <div style={{ color: '#374151', fontSize: '0.92rem' }}>Titik: {j.alamat_pelayanan}</div>}
                 {(j.desa || j.kecamatan) && <div style={{ color: '#6b7280', fontSize: '0.88rem' }}>{[j.desa, j.kecamatan].filter(Boolean).join(' • ')}</div>}
                 {j.tps_names && <div style={{ color: '#6b7280', fontSize: '0.88rem' }}>TPS: {j.tps_names}</div>}
-                {j.pemohon && <div style={{ color: '#a21caf', fontSize: '0.88rem' }}>Permohonan dari: {j.pemohon}</div>}
+                {j.kode_laporan && (
+                  <div style={{ background: '#fdf4ff', border: '1px solid #f5d0fe', borderRadius: '10px', padding: '10px 12px', margin: '6px 0', fontSize: '0.88rem', color: '#701a75' }}>
+                    <div style={{ fontWeight: 700 }}>Laporan {j.kode_laporan}{j.prioritas_laporan ? ` • prioritas ${j.prioritas_laporan}` : ''}</div>
+                    {j.pemohon && <div>Pelapor: {j.pemohon}</div>}
+                    {j.deskripsi_laporan && <div style={{ color: '#86198f' }}>{j.deskripsi_laporan}</div>}
+                    {j.patokan_laporan && <div>Patokan: {j.patokan_laporan}</div>}
+                    {j.lat_laporan && j.lng_laporan && (
+                      <a href={`https://www.google.com/maps/search/?api=1&query=${j.lat_laporan},${j.lng_laporan}`} target="_blank" rel="noopener noreferrer" style={{ color: '#2563eb', fontWeight: 600, textDecoration: 'none' }}>📍 Buka lokasi di Google Maps</a>
+                    )}
+                    <div style={{ fontSize: '0.78rem', color: '#a21caf', marginTop: '4px' }}>Saat pengangkutan selesai, laporan ini ikut selesai dan pelapor dapat memberi penilaian.</div>
+                  </div>
+                )}
+                {!j.kode_laporan && j.pemohon && <div style={{ color: '#a21caf', fontSize: '0.88rem' }}>Permohonan dari: {j.pemohon}</div>}
                 <div style={{ color: '#6b7280', fontSize: '0.85rem', margin: '4px 0 12px' }}>
                   Ritase: {j.ritase || 1}x{j.jarak_km ? ` • ±${j.jarak_km} km` : ''}{j.durasi_jam ? ` • ±${j.durasi_jam} jam` : ''}
                 </div>

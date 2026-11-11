@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { CheckCircle2, X, Send, Image as ImageIcon } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { API_URL } from '../../config';
 import PilihFoto from '../../components/PilihFoto';
 
@@ -89,7 +90,7 @@ export default function Laporan() {
     <div style={{ padding: '40px', fontFamily: 'Inter, sans-serif' }}>
       <h1 style={{ margin: '0 0 8px', color: '#111827' }}>Laporan Masyarakat</h1>
       <p style={{ color: '#6b7280', margin: '0 0 30px' }}>
-        Laporan masyarakat yang ditugaskan admin kepada Anda, diurutkan berdasarkan prioritas. Update status saat Anda menangani.
+        Laporan masyarakat yang dijadwalkan admin kepada Anda, diurutkan berdasarkan prioritas. Pengangkutannya dikerjakan lewat menu Jadwal.
       </p>
 
       {/* Success toast */}
@@ -217,7 +218,15 @@ export default function Laporan() {
                   </a>
                 )}
 
-                {/* Tombol Aksi */}
+                {/* Laporan yang sudah dijadwalkan dikerjakan lewat menu Jadwal */}
+                {l.jadwal_id ? (
+                  <Link to="/sopir/jadwal" style={{
+                    display: 'block', textAlign: 'center', padding: '11px', borderRadius: '10px', textDecoration: 'none',
+                    background: '#ecfdf5', color: '#047857', fontWeight: '700', fontSize: '0.9rem', border: '1px solid #a7f3d0'
+                  }}>
+                    Dijadwalkan {l.jadwal_tanggal} pukul {l.jadwal_jam} — kerjakan di menu Jadwal
+                  </Link>
+                ) : (
                 <button
                   onClick={() => handleOpenAction(l)}
                   style={{
@@ -233,6 +242,7 @@ export default function Laporan() {
                 >
                   <Send size={15} /> Perbarui Status Penanganan
                 </button>
+                )}
               </div>
             );
           })}

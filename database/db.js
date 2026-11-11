@@ -235,6 +235,9 @@ tambahKolom('laporan_masyarakat', 'dinilai_at', 'DATETIME');
 tambahKolom('laporan_masyarakat', 'teguran_pengawas', 'TEXT');
 tambahKolom('laporan_masyarakat', 'teguran_at', 'DATETIME');
 tambahKolom('laporan_masyarakat', 'notif_terlambat_at', 'DATETIME');
+tambahKolom('laporan_masyarakat', 'sumber', "TEXT DEFAULT 'website' CHECK(sumber IN ('website','telepon','whatsapp','surat','datang langsung'))");
+tambahKolom('laporan_masyarakat', 'dicatat_oleh', 'INTEGER REFERENCES users(id)');
+tambahKolom('jadwal_pengangkutan', 'laporan_id', 'INTEGER REFERENCES laporan_masyarakat(id)');
 
 // Seed default data if tables are empty
 try {

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import axios from 'axios';
 import { Plus, Edit2, Trash2, X, AlertTriangle, ChevronLeft, ChevronRight, Repeat, CalendarDays } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { API_URL } from '../../config';
 
 const HARI = ['', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'];
@@ -25,7 +26,7 @@ export default function Jadwal() {
   const [sopirList, setSopirList] = useState([]);
   const [kruList, setKruList] = useState([]);
 
-  const [form, setForm] = useState(null);      // { mode: 'rutin' | 'tambahan' | 'harian', ...data }
+  const [form, setForm] = useState(null);      // { mode: 'rutin' | 'harian', ...data }
   const [bentrok, setBentrok] = useState(null); // daftar bentrok dari server
   const [hapus, setHapus] = useState(null);     // { jenis: 'rutin' | 'harian', item }
 
@@ -74,7 +75,6 @@ export default function Jadwal() {
   // ---------- buka form ----------
   const bukaRutinBaru = () => setForm({ mode: 'rutin', id: null, hari: 1, jam: '06:00', jalur_id: '', kendaraan_id: '', sopir_id: '', kru_ids: [], ritase: 1, status: 'aktif', catatan: '' });
   const bukaRutinEdit = (r) => setForm({ mode: 'rutin', ...r, catatan: r.catatan || '', kru_ids: keDaftarKru(r.kru_ids) });
-  const bukaTambahan = () => setForm({ mode: 'tambahan', id: null, tanggal, jam: '08:00', jalur_id: '', lokasi: '', pemohon: '', durasi_jam: 2, kendaraan_id: '', sopir_id: '', kru_ids: [], ritase: 1, catatan: '' });
   const bukaHarianEdit = (j) => setForm({
     mode: 'harian', ...j, jalur_id: j.jalur_id || '', lokasi: j.lokasi || '', pemohon: j.pemohon || '', catatan: j.catatan || '',
     kendaraan_awal: j.kendaraan_id, kru_ids: keDaftarKru(j.kru_ids),
@@ -91,8 +91,7 @@ export default function Jadwal() {
         res = form.id ? await axios.put(`${API_URL}/admin/jadwal-rutin/${form.id}`, data, { withCredentials: true })
                       : await axios.post(`${API_URL}/admin/jadwal-rutin`, data, { withCredentials: true });
       } else {
-        res = form.id ? await axios.put(`${API_URL}/admin/jadwal/${form.id}`, data, { withCredentials: true })
-                      : await axios.post(`${API_URL}/admin/jadwal`, data, { withCredentials: true });
+        res = await axios.put(`${API_URL}/admin/jadwal/${form.id}`, data, { withCredentials: true });
       }
       setBentrok(null); setForm(null);
       if (res.data.message) alert(res.data.message);
@@ -125,7 +124,7 @@ export default function Jadwal() {
       <h1 style={{ margin: '0 0 6px', color: '#111827' }}>Penjadwalan Pengangkutan</h1>
       <p style={{ color: '#6b7280', margin: '0 0 20px' }}>
         Jadwal rutin mingguan diisi sekali; sistem membuat jadwal harian otomatis untuk 7 hari ke depan.
-        Permohonan pelayanan ditambahkan sebagai jadwal tambahan dan diperiksa bentroknya.
+        Jadwal tambahan dibuat dari menu Laporan Masyarakat (tombol Jadwalkan) dan diperiksa bentroknya.
       </p>
 
       <div style={{ display: 'flex', gap: '10px', marginBottom: '20px', flexWrap: 'wrap' }}>
@@ -143,7 +142,7 @@ export default function Jadwal() {
               <span style={{ fontWeight: 700, color: '#111827', marginLeft: '6px' }}>{namaHari(tanggal)}, {formatTanggal(tanggal)}</span>
               {tanggal !== hariIni() && <button onClick={() => setTanggal(hariIni())} style={{ background: 'none', border: 'none', color: '#2563eb', cursor: 'pointer', fontWeight: 600 }}>Hari ini</button>}
             </div>
-            <button onClick={bukaTambahan} style={tombolHijau}><Plus size={18} /> Jadwal Tambahan (Permohonan)</button>
+            <Link to="/admin/laporan-masyarakat" style={{ ...tombolHijau, textDecoration: 'none' }}><Plus size={18} /> Jadwal Tambahan dari Laporan</Link>
           </div>
 
           <div style={{ background: 'white', borderRadius: '16px', boxShadow: '0 4px 6px rgba(0,0,0,0.02)', overflowX: 'auto' }}>
@@ -170,7 +169,8 @@ export default function Jadwal() {
                             <span style={{ fontWeight: 600, color: '#111827' }}>{j.lokasi_tampil}</span>
                             <JenisBadge jenis={j.jenis} />
                           </div>
-                          {j.pemohon && <div style={{ fontSize: '0.8rem', color: '#a21caf' }}>Pemohon: {j.pemohon}</div>}
+                          {j.kode_laporan && <div style={{ fontSize: '0.8rem', color: '#a21caf', fontWeight: 600 }}>Laporan {j.kode_laporan}{j.prioritas_laporan ? ` • prioritas ${j.prioritas_laporan}` : ''}</div>}
+                          {j.pemohon && <div style={{ fontSize: '0.8rem', color: '#a21caf' }}>Pelapor: {j.pemohon}</div>}
                           {j.desa && <div style={{ fontSize: '0.8rem', color: '#6b7280', maxWidth: '280px' }}>{j.desa}</div>}
                           {j.tps_names && <div style={{ fontSize: '0.8rem', color: '#6b7280', maxWidth: '280px' }}>TPS: {j.tps_names}</div>}
                         </td>
@@ -253,7 +253,6 @@ export default function Jadwal() {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px' }}>
               <h2 style={{ margin: 0, fontSize: '1.2rem' }}>
                 {form.mode === 'rutin' ? (form.id ? 'Ubah Jadwal Rutin' : 'Tambah Jadwal Rutin')
-                  : form.mode === 'tambahan' ? 'Jadwal Tambahan (Permohonan Pelayanan)'
                   : `Ubah Jadwal ${form.jenis === 'rutin' ? 'Rutin' : 'Tambahan'} • ${form.tanggal}`}
               </h2>
               <button onClick={() => setForm(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#6b7280' }}><X size={20} /></button>
@@ -289,36 +288,27 @@ export default function Jadwal() {
               )}
 
               {/* Jalur / lokasi */}
-              {form.mode === 'harian' && form.jenis === 'rutin' ? (
-                <div style={{ ...input, background: '#f9fafb' }}>{form.lokasi_tampil} <span style={{ color: '#6b7280', fontSize: '0.8rem' }}>(dari jadwal rutin)</span></div>
-              ) : (
+              {form.mode === 'rutin' ? (
                 <>
-                  <label style={label}>Jalur Layanan{form.mode !== 'rutin' && ' (kosongkan bila lokasi di luar jalur)'}</label>
-                  <select required={form.mode === 'rutin'} value={form.jalur_id} onChange={e => setForm({ ...form, jalur_id: e.target.value })} style={input}>
-                    <option value="">{form.mode === 'rutin' ? '-- Pilih Jalur --' : '— Lokasi lain (isi di bawah) —'}</option>
+                  <label style={label}>Jalur Layanan</label>
+                  <select required value={form.jalur_id} onChange={e => setForm({ ...form, jalur_id: e.target.value })} style={input}>
+                    <option value="">-- Pilih Jalur --</option>
                     {jalurAktif.map(j => <option key={j.id} value={j.id}>{j.nama_jalur}{j.kecamatan ? ` — ${j.kecamatan}` : ''}</option>)}
                   </select>
                 </>
-              )}
-              {form.mode !== 'rutin' && !(form.mode === 'harian' && form.jenis === 'rutin') && (
-                <>
-                  {!form.jalur_id && (
-                    <>
-                      <label style={label}>Lokasi Permohonan</label>
-                      <input required placeholder="contoh: Lapangan Desa Ciracap" value={form.lokasi} onChange={e => setForm({ ...form, lokasi: e.target.value })} style={input} />
-                    </>
-                  )}
-                  <div style={{ display: 'flex', gap: '12px' }}>
-                    <div style={{ flex: 2 }}>
-                      <label style={label}>Pemohon</label>
-                      <input placeholder="contoh: Pemdes Ciracap" value={form.pemohon} onChange={e => setForm({ ...form, pemohon: e.target.value })} style={input} />
-                    </div>
-                    <div style={{ flex: 1 }}>
-                      <label style={label}>Perkiraan Durasi (jam)</label>
-                      <input type="number" min="0.5" step="0.5" value={form.durasi_jam} onChange={e => setForm({ ...form, durasi_jam: e.target.value })} style={input} />
-                    </div>
+              ) : form.jenis === 'rutin' ? (
+                <div style={{ ...input, background: '#f9fafb' }}>{form.lokasi_tampil} <span style={{ color: '#6b7280', fontSize: '0.8rem' }}>(dari jadwal rutin)</span></div>
+              ) : (
+                <div style={{ display: 'flex', gap: '12px' }}>
+                  <div style={{ ...input, flex: 2, background: '#f9fafb' }}>
+                    {form.lokasi_tampil}
+                    <div style={{ color: '#6b7280', fontSize: '0.8rem' }}>{form.kode_laporan ? `Laporan ${form.kode_laporan}` : 'Jadwal tambahan'}{form.pemohon ? ` • ${form.pemohon}` : ''}</div>
                   </div>
-                </>
+                  <div style={{ flex: 1 }}>
+                    <label style={label}>Durasi (jam)</label>
+                    <input type="number" min="0.5" step="0.5" value={form.durasi_jam} onChange={e => setForm({ ...form, durasi_jam: e.target.value })} style={input} />
+                  </div>
+                </div>
               )}
 
               <label style={label}>Armada</label>
@@ -354,16 +344,14 @@ export default function Jadwal() {
                   <label style={label}>Ritase</label>
                   <input type="number" min="1" value={form.ritase} onChange={e => setForm({ ...form, ritase: e.target.value })} style={input} />
                 </div>
-                {form.mode !== 'tambahan' && (
-                  <div style={{ flex: 1 }}>
-                    <label style={label}>Status</label>
-                    <select value={form.status} onChange={e => setForm({ ...form, status: e.target.value })} style={input}>
-                      {form.mode === 'rutin'
-                        ? <><option value="aktif">Aktif</option><option value="nonaktif">Nonaktif</option></>
-                        : <><option value="menunggu">Menunggu</option><option value="berjalan">Berjalan</option><option value="selesai">Selesai</option><option value="batal">Batal</option></>}
-                    </select>
-                  </div>
-                )}
+                <div style={{ flex: 1 }}>
+                  <label style={label}>Status</label>
+                  <select value={form.status} onChange={e => setForm({ ...form, status: e.target.value })} style={input}>
+                    {form.mode === 'rutin'
+                      ? <><option value="aktif">Aktif</option><option value="nonaktif">Nonaktif</option></>
+                      : <><option value="menunggu">Menunggu</option><option value="berjalan">Berjalan</option><option value="selesai">Selesai</option><option value="batal">Batal</option></>}
+                  </select>
+                </div>
               </div>
 
               <label style={label}>Catatan (opsional)</label>
@@ -408,7 +396,7 @@ export default function Jadwal() {
                 ? <>Jadwal rutin <strong>{hapus.item.nama_jalur}</strong> setiap hari {HARI[hapus.item.hari]} dihapus. Jadwal harian yang belum berjalan ikut dihapus; riwayat yang sudah berjalan tetap tersimpan.</>
                 : hapus.item.jenis === 'rutin'
                   ? <>Jadwal <strong>{hapus.item.lokasi_tampil}</strong> tanggal <strong>{hapus.item.tanggal}</strong> dibatalkan. Jadwal rutinnya tetap berlaku untuk minggu berikutnya.</>
-                  : <>Jadwal <strong>{hapus.item.lokasi_tampil}</strong> tanggal <strong>{hapus.item.tanggal}</strong> dihapus.</>}
+                  : <>Jadwal <strong>{hapus.item.lokasi_tampil}</strong> tanggal <strong>{hapus.item.tanggal}</strong> dihapus.{hapus.item.kode_laporan && <> Laporan <strong>{hapus.item.kode_laporan}</strong> kembali berstatus masuk dan dapat dijadwalkan ulang.</>}</>}
             </p>
             <div style={{ display: 'flex', gap: '10px' }}>
               <button onClick={() => setHapus(null)} style={{ flex: 1, padding: '10px', border: '1px solid #e5e7eb', background: 'white', borderRadius: '8px', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>Batal</button>
