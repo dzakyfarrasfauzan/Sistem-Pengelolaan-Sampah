@@ -5,7 +5,6 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react()],
   server: {
-    host: true, // dapat dibuka dari perangkat lain di jaringan WiFi yang sama
     // Request ke /be diteruskan ke backend Express, sehingga cukup satu alamat (frontend)
     proxy: {
       '/be': {
