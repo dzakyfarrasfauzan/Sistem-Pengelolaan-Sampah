@@ -83,8 +83,8 @@ export default function LaporanMasyarakat() {
 
   // ---------- jadwalkan laporan sebagai jadwal tambahan ----------
   const bukaJadwalkan = (l) => setJadwalkan({
-    laporan: l, prioritas: l.prioritas || '', tanggal: hariIni(), jam: '08:00', durasi_jam: 2,
-    kendaraan_id: '', sopir_id: '', kru_ids: [], ritase: 1, catatan: '',
+    laporan: l, prioritas: l.prioritas || '', tanggal: hariIni(), jam: '08:00',
+    kendaraan_id: '', sopir_id: '', kru_ids: [], catatan: '',
   });
   const toggleKru = (id) => setJadwalkan(f => ({ ...f, kru_ids: f.kru_ids.includes(id) ? f.kru_ids.filter(k => k !== id) : [...f.kru_ids, id] }));
   const kirimJadwalkan = async (paksa = false) => {
@@ -700,10 +700,6 @@ export default function LaporanMasyarakat() {
                   <label style={lbl}>Jam Berangkat</label>
                   <input type="time" required value={jadwalkan.jam} onChange={e => setJadwalkan({ ...jadwalkan, jam: e.target.value })} style={inp} />
                 </div>
-                <div style={{ flex: 1 }}>
-                  <label style={lbl}>Durasi (jam)</label>
-                  <input type="number" min="0.5" step="0.5" value={jadwalkan.durasi_jam} onChange={e => setJadwalkan({ ...jadwalkan, durasi_jam: e.target.value })} style={inp} />
-                </div>
               </div>
               <label style={lbl}>Armada</label>
               <select required value={jadwalkan.kendaraan_id} onChange={e => setJadwalkan({ ...jadwalkan, kendaraan_id: e.target.value })} style={inp}>
@@ -724,16 +720,8 @@ export default function LaporanMasyarakat() {
                   </label>
                 ))}
               </div>
-              <div style={{ display: 'flex', gap: '12px' }}>
-                <div style={{ flex: 1 }}>
-                  <label style={lbl}>Ritase</label>
-                  <input type="number" min="1" value={jadwalkan.ritase} onChange={e => setJadwalkan({ ...jadwalkan, ritase: e.target.value })} style={inp} />
-                </div>
-                <div style={{ flex: 2 }}>
-                  <label style={lbl}>Catatan <span style={{ color: '#9ca3af', fontWeight: 400 }}>(opsional)</span></label>
-                  <input value={jadwalkan.catatan} onChange={e => setJadwalkan({ ...jadwalkan, catatan: e.target.value })} style={inp} />
-                </div>
-              </div>
+              <label style={lbl}>Catatan <span style={{ color: '#9ca3af', fontWeight: 400 }}>(opsional)</span></label>
+              <input value={jadwalkan.catatan} onChange={e => setJadwalkan({ ...jadwalkan, catatan: e.target.value })} style={inp} />
               <button type="submit" disabled={updating} style={tombolUtama}>{updating ? 'Menyimpan...' : 'Simpan Jadwal'}</button>
             </form>
           </div>

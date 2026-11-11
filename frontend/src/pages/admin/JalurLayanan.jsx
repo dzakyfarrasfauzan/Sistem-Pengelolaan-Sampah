@@ -4,7 +4,7 @@ import { Plus, Edit2, Trash2, X } from 'lucide-react';
 import { API_URL } from '../../config';
 
 // Jalur layanan: rute pengangkutan yang melewati beberapa titik, desa, dan TPS
-const KOSONG = { id: null, nama_jalur: '', alamat_pelayanan: '', desa: '', kecamatan: '', jarak_km: '', waktu_tempuh_jam: '8', estimasi_tonase: '', status: 'aktif', tps_ids: [] };
+const KOSONG = { id: null, nama_jalur: '', alamat_pelayanan: '', desa: '', kecamatan: '', jarak_km: '', estimasi_tonase: '', status: 'aktif', tps_ids: [] };
 
 export default function JalurLayanan() {
   const [list, setList] = useState([]);
@@ -29,7 +29,7 @@ export default function JalurLayanan() {
 
   const bukaEdit = (j) => setForm({
     ...KOSONG, ...j,
-    jarak_km: j.jarak_km ?? '', waktu_tempuh_jam: j.waktu_tempuh_jam ?? '8', estimasi_tonase: j.estimasi_tonase ?? '',
+    jarak_km: j.jarak_km ?? '', estimasi_tonase: j.estimasi_tonase ?? '',
     alamat_pelayanan: j.alamat_pelayanan || '', desa: j.desa || '', kecamatan: j.kecamatan || '',
     tps_ids: j.tps_ids ? String(j.tps_ids).split(',').map(Number) : [],
   });
@@ -70,7 +70,7 @@ export default function JalurLayanan() {
           <thead>
             <tr style={{ background: '#f9fafb', color: '#4b5563', fontSize: '0.9rem' }}>
               <th style={th}>Jalur</th><th style={th}>Desa / Kecamatan</th><th style={th}>TPS Dilewati</th>
-              <th style={th}>Jarak • Waktu • Tonase</th><th style={th}>Status</th><th style={{ ...th, textAlign: 'center' }}>Aksi</th>
+              <th style={th}>Jarak • Tonase</th><th style={th}>Status</th><th style={{ ...th, textAlign: 'center' }}>Aksi</th>
             </tr>
           </thead>
           <tbody>
@@ -88,7 +88,7 @@ export default function JalurLayanan() {
                   </td>
                   <td style={{ ...th, fontSize: '0.85rem', color: '#374151', maxWidth: '220px' }}>{j.tps_names || '-'}</td>
                   <td style={{ ...th, fontSize: '0.85rem', color: '#374151', whiteSpace: 'nowrap' }}>
-                    {j.jarak_km ? `${j.jarak_km} km` : '-'} • {j.waktu_tempuh_jam || 8} jam • {j.estimasi_tonase ? `${j.estimasi_tonase} ton` : '-'}
+                    {j.jarak_km ? `${j.jarak_km} km` : '-'} • {j.estimasi_tonase ? `${j.estimasi_tonase} ton` : '-'}
                   </td>
                   <td style={th}>
                     <span style={{ padding: '4px 10px', borderRadius: '20px', fontSize: '0.8rem', fontWeight: 700, background: j.status === 'aktif' ? '#d1fae5' : '#f3f4f6', color: j.status === 'aktif' ? '#059669' : '#6b7280' }}>{j.status.toUpperCase()}</span>
@@ -129,10 +129,6 @@ export default function JalurLayanan() {
                 <div style={{ flex: 1 }}>
                   <label style={label}>Jarak (km)</label>
                   <input type="number" min="0" step="any" value={form.jarak_km} onChange={e => setForm({ ...form, jarak_km: e.target.value })} style={input} />
-                </div>
-                <div style={{ flex: 1 }}>
-                  <label style={label}>Waktu Tempuh (jam)</label>
-                  <input type="number" min="0.5" step="0.5" required value={form.waktu_tempuh_jam} onChange={e => setForm({ ...form, waktu_tempuh_jam: e.target.value })} style={input} />
                 </div>
                 <div style={{ flex: 1 }}>
                   <label style={label}>Estimasi Tonase</label>

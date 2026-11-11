@@ -73,7 +73,7 @@ export default function Jadwal() {
   const jalurAktif = jalurList.filter(j => j.status === 'aktif');
 
   // ---------- buka form ----------
-  const bukaRutinBaru = () => setForm({ mode: 'rutin', id: null, hari: 1, jam: '06:00', jalur_id: '', kendaraan_id: '', sopir_id: '', kru_ids: [], ritase: 1, status: 'aktif', catatan: '' });
+  const bukaRutinBaru = () => setForm({ mode: 'rutin', id: null, hari: 1, jam: '06:00', jalur_id: '', kendaraan_id: '', sopir_id: '', kru_ids: [], status: 'aktif', catatan: '' });
   const bukaRutinEdit = (r) => setForm({ mode: 'rutin', ...r, catatan: r.catatan || '', kru_ids: keDaftarKru(r.kru_ids) });
   const bukaHarianEdit = (j) => setForm({
     mode: 'harian', ...j, jalur_id: j.jalur_id || '', lokasi: j.lokasi || '', pemohon: j.pemohon || '', catatan: j.catatan || '',
@@ -162,7 +162,6 @@ export default function Jadwal() {
                       <tr key={j.id} style={{ borderTop: '1px solid #f3f4f6', verticalAlign: 'top', opacity: j.status === 'batal' ? 0.55 : 1 }}>
                         <td style={th}>
                           <div style={{ fontWeight: 700, color: '#111827' }}>{j.jam}</div>
-                          <div style={{ fontSize: '0.78rem', color: '#6b7280' }}>±{j.durasi_jam || 8} jam • {j.ritase || 1} rit</div>
                         </td>
                         <td style={th}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
@@ -224,11 +223,11 @@ export default function Jadwal() {
                 <tbody>
                   {list.map(r => (
                     <tr key={r.id} style={{ borderTop: '1px solid #f9fafb', verticalAlign: 'top', opacity: r.status === 'aktif' ? 1 : 0.5 }}>
-                      <td style={{ ...th, width: '90px' }}><div style={{ fontWeight: 700 }}>{r.jam}</div><div style={{ fontSize: '0.78rem', color: '#6b7280' }}>{r.ritase} rit</div></td>
+                      <td style={{ ...th, width: '90px' }}><div style={{ fontWeight: 700 }}>{r.jam}</div></td>
                       <td style={th}>
                         <div style={{ fontWeight: 600, color: '#111827' }}>{r.nama_jalur}</div>
                         <div style={{ fontSize: '0.8rem', color: '#6b7280', maxWidth: '300px' }}>{r.desa || ''}</div>
-                        <div style={{ fontSize: '0.78rem', color: '#6b7280' }}>{r.jarak_km ? `${r.jarak_km} km • ` : ''}±{r.waktu_tempuh_jam || 8} jam{r.estimasi_tonase ? ` • ${r.estimasi_tonase} ton` : ''}</div>
+                        <div style={{ fontSize: '0.78rem', color: '#6b7280' }}>{[r.jarak_km ? `${r.jarak_km} km` : '', r.estimasi_tonase ? `${r.estimasi_tonase} ton` : ''].filter(Boolean).join(' • ')}</div>
                       </td>
                       <td style={th}><div>{r.nomor_polisi}</div><div style={{ fontSize: '0.8rem', color: '#6b7280' }}>{r.jenis_kendaraan}</div></td>
                       <td style={th}><div style={{ fontWeight: 600 }}>{r.sopir_name}</div><div style={{ fontSize: '0.8rem', color: '#6b7280', maxWidth: '240px' }}>Kru: {r.kru_names || '-'}</div></td>
@@ -299,15 +298,9 @@ export default function Jadwal() {
               ) : form.jenis === 'rutin' ? (
                 <div style={{ ...input, background: '#f9fafb' }}>{form.lokasi_tampil} <span style={{ color: '#6b7280', fontSize: '0.8rem' }}>(dari jadwal rutin)</span></div>
               ) : (
-                <div style={{ display: 'flex', gap: '12px' }}>
-                  <div style={{ ...input, flex: 2, background: '#f9fafb' }}>
-                    {form.lokasi_tampil}
-                    <div style={{ color: '#6b7280', fontSize: '0.8rem' }}>{form.kode_laporan ? `Laporan ${form.kode_laporan}` : 'Jadwal tambahan'}{form.pemohon ? ` • ${form.pemohon}` : ''}</div>
-                  </div>
-                  <div style={{ flex: 1 }}>
-                    <label style={label}>Durasi (jam)</label>
-                    <input type="number" min="0.5" step="0.5" value={form.durasi_jam} onChange={e => setForm({ ...form, durasi_jam: e.target.value })} style={input} />
-                  </div>
+                <div style={{ ...input, background: '#f9fafb' }}>
+                  {form.lokasi_tampil}
+                  <div style={{ color: '#6b7280', fontSize: '0.8rem' }}>{form.kode_laporan ? `Laporan ${form.kode_laporan}` : 'Jadwal tambahan'}{form.pemohon ? ` • ${form.pemohon}` : ''}</div>
                 </div>
               )}
 
@@ -340,10 +333,6 @@ export default function Jadwal() {
               </div>
 
               <div style={{ display: 'flex', gap: '12px' }}>
-                <div style={{ flex: 1 }}>
-                  <label style={label}>Ritase</label>
-                  <input type="number" min="1" value={form.ritase} onChange={e => setForm({ ...form, ritase: e.target.value })} style={input} />
-                </div>
                 <div style={{ flex: 1 }}>
                   <label style={label}>Status</label>
                   <select value={form.status} onChange={e => setForm({ ...form, status: e.target.value })} style={input}>
