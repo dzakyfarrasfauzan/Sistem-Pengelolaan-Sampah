@@ -80,6 +80,17 @@ app.use((err, req, res, next) => {
 // ============================================
 // Start Server
 // ============================================
+// Jadwal harian dari jadwal rutin dibuat otomatis saat server berjalan dan setiap jam
+const { pastikanJadwalHarian } = require('./utils/jadwal');
+const buatJadwalOtomatis = () => {
+    try {
+        const n = pastikanJadwalHarian();
+        if (n) console.log(`📅 ${n} jadwal harian dibuat dari jadwal rutin`);
+    } catch (err) { console.error('❌ Gagal membuat jadwal harian:', err.message); }
+};
+buatJadwalOtomatis();
+setInterval(buatJadwalOtomatis, 60 * 60 * 1000);
+
 app.listen(PORT, () => {
     console.log('============================================');
     console.log('  Sistem Pengelolaan Sampah');

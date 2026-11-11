@@ -9,6 +9,7 @@ import AdminTPS from './pages/admin/TPS'
 import AdminKendaraan from './pages/admin/Kendaraan'
 import AdminPetugas from './pages/admin/Petugas'
 import AdminJadwal from './pages/admin/Jadwal'
+import AdminJalur from './pages/admin/JalurLayanan'
 import AdminLaporanMasyarakat from './pages/admin/LaporanMasyarakat'
 import AdminPemeriksaan from './pages/admin/PemeriksaanKendaraan'
 import SopirLayout from './components/SopirLayout'
@@ -36,6 +37,7 @@ function App() {
           <Route path="kendaraan" element={<AdminKendaraan />} />
           <Route path="petugas" element={<AdminPetugas />} />
           <Route path="pemeriksaan-kendaraan" element={<AdminPemeriksaan />} />
+          <Route path="jalur" element={<AdminJalur />} />
           <Route path="jadwal" element={<AdminJadwal />} />
           <Route path="laporan-masyarakat" element={<AdminLaporanMasyarakat />} />
         </Route>

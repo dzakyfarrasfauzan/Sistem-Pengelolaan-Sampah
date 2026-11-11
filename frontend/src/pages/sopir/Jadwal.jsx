@@ -132,7 +132,7 @@ export default function SopirJadwal() {
   };
 
   const mulai = async (j) => {
-    if (!window.confirm(`Mulai pengangkutan ke ${j.nama_tps}?`)) return;
+    if (!window.confirm(`Mulai pengangkutan di ${j.lokasi_tampil}?`)) return;
     try {
       const fd = new FormData();
       fd.append('status', 'berjalan');
@@ -192,8 +192,19 @@ export default function SopirJadwal() {
                     <Clock size={16} /> {new Date(j.tanggal).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })} • Pukul {j.jam}
                   </span>
                 </div>
-                <h3 style={{ margin: '0 0 4px', fontSize: '1.3rem', color: '#111827' }}>{j.nama_tps}</h3>
-                <div style={{ color: '#6b7280', marginBottom: '12px' }}>{j.alamat}</div>
+                <h3 style={{ margin: '0 0 4px', fontSize: '1.3rem', color: '#111827', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                  {j.lokasi_tampil}
+                  <span style={{ fontSize: '0.72rem', fontWeight: 700, padding: '3px 8px', borderRadius: '12px', background: j.jenis === 'rutin' ? '#e0f2fe' : '#fae8ff', color: j.jenis === 'rutin' ? '#0369a1' : '#a21caf' }}>
+                    {j.jenis === 'rutin' ? 'RUTIN' : 'TAMBAHAN'}
+                  </span>
+                </h3>
+                {j.alamat_pelayanan && <div style={{ color: '#374151', fontSize: '0.92rem' }}>Titik: {j.alamat_pelayanan}</div>}
+                {(j.desa || j.kecamatan) && <div style={{ color: '#6b7280', fontSize: '0.88rem' }}>{[j.desa, j.kecamatan].filter(Boolean).join(' • ')}</div>}
+                {j.tps_names && <div style={{ color: '#6b7280', fontSize: '0.88rem' }}>TPS: {j.tps_names}</div>}
+                {j.pemohon && <div style={{ color: '#a21caf', fontSize: '0.88rem' }}>Permohonan dari: {j.pemohon}</div>}
+                <div style={{ color: '#6b7280', fontSize: '0.85rem', margin: '4px 0 12px' }}>
+                  Ritase: {j.ritase || 1}x{j.jarak_km ? ` • ±${j.jarak_km} km` : ''}{j.durasi_jam ? ` • ±${j.durasi_jam} jam` : ''}
+                </div>
                 <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginBottom: '16px' }}>
                   <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '0.9rem', color: '#4b5563', background: '#f3f4f6', padding: '8px 12px', borderRadius: '8px' }}>
                     <Truck size={16} color="#0ea5e9" /> {j.nomor_polisi} - {j.jenis_kendaraan}
@@ -232,7 +243,7 @@ export default function SopirJadwal() {
               <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: '800', color: '#111827', textTransform: 'capitalize' }}>Pemeriksaan {modal.jenis}</h3>
               <button onClick={() => setModal(null)} style={{ background: 'none', border: 'none', color: '#9ca3af', cursor: 'pointer' }}><X size={20} /></button>
             </div>
-            <p style={{ color: '#6b7280', fontSize: '0.85rem', margin: '0 0 18px' }}>{modal.jadwal.nomor_polisi} — {modal.jadwal.nama_tps}</p>
+            <p style={{ color: '#6b7280', fontSize: '0.85rem', margin: '0 0 18px' }}>{modal.jadwal.nomor_polisi} — {modal.jadwal.lokasi_tampil}</p>
             <form onSubmit={kirim} style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
               <div>
                 <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', color: '#374151', fontSize: '0.9rem' }}>Kondisi Kendaraan <span style={{ color: '#dc2626' }}>*</span></label>
@@ -279,7 +290,7 @@ export default function SopirJadwal() {
               <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: '800', color: '#111827' }}>Selesaikan Pengangkutan</h3>
               <button onClick={() => setModalSelesai(null)} style={{ background: 'none', border: 'none', color: '#9ca3af', cursor: 'pointer' }}><X size={20} /></button>
             </div>
-            <p style={{ color: '#6b7280', fontSize: '0.85rem', margin: '0 0 18px' }}>{modalSelesai.nomor_polisi} — {modalSelesai.nama_tps}</p>
+            <p style={{ color: '#6b7280', fontSize: '0.85rem', margin: '0 0 18px' }}>{modalSelesai.nomor_polisi} — {modalSelesai.lokasi_tampil}</p>
             <form onSubmit={kirimSelesai} style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
               <div>
                 <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', color: '#374151', fontSize: '0.9rem' }}>Foto Pelaksanaan Pengangkutan <span style={{ color: '#dc2626' }}>*</span></label>

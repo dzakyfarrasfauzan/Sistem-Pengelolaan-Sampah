@@ -68,7 +68,7 @@ export default function PemeriksaanKendaraan() {
                   <td style={th}>{p.created_at}</td>
                   <td style={th}><div style={{ fontWeight: 600 }}>{p.nomor_polisi}</div><div style={{ fontSize: '0.8rem', color: '#6b7280' }}>{p.jenis_kendaraan}</div></td>
                   <td style={th}>{p.sopir_name || '-'}</td>
-                  <td style={th}><div>{p.nama_tps || '-'}</div><div style={{ fontSize: '0.8rem', color: '#6b7280' }}>{p.tanggal} {p.jam}</div></td>
+                  <td style={th}><div>{p.lokasi_tampil || '-'}</div><div style={{ fontSize: '0.8rem', color: '#6b7280' }}>{p.tanggal} {p.jam}</div></td>
                   <td style={{ ...th, textTransform: 'capitalize' }}>{p.jenis}</td>
                   <td style={th}><span style={{ padding: '4px 10px', borderRadius: '20px', fontSize: '0.8rem', fontWeight: 'bold', background: bg, color: fg }}>{p.kondisi.toUpperCase()}</span></td>
                   <td style={{ ...th, color: '#4b5563', maxWidth: '220px' }}>{p.catatan || '-'}</td>

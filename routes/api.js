@@ -64,15 +64,8 @@ router.get('/petugas/:id', (req, res) => {
 // ============================================
 router.get('/jadwal/:id', (req, res) => {
     try {
-        const jadwal = db.prepare(`
-            SELECT j.*, t.nama_tps, k.nomor_polisi, k.jenis_kendaraan, s.name as sopir_name,
-                   (SELECT GROUP_CONCAT(u.name, ', ') FROM jadwal_kru jk JOIN users u ON u.id = jk.kru_id WHERE jk.jadwal_id = j.id) as kru_names
-            FROM jadwal_pengangkutan j
-            LEFT JOIN tps t ON j.tps_id = t.id
-            LEFT JOIN kendaraan k ON j.kendaraan_id = k.id
-            LEFT JOIN users s ON j.sopir_id = s.id
-            WHERE j.id = ?
-        `).get(req.params.id);
+        const J = require('../utils/jadwal');
+        const jadwal = db.prepare(`SELECT ${J.KOLOM_JADWAL} ${J.JOIN_JADWAL} WHERE j.id = ?`).get(req.params.id);
 
         if (!jadwal) {
             return res.status(404).json({ error: 'Jadwal tidak ditemukan' });

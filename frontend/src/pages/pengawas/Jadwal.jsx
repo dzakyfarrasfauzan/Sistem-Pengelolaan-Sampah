@@ -30,7 +30,7 @@ export default function PengawasJadwal() {
         <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: '700px' }}>
           <thead>
             <tr style={{ background: '#f9fafb', color: '#4b5563', fontSize: '0.9rem' }}>
-              <th style={{ padding: '14px' }}>Waktu</th><th style={{ padding: '14px' }}>TPS</th><th style={{ padding: '14px' }}>Armada</th>
+              <th style={{ padding: '14px' }}>Waktu</th><th style={{ padding: '14px' }}>Jalur / Lokasi</th><th style={{ padding: '14px' }}>Armada</th>
               <th style={{ padding: '14px' }}>Sopir &amp; Kru</th><th style={{ padding: '14px' }}>Status</th>
             </tr>
           </thead>
@@ -42,7 +42,7 @@ export default function PengawasJadwal() {
               return (
                 <tr key={j.id} style={{ borderTop: '1px solid #f3f4f6' }}>
                   <td style={{ padding: '14px' }}><div style={{ fontWeight: 700 }}>{j.tanggal}</div><div style={{ fontSize: '0.82rem', color: '#6b7280' }}>Pukul {j.jam}</div></td>
-                  <td style={{ padding: '14px' }}>{j.nama_tps}</td>
+                  <td style={{ padding: '14px' }}><div style={{ fontWeight: 600 }}>{j.lokasi_tampil}</div><div style={{ fontSize: '0.78rem', color: '#6b7280' }}>{j.jenis === 'rutin' ? 'Jadwal rutin' : `Tambahan${j.pemohon ? ` • ${j.pemohon}` : ''}`}{j.desa ? ` • ${j.desa}` : ''}</div></td>
                   <td style={{ padding: '14px' }}>{j.nomor_polisi}</td>
                   <td style={{ padding: '14px' }}><div style={{ fontWeight: 600 }}>{j.sopir_name || '-'}</div><div style={{ fontSize: '0.8rem', color: '#6b7280' }}>Kru: {j.kru_names || '-'}</div></td>
                   <td style={{ padding: '14px' }}><span style={{ padding: '4px 10px', borderRadius: '20px', fontSize: '0.8rem', fontWeight: 700, background: bg, color: fg }}>{j.status.toUpperCase()}</span></td>

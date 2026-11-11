@@ -128,6 +128,93 @@ try {
     console.error('❌ Error initializing database schema:', err.message);
 }
 
+// ============================================
+// Migrasi ke jadwal per jalur layanan: jadwal lama yang memakai satu TPS
+// dipindahkan ke jalur layanan bernama "Jalur <nama TPS>" (data tetap).
+// ============================================
+if (kolomAda('jadwal_pengangkutan', 'tps_id')) {
+    try {
+        db.pragma('foreign_keys = OFF');
+        const pindah = db.transaction(() => {
+            const peta = new Map();
+            const tpsDipakai = db.prepare(`
+                SELECT DISTINCT t.id, t.nama_tps, t.alamat FROM tps t
+                WHERE t.id IN (SELECT tps_id FROM jadwal_pengangkutan) OR t.id IN (SELECT tps_id FROM laporan_pengangkutan)
+            `).all();
+            const insJalur = db.prepare('INSERT INTO jalur_layanan (nama_jalur, alamat_pelayanan) VALUES (?, ?)');
+            const insJalurTps = db.prepare('INSERT OR IGNORE INTO jalur_tps (jalur_id, tps_id) VALUES (?, ?)');
+            for (const t of tpsDipakai) {
+                const { lastInsertRowid } = insJalur.run(`Jalur ${t.nama_tps}`, t.alamat);
+                insJalurTps.run(lastInsertRowid, t.id);
+                peta.set(t.id, lastInsertRowid);
+            }
+            const jalurDari = (tpsId) => peta.get(tpsId) || null;
+
+            const lamaJadwal = db.prepare('SELECT * FROM jadwal_pengangkutan').all();
+            // Tabel baru dibuat dulu lalu diganti namanya, agar referensi tabel lain
+            // (jadwal_kru, pemeriksaan_kendaraan) tetap menunjuk ke jadwal_pengangkutan
+            db.exec(`CREATE TABLE jadwal_baru (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                jenis TEXT NOT NULL DEFAULT 'tambahan' CHECK(jenis IN ('rutin','tambahan')),
+                jadwal_rutin_id INTEGER REFERENCES jadwal_rutin(id) ON DELETE SET NULL,
+                jalur_id INTEGER REFERENCES jalur_layanan(id),
+                lokasi TEXT,
+                pemohon TEXT,
+                kendaraan_id INTEGER NOT NULL REFERENCES kendaraan(id),
+                sopir_id INTEGER REFERENCES users(id),
+                tanggal DATE NOT NULL,
+                jam TIME NOT NULL,
+                durasi_jam REAL DEFAULT 8,
+                ritase INTEGER DEFAULT 1,
+                status TEXT DEFAULT 'menunggu' CHECK(status IN ('menunggu','berjalan','selesai','batal')),
+                catatan TEXT,
+                foto_kegiatan TEXT,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE(jadwal_rutin_id, tanggal)
+            )`);
+            const insJadwal = db.prepare(`INSERT INTO jadwal_baru (id, jenis, jalur_id, kendaraan_id, sopir_id, tanggal, jam, status, catatan, foto_kegiatan, created_at, updated_at)
+                VALUES (?, 'tambahan', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`);
+            for (const j of lamaJadwal) {
+                insJadwal.run(j.id, jalurDari(j.tps_id), j.kendaraan_id, j.sopir_id, j.tanggal, j.jam, j.status, j.catatan, j.foto_kegiatan || null, j.created_at, j.updated_at);
+            }
+            db.exec('DROP TABLE jadwal_pengangkutan');
+            db.exec('ALTER TABLE jadwal_baru RENAME TO jadwal_pengangkutan');
+
+            const lamaLaporan = db.prepare('SELECT * FROM laporan_pengangkutan').all();
+            db.exec(`CREATE TABLE laporan_baru (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                jadwal_id INTEGER REFERENCES jadwal_pengangkutan(id),
+                jalur_id INTEGER REFERENCES jalur_layanan(id),
+                kendaraan_id INTEGER NOT NULL REFERENCES kendaraan(id),
+                sopir_id INTEGER NOT NULL REFERENCES users(id),
+                tanggal_pengangkutan DATE NOT NULL,
+                status_pengangkutan TEXT DEFAULT 'selesai' CHECK(status_pengangkutan IN ('selesai','gagal','sebagian')),
+                catatan TEXT,
+                foto_kegiatan TEXT,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            )`);
+            const insLap = db.prepare(`INSERT INTO laporan_baru (id, jadwal_id, jalur_id, kendaraan_id, sopir_id, tanggal_pengangkutan, status_pengangkutan, catatan, foto_kegiatan, created_at, updated_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`);
+            for (const l of lamaLaporan) {
+                insLap.run(l.id, l.jadwal_id, jalurDari(l.tps_id), l.kendaraan_id, l.sopir_id, l.tanggal_pengangkutan, l.status_pengangkutan, l.catatan, l.foto_kegiatan || null, l.created_at, l.updated_at);
+            }
+            db.exec('DROP TABLE laporan_pengangkutan');
+            db.exec('ALTER TABLE laporan_baru RENAME TO laporan_pengangkutan');
+            return tpsDipakai.length;
+        });
+        const n = pindah();
+        const salah = db.pragma('foreign_key_check');
+        if (salah.length) console.error('⚠️  Pemeriksaan foreign key:', salah.length, 'baris bermasalah');
+        console.log(`✅ Jadwal dipindahkan ke jalur layanan (${n} jalur dibuat dari TPS lama)`);
+    } catch (err) {
+        console.error('❌ Gagal migrasi jalur layanan:', err.message);
+    } finally {
+        db.pragma('foreign_keys = ON');
+    }
+}
+
 // Migrasi otomatis: tambahkan kolom baru pada database yang sudah ada
 const tambahKolom = (tabel, kolom, tipe) => {
     try {
@@ -202,25 +289,29 @@ try {
             insertKendaraan.run(...k);
         }
 
-        // Get today's date formatted
-        const today = new Date().toISOString().split('T')[0];
-
-        // Insert sample jadwal pengangkutan
-        // [tps, kendaraan, sopir, [kru], tanggal, jam, status, catatan]
-        const jadwalData = [
-            [1, 1, 3, [5, 6], today, '06:00', 'menunggu', 'Pengangkutan pagi wilayah Palabuhanratu'],
-            [3, 2, 4, [7, 8], today, '08:00', 'menunggu', 'Pengangkutan pagi wilayah Cicurug'],
-            [5, 3, 3, [5, 6], today, '10:00', 'menunggu', 'Pengangkutan siang wilayah Sukaraja']
+        // Jalur layanan contoh beserta TPS yang dilewati
+        const insJalur = db.prepare(`INSERT INTO jalur_layanan (nama_jalur, alamat_pelayanan, desa, kecamatan, jarak_km, waktu_tempuh_jam, estimasi_tonase) VALUES (?, ?, ?, ?, ?, ?, ?)`);
+        const insJalurTps = db.prepare('INSERT INTO jalur_tps (jalur_id, tps_id) VALUES (?, ?)');
+        const jalurData = [
+            ['Jalur Palabuhanratu', 'Jl. Raya Palabuhanratu, Pasar Palabuhanratu', 'Kel. Palabuhanratu', 'Kec. Palabuhanratu', 60, 8, 4, [1]],
+            ['Jalur Cicurug - Cisaat', 'Jl. Siliwangi, Jl. Raya Cisaat', 'Desa Cicurug, Desa Cisaat', 'Kec. Cicurug - Kec. Cisaat', 90, 8, 4, [3, 4]],
+            ['Jalur Sukaraja - Cikembar', 'Jl. Raya Sukaraja, Jl. Raya Cikembar', 'Desa Sukaraja, Desa Cikembar', 'Kec. Sukaraja - Kec. Cikembar', 75, 8, 4, [5, 2]],
         ];
+        for (const [nama, alamat, desa, kec, km, jam, ton, tpsIds] of jalurData) {
+            const { lastInsertRowid } = insJalur.run(nama, alamat, desa, kec, km, jam, ton);
+            for (const t of tpsIds) insJalurTps.run(lastInsertRowid, t);
+        }
 
-        const insertJadwal = db.prepare(`
-            INSERT INTO jadwal_pengangkutan (tps_id, kendaraan_id, sopir_id, tanggal, jam, status, catatan)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
-        `);
-        const insertJadwalKru = db.prepare('INSERT INTO jadwal_kru (jadwal_id, kru_id) VALUES (?, ?)');
-        for (const [tps, kendaraan, sopir, daftarKru, tgl, jam, status, catatan] of jadwalData) {
-            const { lastInsertRowid } = insertJadwal.run(tps, kendaraan, sopir, tgl, jam, status, catatan);
-            for (const k of daftarKru) insertJadwalKru.run(lastInsertRowid, k);
+        // Jadwal rutin mingguan contoh; jadwal harian dibuat otomatis dari jadwal ini
+        // [hari, jalur, kendaraan, sopir, jam, ritase, [kru]]
+        const insRutin = db.prepare('INSERT INTO jadwal_rutin (hari, jalur_id, kendaraan_id, sopir_id, jam, ritase) VALUES (?, ?, ?, ?, ?, ?)');
+        const insRutinKru = db.prepare('INSERT INTO jadwal_rutin_kru (jadwal_rutin_id, kru_id) VALUES (?, ?)');
+        const rutinData = [];
+        for (let h = 1; h <= 6; h++) rutinData.push([h, h % 2 ? 1 : 3, 1, 3, '06:00', 2, [5, 6]]);
+        for (const h of [1, 3, 5]) rutinData.push([h, 2, 2, 4, '06:00', 1, [7, 8]]);
+        for (const [hari, jalur, kend, sopir, jam, rit, daftarKru] of rutinData) {
+            const { lastInsertRowid } = insRutin.run(hari, jalur, kend, sopir, jam, rit);
+            for (const k of daftarKru) insRutinKru.run(lastInsertRowid, k);
         }
 
         // Insert sample laporan masyarakat
@@ -236,20 +327,6 @@ try {
         `);
         for (const l of laporanData) {
             insertLaporan.run(...l);
-        }
-
-        // Insert sample laporan pengangkutan
-        const laporanPengangkutanData = [
-            [1, 1, 1, 3, today, 'selesai', 'Pengangkutan selesai tanpa kendala'],
-            [2, 3, 2, 4, today, 'selesai', 'Pengangkutan selesai, volume sampah cukup banyak']
-        ];
-
-        const insertLaporanPengangkutan = db.prepare(`
-            INSERT INTO laporan_pengangkutan (jadwal_id, tps_id, kendaraan_id, sopir_id, tanggal_pengangkutan, status_pengangkutan, catatan)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
-        `);
-        for (const lp of laporanPengangkutanData) {
-            insertLaporanPengangkutan.run(...lp);
         }
 
         console.log('✅ Default data seeded successfully');

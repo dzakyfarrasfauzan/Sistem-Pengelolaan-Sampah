@@ -10,6 +10,7 @@ const db = require('../database/db');
 const { requireSopir } = require('../middleware/auth');
 const upload = require('../middleware/upload');
 const notifikasi = require('../utils/notifikasi');
+const J = require('../utils/jadwal');
 
 const uploadFoto = (req, res, next) => {
     upload.single('foto')(req, res, (err) => {
@@ -24,13 +25,10 @@ const JENIS = ['sebelum berangkat', 'sesudah pulang'];
 const KONDISI = ['baik', 'rusak ringan', 'rusak berat'];
 
 const SELECT_JADWAL_SOPIR = `
-    SELECT j.*, t.nama_tps, t.alamat, k.nomor_polisi, k.jenis_kendaraan, k.kondisi as kondisi_kendaraan,
-           (SELECT GROUP_CONCAT(u.name, ', ') FROM jadwal_kru jk JOIN users u ON u.id = jk.kru_id WHERE jk.jadwal_id = j.id) as kru_names,
+    SELECT ${J.KOLOM_JADWAL},
            pb.kondisi as kondisi_berangkat, pb.catatan as catatan_berangkat, pb.foto as foto_berangkat,
            pp.kondisi as kondisi_pulang, pp.catatan as catatan_pulang, pp.foto as foto_pulang
-    FROM jadwal_pengangkutan j
-    JOIN tps t ON j.tps_id = t.id
-    JOIN kendaraan k ON j.kendaraan_id = k.id
+    ${J.JOIN_JADWAL}
     LEFT JOIN pemeriksaan_kendaraan pb ON pb.jadwal_id = j.id AND pb.jenis = 'sebelum berangkat'
     LEFT JOIN pemeriksaan_kendaraan pp ON pp.jadwal_id = j.id AND pp.jenis = 'sesudah pulang'
     WHERE j.sopir_id = ?
@@ -40,11 +38,11 @@ const SELECT_JADWAL_SOPIR = `
 router.get('/dashboard', (req, res) => {
     try {
         const id = req.session.user.id;
-        const wib = new Date(Date.now() + 7 * 60 * 60 * 1000);
-        const today = wib.toISOString().split('T')[0];
-        const next7 = new Date(wib.getTime() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+        J.pastikanJadwalHarian();
+        const today = J.hariIni();
+        const next7 = J.tambahHari(today, 7);
 
-        const jadwalMendatang = db.prepare(`${SELECT_JADWAL_SOPIR} AND j.tanggal >= ? AND j.tanggal <= ? ORDER BY j.tanggal ASC, j.jam ASC`).all(id, today, next7);
+        const jadwalMendatang = db.prepare(`${SELECT_JADWAL_SOPIR} AND j.tanggal >= ? AND j.tanggal <= ? AND j.status != 'batal' ORDER BY j.tanggal ASC, j.jam ASC`).all(id, today, next7);
         const stats = {
             totalJadwal: db.prepare('SELECT COUNT(*) as count FROM jadwal_pengangkutan WHERE sopir_id = ?').get(id).count,
             belumDiperiksa: db.prepare(`SELECT COUNT(*) as count FROM jadwal_pengangkutan j WHERE j.sopir_id = ? AND j.status = 'menunggu'
@@ -60,7 +58,13 @@ router.get('/dashboard', (req, res) => {
 // Daftar jadwal yang ditugaskan kepada sopir
 router.get('/jadwal', (req, res) => {
     try {
-        const list = db.prepare(`${SELECT_JADWAL_SOPIR} ORDER BY j.tanggal DESC, j.jam DESC`).all(req.session.user.id);
+        J.pastikanJadwalHarian();
+        // Jadwal 30 hari terakhir sampai 7 hari ke depan; yang dibatalkan tidak ditampilkan
+        // Urutan: hari ini dan yang akan datang lebih dulu (terdekat di atas), lalu riwayat
+        const hari = J.hariIni();
+        const list = db.prepare(`${SELECT_JADWAL_SOPIR} AND j.status != 'batal' AND j.tanggal BETWEEN ? AND ?
+            ORDER BY (j.tanggal < ?), CASE WHEN j.tanggal >= ? THEN j.tanggal END ASC, j.tanggal DESC, j.jam ASC`)
+            .all(req.session.user.id, J.tambahHari(hari, -30), J.tambahHari(hari, 7), hari, hari);
         res.json({ success: true, data: list });
     } catch (err) { res.status(500).json({ success: false, message: err.message }); }
 });
@@ -126,6 +130,7 @@ router.put('/jadwal/:id/status', uploadFoto, (req, res) => {
         const jadwal = db.prepare('SELECT * FROM jadwal_pengangkutan WHERE id = ? AND sopir_id = ?').get(req.params.id, req.session.user.id);
         if (!jadwal) return res.status(404).json({ success: false, message: 'Jadwal tidak ditemukan atau bukan tugas Anda' });
 
+        if (jadwal.status === 'batal') return res.status(400).json({ success: false, message: 'Jadwal ini sudah dibatalkan admin' });
         if (status === 'berjalan') {
             if (jadwal.status !== 'menunggu') return res.status(400).json({ success: false, message: 'Pengangkutan sudah dimulai atau selesai' });
             const cek = db.prepare("SELECT kondisi FROM pemeriksaan_kendaraan WHERE jadwal_id = ? AND jenis = 'sebelum berangkat'").get(jadwal.id);
@@ -142,17 +147,17 @@ router.put('/jadwal/:id/status', uploadFoto, (req, res) => {
               .run(status, catatan || null, foto, jadwal.id);
             // Laporan kegiatan pengangkutan tercatat otomatis atas nama sopir
             if (status === 'selesai') {
-                db.prepare(`INSERT INTO laporan_pengangkutan (jadwal_id, tps_id, kendaraan_id, sopir_id, tanggal_pengangkutan, status_pengangkutan, catatan, foto_kegiatan)
-                            VALUES (?, ?, ?, ?, CURRENT_DATE, 'selesai', ?, ?)`)
-                  .run(jadwal.id, jadwal.tps_id, jadwal.kendaraan_id, jadwal.sopir_id, catatan || null, foto);
+                db.prepare(`INSERT INTO laporan_pengangkutan (jadwal_id, jalur_id, kendaraan_id, sopir_id, tanggal_pengangkutan, status_pengangkutan, catatan, foto_kegiatan)
+                            VALUES (?, ?, ?, ?, ?, 'selesai', ?, ?)`)
+                  .run(jadwal.id, jadwal.jalur_id, jadwal.kendaraan_id, jadwal.sopir_id, J.hariIni(), catatan || null, foto);
             }
         });
         simpan();
         if (status === 'selesai') {
-            const t = db.prepare('SELECT nama_tps FROM tps WHERE id = ?').get(jadwal.tps_id);
+            const t = db.prepare('SELECT COALESCE(jl.nama_jalur, j.lokasi) AS nama FROM jadwal_pengangkutan j LEFT JOIN jalur_layanan jl ON jl.id = j.jalur_id WHERE j.id = ?').get(jadwal.id);
             notifikasi.kirim({ peran: 'admin' }, {
                 jenis: 'pengangkutan_selesai', judul: 'Pengangkutan selesai',
-                pesan: `${req.session.user.name} menyelesaikan pengangkutan ${t ? t.nama_tps : ''} (${jadwal.tanggal}).`, tautan: '/admin/jadwal',
+                pesan: `${req.session.user.name} menyelesaikan pengangkutan ${t ? t.nama : ''} (${jadwal.tanggal}).`, tautan: '/admin/jadwal',
             });
         }
         res.json({ success: true, message: status === 'selesai' ? 'Pengangkutan selesai. Lanjutkan pemeriksaan armada sesudah pulang.' : 'Pengangkutan dimulai' });

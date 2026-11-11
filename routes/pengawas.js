@@ -9,6 +9,7 @@ const router = express.Router();
 const db = require('../database/db');
 const { requirePengawas } = require('../middleware/auth');
 const notifikasi = require('../utils/notifikasi');
+const J = require('../utils/jadwal');
 
 router.use(requirePengawas);
 
@@ -77,15 +78,9 @@ router.put('/laporan/:id/teguran', (req, res) => {
 // Jadwal pengangkutan (hanya dilihat)
 router.get('/jadwal', (req, res) => {
     try {
-        const list = db.prepare(`
-            SELECT j.*, t.nama_tps, k.nomor_polisi, s.name AS sopir_name,
-                   (SELECT GROUP_CONCAT(u.name, ', ') FROM jadwal_kru jk JOIN users u ON u.id = jk.kru_id WHERE jk.jadwal_id = j.id) AS kru_names
-            FROM jadwal_pengangkutan j
-            LEFT JOIN tps t ON j.tps_id = t.id
-            LEFT JOIN kendaraan k ON j.kendaraan_id = k.id
-            LEFT JOIN users s ON j.sopir_id = s.id
-            ORDER BY j.tanggal DESC, j.jam DESC
-        `).all();
+        J.pastikanJadwalHarian();
+        const list = db.prepare(`SELECT ${J.KOLOM_JADWAL} ${J.JOIN_JADWAL} WHERE j.tanggal BETWEEN ? AND ? ORDER BY j.tanggal DESC, j.jam ASC`)
+            .all(J.tambahHari(J.hariIni(), -30), J.tambahHari(J.hariIni(), 7));
         res.json({ success: true, data: list });
     } catch (err) { res.status(500).json({ success: false, message: err.message }); }
 });

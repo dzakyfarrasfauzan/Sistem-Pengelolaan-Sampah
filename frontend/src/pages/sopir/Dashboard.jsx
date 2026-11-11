@@ -53,7 +53,7 @@ export default function SopirDashboard() {
         {jadwalMendatang && jadwalMendatang.length > 0 ? jadwalMendatang.map(j => (
           <div key={j.id} style={{ padding: '16px', border: '1px solid #f3f4f6', borderRadius: '12px', marginBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
             <div>
-              <div style={{ fontWeight: 'bold', fontSize: '1.1rem', color: '#111827' }}>{j.nama_tps}</div>
+              <div style={{ fontWeight: 'bold', fontSize: '1.1rem', color: '#111827' }}>{j.lokasi_tampil}</div>
               <div style={{ display: 'flex', gap: '12px', marginTop: '10px', flexWrap: 'wrap' }}>
                 <span style={{ background: '#e0f2fe', color: '#0284c7', padding: '4px 8px', borderRadius: '6px', fontSize: '0.8rem', fontWeight: '600' }}>📅 {j.tanggal}</span>
                 <span style={{ background: '#f3f4f6', padding: '4px 8px', borderRadius: '6px', fontSize: '0.8rem', fontWeight: '600' }}>Pukul {j.jam}</span>

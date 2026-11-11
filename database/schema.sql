@@ -47,21 +47,71 @@ CREATE TABLE IF NOT EXISTS kendaraan (
 );
 
 -- Tabel Jadwal Pengangkutan
-CREATE TABLE IF NOT EXISTS jadwal_pengangkutan (
+-- Jalur layanan: rute pengangkutan yang melewati beberapa titik, desa, dan TPS
+CREATE TABLE IF NOT EXISTS jalur_layanan (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    tps_id INTEGER NOT NULL REFERENCES tps(id),
-    kendaraan_id INTEGER NOT NULL REFERENCES kendaraan(id),
-    sopir_id INTEGER REFERENCES users(id),
-    tanggal DATE NOT NULL,
-    jam TIME NOT NULL,
-    status TEXT DEFAULT 'menunggu' CHECK(status IN ('menunggu','berjalan','selesai','batal')),
-    catatan TEXT,
-    foto_kegiatan TEXT,
+    nama_jalur TEXT NOT NULL,
+    alamat_pelayanan TEXT,          -- jalan / titik yang dilewati
+    desa TEXT,
+    kecamatan TEXT,
+    jarak_km REAL,
+    waktu_tempuh_jam REAL DEFAULT 8,
+    estimasi_tonase REAL,
+    status TEXT DEFAULT 'aktif' CHECK(status IN ('aktif','nonaktif')),
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
--- Tabel Kru pada Jadwal (satu jadwal: satu sopir dan beberapa kru)
+CREATE TABLE IF NOT EXISTS jalur_tps (
+    jalur_id INTEGER NOT NULL REFERENCES jalur_layanan(id) ON DELETE CASCADE,
+    tps_id INTEGER NOT NULL REFERENCES tps(id) ON DELETE CASCADE,
+    PRIMARY KEY (jalur_id, tps_id)
+);
+
+-- Jadwal rutin mingguan (hari 1 = Senin ... 7 = Minggu)
+CREATE TABLE IF NOT EXISTS jadwal_rutin (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    hari INTEGER NOT NULL CHECK(hari BETWEEN 1 AND 7),
+    jalur_id INTEGER NOT NULL REFERENCES jalur_layanan(id),
+    kendaraan_id INTEGER NOT NULL REFERENCES kendaraan(id),
+    sopir_id INTEGER NOT NULL REFERENCES users(id),
+    jam TIME NOT NULL,
+    ritase INTEGER DEFAULT 1,
+    status TEXT DEFAULT 'aktif' CHECK(status IN ('aktif','nonaktif')),
+    catatan TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS jadwal_rutin_kru (
+    jadwal_rutin_id INTEGER NOT NULL REFERENCES jadwal_rutin(id) ON DELETE CASCADE,
+    kru_id INTEGER NOT NULL REFERENCES users(id),
+    PRIMARY KEY (jadwal_rutin_id, kru_id)
+);
+
+-- Jadwal harian: dibuat otomatis dari jadwal rutin, atau ditambahkan admin
+-- dari permohonan pelayanan (jenis 'tambahan')
+CREATE TABLE IF NOT EXISTS jadwal_pengangkutan (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    jenis TEXT NOT NULL DEFAULT 'tambahan' CHECK(jenis IN ('rutin','tambahan')),
+    jadwal_rutin_id INTEGER REFERENCES jadwal_rutin(id) ON DELETE SET NULL,
+    jalur_id INTEGER REFERENCES jalur_layanan(id),
+    lokasi TEXT,                    -- lokasi permohonan bila tidak memakai jalur
+    pemohon TEXT,
+    kendaraan_id INTEGER NOT NULL REFERENCES kendaraan(id),
+    sopir_id INTEGER REFERENCES users(id),
+    tanggal DATE NOT NULL,
+    jam TIME NOT NULL,
+    durasi_jam REAL DEFAULT 8,
+    ritase INTEGER DEFAULT 1,
+    status TEXT DEFAULT 'menunggu' CHECK(status IN ('menunggu','berjalan','selesai','batal')),
+    catatan TEXT,
+    foto_kegiatan TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(jadwal_rutin_id, tanggal)
+);
+
 CREATE TABLE IF NOT EXISTS jadwal_kru (
     jadwal_id INTEGER NOT NULL REFERENCES jadwal_pengangkutan(id) ON DELETE CASCADE,
     kru_id INTEGER NOT NULL REFERENCES users(id),
@@ -100,7 +150,7 @@ CREATE TABLE IF NOT EXISTS laporan_masyarakat (
 CREATE TABLE IF NOT EXISTS laporan_pengangkutan (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     jadwal_id INTEGER REFERENCES jadwal_pengangkutan(id),
-    tps_id INTEGER NOT NULL REFERENCES tps(id),
+    jalur_id INTEGER REFERENCES jalur_layanan(id),
     kendaraan_id INTEGER NOT NULL REFERENCES kendaraan(id),
     sopir_id INTEGER NOT NULL REFERENCES users(id),
     tanggal_pengangkutan DATE NOT NULL,
