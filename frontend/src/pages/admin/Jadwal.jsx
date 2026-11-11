@@ -73,7 +73,7 @@ export default function Jadwal() {
   const jalurAktif = jalurList.filter(j => j.status === 'aktif');
 
   // ---------- buka form ----------
-  const bukaRutinBaru = () => setForm({ mode: 'rutin', id: null, hari: 1, jam: '06:00', jalur_id: '', kendaraan_id: '', sopir_id: '', kru_ids: [], status: 'aktif', catatan: '' });
+  const bukaRutinBaru = () => setForm({ mode: 'rutin', id: null, hari: 1, jam: '06:00', jalur_id: '', kendaraan_id: '', sopir_id: '', kru_ids: [], ritase: 1, status: 'aktif', catatan: '' });
   const bukaRutinEdit = (r) => setForm({ mode: 'rutin', ...r, catatan: r.catatan || '', kru_ids: keDaftarKru(r.kru_ids) });
   const bukaHarianEdit = (j) => setForm({
     mode: 'harian', ...j, jalur_id: j.jalur_id || '', lokasi: j.lokasi || '', pemohon: j.pemohon || '', catatan: j.catatan || '',
@@ -162,6 +162,7 @@ export default function Jadwal() {
                       <tr key={j.id} style={{ borderTop: '1px solid #f3f4f6', verticalAlign: 'top', opacity: j.status === 'batal' ? 0.55 : 1 }}>
                         <td style={th}>
                           <div style={{ fontWeight: 700, color: '#111827' }}>{j.jam}</div>
+                          {j.jenis === 'rutin' && <div style={{ fontSize: '0.78rem', color: '#6b7280' }}>{j.ritase || 1} rit</div>}
                         </td>
                         <td style={th}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
@@ -223,7 +224,7 @@ export default function Jadwal() {
                 <tbody>
                   {list.map(r => (
                     <tr key={r.id} style={{ borderTop: '1px solid #f9fafb', verticalAlign: 'top', opacity: r.status === 'aktif' ? 1 : 0.5 }}>
-                      <td style={{ ...th, width: '90px' }}><div style={{ fontWeight: 700 }}>{r.jam}</div></td>
+                      <td style={{ ...th, width: '90px' }}><div style={{ fontWeight: 700 }}>{r.jam}</div><div style={{ fontSize: '0.78rem', color: '#6b7280' }}>{r.ritase || 1} rit</div></td>
                       <td style={th}>
                         <div style={{ fontWeight: 600, color: '#111827' }}>{r.nama_jalur}</div>
                         <div style={{ fontSize: '0.8rem', color: '#6b7280', maxWidth: '300px' }}>{r.desa || ''}</div>
@@ -333,6 +334,12 @@ export default function Jadwal() {
               </div>
 
               <div style={{ display: 'flex', gap: '12px' }}>
+                {form.mode === 'rutin' && (
+                  <div style={{ flex: 1 }}>
+                    <label style={label}>Ritase (kali angkut per hari)</label>
+                    <input type="number" min="1" value={form.ritase} onChange={e => setForm({ ...form, ritase: e.target.value })} style={input} />
+                  </div>
+                )}
                 <div style={{ flex: 1 }}>
                   <label style={label}>Status</label>
                   <select value={form.status} onChange={e => setForm({ ...form, status: e.target.value })} style={input}>

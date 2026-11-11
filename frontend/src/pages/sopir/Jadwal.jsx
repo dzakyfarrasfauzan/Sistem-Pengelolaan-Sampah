@@ -215,7 +215,7 @@ export default function SopirJadwal() {
                 )}
                 {!j.kode_laporan && j.pemohon && <div style={{ color: '#a21caf', fontSize: '0.88rem' }}>Permohonan dari: {j.pemohon}</div>}
                 <div style={{ color: '#6b7280', fontSize: '0.85rem', margin: '4px 0 12px' }}>
-                  {j.jarak_km ? `Jarak ±${j.jarak_km} km` : ''}
+                  {[j.jenis === 'rutin' ? `Ritase: ${j.ritase || 1}x` : '', j.jarak_km ? `Jarak ±${j.jarak_km} km` : ''].filter(Boolean).join(' • ')}
                 </div>
                 <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginBottom: '16px' }}>
                   <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '0.9rem', color: '#4b5563', background: '#f3f4f6', padding: '8px 12px', borderRadius: '8px' }}>
