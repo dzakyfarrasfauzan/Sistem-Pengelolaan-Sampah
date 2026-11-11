@@ -27,7 +27,7 @@ export default function PilihFoto({ onChange }) {
   if (preview) {
     return (
       <div style={{ position: 'relative' }}>
-        <img src={preview} alt="Pratinjau foto" style={{ width: '100%', maxHeight: '220px', objectFit: 'cover', borderRadius: '12px', border: '1px solid #e5e7eb' }} />
+        <img src={preview} alt="Pratinjau foto" style={{ width: '100%', maxHeight: '220px', objectFit: 'cover', borderRadius: '6px', border: '1px solid #d8dde3' }} />
         <button type="button" onClick={hapus} style={{ position: 'absolute', top: '8px', right: '8px', background: 'rgba(0,0,0,0.6)', color: 'white', border: 'none', borderRadius: '50%', width: '30px', height: '30px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <X size={16} />
         </button>
@@ -36,8 +36,8 @@ export default function PilihFoto({ onChange }) {
   }
 
   return (
-    <label style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', padding: '22px', border: '2px dashed #cbd5e1', borderRadius: '12px', cursor: 'pointer', color: '#475569', background: '#f8fafc', textAlign: 'center' }}>
-      <ImagePlus size={28} color="#0ea5e9" />
+    <label style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', padding: '22px', border: '2px dashed #cbd5e1', borderRadius: '6px', cursor: 'pointer', color: '#475569', background: '#f8fafc', textAlign: 'center' }}>
+      <ImagePlus size={28} color="#1f6b47" />
       <span style={{ fontWeight: 600, fontSize: '0.9rem' }}>Pilih foto dari galeri atau kamera</span>
       <span style={{ fontSize: '0.78rem', color: '#94a3b8' }}>Format gambar, maksimal 5 MB</span>
       <input type="file" accept="image/*" onChange={pilih} style={{ display: 'none' }} />

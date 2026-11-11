@@ -51,51 +51,51 @@ export default function JalurLayanan() {
     catch (err) { alert(err.response?.data?.message || 'Gagal menghapus jalur'); }
   };
 
-  const input = { width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #d1d5db', boxSizing: 'border-box', marginBottom: '14px', fontFamily: 'inherit' };
+  const input = { width: '100%', padding: '10px', borderRadius: '4px', border: '1px solid #d1d5db', boxSizing: 'border-box', marginBottom: '14px', fontFamily: 'inherit' };
   const label = { display: 'block', marginBottom: '5px', fontWeight: 500, fontSize: '0.9rem' };
   const th = { padding: '14px 16px' };
 
   return (
-    <div style={{ padding: '40px', fontFamily: 'Inter, sans-serif' }}>
+    <div style={{ padding: '40px', fontFamily: 'inherit' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', gap: '12px', flexWrap: 'wrap' }}>
-        <h1 style={{ margin: 0, color: '#111827' }}>Jalur Layanan</h1>
-        <button onClick={() => setForm({ ...KOSONG })} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 20px', background: '#10b981', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}>
+        <h1 style={{ margin: 0, color: '#1f2933' }}>Jalur Layanan</h1>
+        <button onClick={() => setForm({ ...KOSONG })} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 20px', background: '#1f6b47', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>
           <Plus size={18} /> Tambah Jalur
         </button>
       </div>
-      <p style={{ color: '#6b7280', margin: '0 0 24px' }}>Rute pengangkutan yang dilalui satu armada dalam sehari, beserta titik, desa, dan TPS yang dilayani.</p>
+      <p style={{ color: '#5b6673', margin: '0 0 24px' }}>Rute pengangkutan yang dilalui satu armada dalam sehari, beserta titik, desa, dan TPS yang dilayani.</p>
 
-      <div style={{ background: 'white', borderRadius: '16px', boxShadow: '0 4px 6px rgba(0,0,0,0.02)', overflowX: 'auto' }}>
+      <div style={{ background: 'white', borderRadius: '6px', boxShadow: '0 1px 2px rgba(16,24,40,0.06)', overflowX: 'auto' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: '820px' }}>
           <thead>
-            <tr style={{ background: '#f9fafb', color: '#4b5563', fontSize: '0.9rem' }}>
+            <tr style={{ background: '#f7f8f9', color: '#4b5563', fontSize: '0.9rem' }}>
               <th style={th}>Jalur</th><th style={th}>Desa / Kecamatan</th><th style={th}>TPS Dilewati</th>
               <th style={th}>Jarak • Tonase</th><th style={th}>Status</th><th style={{ ...th, textAlign: 'center' }}>Aksi</th>
             </tr>
           </thead>
           <tbody>
             {loading ? <tr><td colSpan="6" style={{ padding: '20px', textAlign: 'center' }}>Memuat data...</td></tr>
-              : list.length === 0 ? <tr><td colSpan="6" style={{ padding: '20px', textAlign: 'center', color: '#6b7280' }}>Belum ada jalur layanan</td></tr>
+              : list.length === 0 ? <tr><td colSpan="6" style={{ padding: '20px', textAlign: 'center', color: '#5b6673' }}>Belum ada jalur layanan</td></tr>
               : list.map(j => (
                 <tr key={j.id} style={{ borderTop: '1px solid #f3f4f6', verticalAlign: 'top' }}>
                   <td style={th}>
-                    <div style={{ fontWeight: 700, color: '#111827' }}>{j.nama_jalur}</div>
-                    <div style={{ fontSize: '0.82rem', color: '#6b7280', maxWidth: '280px' }}>{j.alamat_pelayanan || '-'}</div>
-                    <div style={{ fontSize: '0.75rem', color: '#0369a1', marginTop: '4px' }}>{j.jumlah_rutin} jadwal rutin</div>
+                    <div style={{ fontWeight: 700, color: '#1f2933' }}>{j.nama_jalur}</div>
+                    <div style={{ fontSize: '0.82rem', color: '#5b6673', maxWidth: '280px' }}>{j.alamat_pelayanan || '-'}</div>
+                    <div style={{ fontSize: '0.75rem', color: '#1d4f73', marginTop: '4px' }}>{j.jumlah_rutin} jadwal rutin</div>
                   </td>
                   <td style={{ ...th, fontSize: '0.85rem', color: '#374151', maxWidth: '240px' }}>
-                    <div>{j.desa || '-'}</div><div style={{ color: '#6b7280' }}>{j.kecamatan || ''}</div>
+                    <div>{j.desa || '-'}</div><div style={{ color: '#5b6673' }}>{j.kecamatan || ''}</div>
                   </td>
                   <td style={{ ...th, fontSize: '0.85rem', color: '#374151', maxWidth: '220px' }}>{j.tps_names || '-'}</td>
                   <td style={{ ...th, fontSize: '0.85rem', color: '#374151', whiteSpace: 'nowrap' }}>
                     {j.jarak_km ? `${j.jarak_km} km` : '-'} • {j.estimasi_tonase ? `${j.estimasi_tonase} ton` : '-'}
                   </td>
                   <td style={th}>
-                    <span style={{ padding: '4px 10px', borderRadius: '20px', fontSize: '0.8rem', fontWeight: 700, background: j.status === 'aktif' ? '#d1fae5' : '#f3f4f6', color: j.status === 'aktif' ? '#059669' : '#6b7280' }}>{j.status.toUpperCase()}</span>
+                    <span style={{ padding: '4px 10px', borderRadius: '6px', fontSize: '0.8rem', fontWeight: 700, background: j.status === 'aktif' ? '#e7f1eb' : '#f3f4f6', color: j.status === 'aktif' ? '#1f6b47' : '#5b6673' }}>{j.status.toUpperCase()}</span>
                   </td>
                   <td style={{ ...th, textAlign: 'center', whiteSpace: 'nowrap' }}>
-                    <button onClick={() => bukaEdit(j)} style={{ background: '#f3f4f6', color: '#3b82f6', border: 'none', padding: '8px', borderRadius: '8px', cursor: 'pointer', marginRight: '8px' }}><Edit2 size={16} /></button>
-                    <button onClick={() => hapus(j)} style={{ background: '#fee2e2', color: '#ef4444', border: 'none', padding: '8px', borderRadius: '8px', cursor: 'pointer' }}><Trash2 size={16} /></button>
+                    <button onClick={() => bukaEdit(j)} style={{ background: '#f3f4f6', color: '#3b82f6', border: 'none', padding: '8px', borderRadius: '4px', cursor: 'pointer', marginRight: '8px' }}><Edit2 size={16} /></button>
+                    <button onClick={() => hapus(j)} style={{ background: '#fee2e2', color: '#ef4444', border: 'none', padding: '8px', borderRadius: '4px', cursor: 'pointer' }}><Trash2 size={16} /></button>
                   </td>
                 </tr>
               ))}
@@ -104,11 +104,11 @@ export default function JalurLayanan() {
       </div>
 
       {form && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 50, backdropFilter: 'blur(4px)' }}>
-          <div style={{ background: 'white', padding: '28px', borderRadius: '16px', width: '100%', maxWidth: '560px', margin: '16px', maxHeight: '90vh', overflowY: 'auto' }}>
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 50 }}>
+          <div style={{ background: 'white', padding: '28px', borderRadius: '6px', width: '100%', maxWidth: '560px', margin: '16px', maxHeight: '90vh', overflowY: 'auto' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px' }}>
               <h2 style={{ margin: 0, fontSize: '1.2rem' }}>{form.id ? 'Edit Jalur Layanan' : 'Tambah Jalur Layanan'}</h2>
-              <button onClick={() => setForm(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#6b7280' }}><X size={20} /></button>
+              <button onClick={() => setForm(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#5b6673' }}><X size={20} /></button>
             </div>
             <form onSubmit={simpan}>
               <label style={label}>Nama Jalur</label>
@@ -136,12 +136,12 @@ export default function JalurLayanan() {
                 </div>
               </div>
               <label style={label}>TPS yang Dilewati ({form.tps_ids.length} dipilih)</label>
-              <div style={{ border: '1px solid #d1d5db', borderRadius: '8px', padding: '8px 12px', marginBottom: '14px', maxHeight: '160px', overflowY: 'auto' }}>
-                {tpsList.length === 0 && <div style={{ fontSize: '0.85rem', color: '#9ca3af' }}>Belum ada data TPS</div>}
+              <div style={{ border: '1px solid #d1d5db', borderRadius: '4px', padding: '8px 12px', marginBottom: '14px', maxHeight: '160px', overflowY: 'auto' }}>
+                {tpsList.length === 0 && <div style={{ fontSize: '0.85rem', color: '#8a939d' }}>Belum ada data TPS</div>}
                 {tpsList.map(t => (
                   <label key={t.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '4px 0', fontSize: '0.9rem', cursor: 'pointer' }}>
                     <input type="checkbox" checked={form.tps_ids.includes(t.id)} onChange={() => toggleTps(t.id)} />
-                    {t.nama_tps} <span style={{ color: '#9ca3af', fontSize: '0.8rem' }}>— {t.alamat}</span>
+                    {t.nama_tps} <span style={{ color: '#8a939d', fontSize: '0.8rem' }}>— {t.alamat}</span>
                   </label>
                 ))}
               </div>
@@ -150,7 +150,7 @@ export default function JalurLayanan() {
                 <option value="aktif">Aktif</option>
                 <option value="nonaktif">Nonaktif</option>
               </select>
-              <button type="submit" style={{ width: '100%', padding: '12px', background: '#3b82f6', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}>Simpan Jalur</button>
+              <button type="submit" style={{ width: '100%', padding: '12px', background: '#3b82f6', color: 'white', border: 'none', borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer' }}>Simpan Jalur</button>
             </form>
           </div>
         </div>

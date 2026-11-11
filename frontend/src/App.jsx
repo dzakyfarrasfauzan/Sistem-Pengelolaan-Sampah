@@ -32,6 +32,7 @@ function App() {
         
         {/* Admin routes with Layout */}
         <Route path="/admin" element={<AdminLayout />}>
+          <Route index element={<Navigate to="dashboard" replace />} />
           <Route path="dashboard" element={<AdminDashboard />} />
           <Route path="tps" element={<AdminTPS />} />
           <Route path="kendaraan" element={<AdminKendaraan />} />
@@ -44,6 +45,7 @@ function App() {
 
         {/* Sopir (pemimpin tim petugas operasional) */}
         <Route path="/sopir" element={<SopirLayout />}>
+          <Route index element={<Navigate to="dashboard" replace />} />
           <Route path="dashboard" element={<SopirDashboard />} />
           <Route path="jadwal" element={<SopirJadwal />} />
           <Route path="laporan" element={<SopirLaporan />} />
@@ -51,6 +53,7 @@ function App() {
 
         {/* Pengawas Bidang */}
         <Route path="/pengawas" element={<PengawasLayout />}>
+          <Route index element={<Navigate to="dashboard" replace />} />
           <Route path="dashboard" element={<PengawasDashboard />} />
           <Route path="laporan" element={<PengawasLaporan />} />
           <Route path="jadwal" element={<PengawasJadwal />} />

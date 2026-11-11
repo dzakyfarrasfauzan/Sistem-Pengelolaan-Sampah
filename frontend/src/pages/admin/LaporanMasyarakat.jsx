@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
-import { MessageSquareWarning, Eye, Trash2, Edit2, Check, X, MapPin, Phone, Calendar, User, FileText, AlertTriangle, Image as ImageIcon, UserCheck, Landmark, CalendarPlus, Plus, Truck } from 'lucide-react';
+import { Eye, Trash2, Edit2, Check, X, MapPin, Phone, Calendar, User, FileText, AlertTriangle, Image as ImageIcon, UserCheck, Landmark, CalendarPlus, Plus, Truck } from 'lucide-react';
 import { API_URL } from '../../config';
 
 
@@ -148,16 +148,16 @@ export default function LaporanMasyarakat() {
     switch(prioritas) {
       case 'tinggi': return { bg: '#fef2f2', text: '#dc2626', border: '#fecaca', label: 'Tinggi' };
       case 'sedang': return { bg: '#fffbeb', text: '#d97706', border: '#fde68a', label: 'Sedang' };
-      case 'rendah': return { bg: '#f0fdf4', text: '#15803d', border: '#bbf7d0', label: 'Rendah' };
-      default: return { bg: '#f3f4f6', text: '#6b7280', border: '#e5e7eb', label: 'Belum Ditentukan' };
+      case 'rendah': return { bg: '#f1f7f3', text: '#17533a', border: '#b9d8c6', label: 'Rendah' };
+      default: return { bg: '#f3f4f6', text: '#5b6673', border: '#d8dde3', label: 'Belum Ditentukan' };
     }
   };
 
   const getStatusInfo = (status) => {
     switch(status) {
-      case 'selesai': return { bg: '#ecfdf5', text: '#059669', border: '#a7f3d0', label: 'Selesai' };
+      case 'selesai': return { bg: '#e7f1eb', text: '#1f6b47', border: '#b9d8c6', label: 'Selesai' };
       case 'diproses': return { bg: '#eff6ff', text: '#2563eb', border: '#bfdbfe', label: 'Diproses' };
-      default: return { bg: '#f3f4f6', text: '#4b5563', border: '#e5e7eb', label: 'Masuk' };
+      default: return { bg: '#f3f4f6', text: '#4b5563', border: '#d8dde3', label: 'Masuk' };
     }
   };
 
@@ -172,34 +172,27 @@ export default function LaporanMasyarakat() {
   // Filter list berdasarkan tab aktif
   const filteredList = activeTab === 'semua' ? list : list.filter(l => l.status === activeTab);
 
-  const overlay = { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 };
-  const kotak = { background: 'white', borderRadius: '20px', padding: '28px', width: '100%', margin: '16px', maxHeight: '92vh', overflowY: 'auto', boxShadow: '0 20px 40px rgba(0,0,0,0.15)' };
+  const overlay = { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 };
+  const kotak = { background: 'white', borderRadius: '6px', padding: '28px', width: '100%', margin: '16px', maxHeight: '92vh', overflowY: 'auto', boxShadow: '0 1px 2px rgba(16,24,40,0.06)' };
   const lbl = { display: 'block', marginBottom: '6px', fontWeight: '600', color: '#374151', fontSize: '0.88rem' };
-  const inp = { width: '100%', padding: '10px 12px', borderRadius: '10px', border: '1.5px solid #e5e7eb', boxSizing: 'border-box', marginBottom: '14px', fontFamily: 'inherit', outline: 'none' };
-  const tombolUtama = { width: '100%', padding: '12px', border: 'none', borderRadius: '10px', background: 'linear-gradient(135deg, #059669, #047857)', color: 'white', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' };
+  const inp = { width: '100%', padding: '10px 12px', borderRadius: '6px', border: '1.5px solid #d8dde3', boxSizing: 'border-box', marginBottom: '14px', fontFamily: 'inherit', outline: 'none' };
+  const tombolUtama = { width: '100%', padding: '12px', border: 'none', borderRadius: '6px', background: '#1f6b47', color: 'white', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' };
 
-  if (loading) return <div style={{ padding: '40px', textAlign: 'center', color: '#6b7280' }}>Memuat data laporan...</div>;
+  if (loading) return <div style={{ padding: '40px', textAlign: 'center', color: '#5b6673' }}>Memuat data laporan...</div>;
 
   return (
-    <div style={{ padding: '40px', fontFamily: "'Plus Jakarta Sans', sans-serif", color: '#1f2937' }}>
+    <div style={{ padding: '40px', fontFamily: 'inherit', color: '#1f2937' }}>
       {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '36px', gap: '16px', flexWrap: 'wrap' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px', gap: '16px', flexWrap: 'wrap' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <div style={{
-            width: '48px', height: '48px', borderRadius: '14px',
-            background: 'linear-gradient(135deg, #fffbeb, #fef3c7)',
-            color: '#d97706', display: 'flex', alignItems: 'center', justifyContent: 'center'
-          }}>
-            <MessageSquareWarning size={24} />
-          </div>
           <div>
-            <h1 style={{ margin: 0, fontSize: '1.75rem', fontWeight: '800', color: '#111827', letterSpacing: '-0.5px' }}>Laporan Masyarakat</h1>
-            <p style={{ margin: '4px 0 0', fontSize: '0.85rem', color: '#6b7280' }}>Laporan dan permohonan pelayanan dari warga. Tentukan prioritas, lalu jadwalkan pengangkutannya.</p>
+            <h1 style={{ margin: 0, fontSize: '1.4rem', fontWeight: '700', color: '#1f2933', letterSpacing: '0' }}>Laporan Masyarakat</h1>
+            <p style={{ margin: '4px 0 0', fontSize: '0.85rem', color: '#5b6673' }}>Laporan dan permohonan pelayanan dari warga. Tentukan prioritas, lalu jadwalkan pengangkutannya.</p>
           </div>
         </div>
         <button onClick={() => { setCatat({ ...LAPORAN_KOSONG }); setCatatFoto(null); }} style={{
-          display: 'flex', alignItems: 'center', gap: '8px', padding: '11px 18px', border: 'none', borderRadius: '10px',
-          background: 'linear-gradient(135deg, #059669, #047857)', color: 'white', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit'
+          display: 'flex', alignItems: 'center', gap: '8px', padding: '11px 18px', border: 'none', borderRadius: '6px',
+          background: '#1f6b47', color: 'white', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit'
         }}>
           <Plus size={18} /> Catat Laporan (Telepon/WA/Surat)
         </button>
@@ -207,16 +200,16 @@ export default function LaporanMasyarakat() {
 
       <div style={{ display: 'grid', gridTemplateColumns: selectedReport ? '1.2fr 0.8fr' : '1fr', gap: '30px', alignItems: 'start' }}>
         {/* Table List */}
-        <div style={{ background: 'white', borderRadius: '20px', border: '1px solid #f3f4f6', boxShadow: '0 4px 20px rgba(0,0,0,0.02)', overflow: 'hidden' }}>
+        <div style={{ background: 'white', borderRadius: '6px', border: '1px solid #f3f4f6', boxShadow: '0 1px 2px rgba(16,24,40,0.06)', overflow: 'hidden' }}>
 
           {/* === TAB FILTER === */}
           <div style={{ padding: '20px 24px 0', borderBottom: '1px solid #f3f4f6' }}>
             <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
               {[
-                { key: 'semua',    label: 'Semua',    color: '#6b7280', activeBg: '#f3f4f6',  activeText: '#111827' },
-                { key: 'masuk',    label: 'Masuk',    color: '#4b5563', activeBg: '#f3f4f6',  activeText: '#111827' },
+                { key: 'semua',    label: 'Semua',    color: '#5b6673', activeBg: '#f3f4f6',  activeText: '#1f2933' },
+                { key: 'masuk',    label: 'Masuk',    color: '#4b5563', activeBg: '#f3f4f6',  activeText: '#1f2933' },
                 { key: 'diproses', label: 'Diproses', color: '#2563eb', activeBg: '#eff6ff',  activeText: '#2563eb' },
-                { key: 'selesai',  label: 'Selesai',  color: '#059669', activeBg: '#ecfdf5',  activeText: '#059669' },
+                { key: 'selesai',  label: 'Selesai',  color: '#1f6b47', activeBg: '#e7f1eb',  activeText: '#1f6b47' },
               ].map(tab => {
                 const isActive = activeTab === tab.key;
                 return (
@@ -225,20 +218,20 @@ export default function LaporanMasyarakat() {
                     onClick={() => { setActiveTab(tab.key); setSelectedReport(null); }}
                     style={{
                       display: 'flex', alignItems: 'center', gap: '8px',
-                      padding: '10px 18px', borderRadius: '10px 10px 0 0',
+                      padding: '10px 18px', borderRadius: '6px',
                       border: 'none', cursor: 'pointer', fontFamily: 'inherit',
                       fontSize: '0.875rem', fontWeight: isActive ? '700' : '500',
                       background: isActive ? tab.activeBg : 'transparent',
-                      color: isActive ? tab.activeText : '#6b7280',
+                      color: isActive ? tab.activeText : '#5b6673',
                       borderBottom: isActive ? `2px solid ${tab.color}` : '2px solid transparent',
                       transition: 'all 0.2s',
                     }}
                   >
                     {tab.label}
                     <span style={{
-                      padding: '2px 8px', borderRadius: '20px', fontSize: '0.75rem', fontWeight: '700',
-                      background: isActive ? (tab.key === 'selesai' ? '#a7f3d0' : tab.key === 'diproses' ? '#bfdbfe' : '#e5e7eb') : '#f3f4f6',
-                      color: isActive ? tab.activeText : '#9ca3af',
+                      padding: '2px 8px', borderRadius: '6px', fontSize: '0.75rem', fontWeight: '700',
+                      background: isActive ? (tab.key === 'selesai' ? '#b9d8c6' : tab.key === 'diproses' ? '#bfdbfe' : '#d8dde3') : '#f3f4f6',
+                      color: isActive ? tab.activeText : '#8a939d',
                     }}>
                       {counts[tab.key]}
                     </span>
@@ -251,7 +244,7 @@ export default function LaporanMasyarakat() {
           <div style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
               <thead>
-                <tr style={{ background: '#f9fafb', color: '#4b5563', fontSize: '0.8rem', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                <tr style={{ background: '#f7f8f9', color: '#4b5563', fontSize: '0.8rem', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                   <th style={{ padding: '16px 24px' }}>Kode</th>
                   <th style={{ padding: '16px' }}>Pelapor</th>
                   <th style={{ padding: '16px' }}>Deskripsi</th>
@@ -265,40 +258,40 @@ export default function LaporanMasyarakat() {
                 {filteredList.map(l => (
                   <tr key={l.id} style={{
                     borderBottom: '1px solid #f3f4f6',
-                    background: selectedReport && selectedReport.id === l.id ? '#f0fdf4' : 'transparent',
+                    background: selectedReport && selectedReport.id === l.id ? '#f1f7f3' : 'transparent',
                     transition: 'background 0.2s'
                   }}>
-                    <td style={{ padding: '16px 24px', fontWeight: '600', color: '#111827', whiteSpace: 'nowrap' }}>
+                    <td style={{ padding: '16px 24px', fontWeight: '600', color: '#1f2933', whiteSpace: 'nowrap' }}>
                       {l.kode_laporan}
-                      <div style={{ fontSize: '0.72rem', fontWeight: 600, color: l.sumber && l.sumber !== 'website' ? '#7c3aed' : '#9ca3af', marginTop: '3px' }}>{SUMBER_LABEL[l.sumber || 'website']}</div>
+                      <div style={{ fontSize: '0.72rem', fontWeight: 600, color: l.sumber && l.sumber !== 'website' ? '#5b6673' : '#8a939d', marginTop: '3px' }}>{SUMBER_LABEL[l.sumber || 'website']}</div>
                     </td>
                     <td style={{ padding: '16px' }}>
                       <div style={{ fontWeight: '600', fontSize: '0.9rem', color: '#374151' }}>{l.nama_pelapor}</div>
-                      <div style={{ fontSize: '0.8rem', color: '#6b7280', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '2px' }}>
+                      <div style={{ fontSize: '0.8rem', color: '#5b6673', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '2px' }}>
                         <Phone size={12} /> {l.nomor_telepon}
                       </div>
                     </td>
                     <td style={{ padding: '16px', maxWidth: '200px' }}>
                       <div style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', fontSize: '0.9rem', color: '#4b5563' }}>{l.deskripsi}</div>
-                      <div style={{ fontSize: '0.75rem', color: '#9ca3af', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '4px' }}>
+                      <div style={{ fontSize: '0.75rem', color: '#8a939d', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '4px' }}>
                         <Calendar size={12} /> {new Date(l.created_at).toLocaleDateString('id-ID')}
                       </div>
                     </td>
                     <td style={{ padding: '16px' }}>
                       <span style={{
-                        padding: '4px 10px', borderRadius: '100px', fontSize: '0.75rem', fontWeight: '700',
+                        padding: '4px 10px', borderRadius: '4px', fontSize: '0.75rem', fontWeight: '700',
                         background: getPriorityInfo(l.prioritas).bg, color: getPriorityInfo(l.prioritas).text,
                         border: `1px solid ${getPriorityInfo(l.prioritas).border}`
                       }}>{getPriorityInfo(l.prioritas).label}</span>
                     </td>
                     <td style={{ padding: '16px' }}>
                       <span style={{
-                        padding: '4px 10px', borderRadius: '100px', fontSize: '0.75rem', fontWeight: '700',
+                        padding: '4px 10px', borderRadius: '4px', fontSize: '0.75rem', fontWeight: '700',
                         background: getStatusInfo(l.status).bg, color: getStatusInfo(l.status).text,
                         border: `1px solid ${getStatusInfo(l.status).border}`
                       }}>{getStatusInfo(l.status).label}</span>
                       {l.teguran_pengawas && l.status !== 'selesai' && (
-                        <div style={{ marginTop: '6px', fontSize: '0.72rem', fontWeight: '700', color: '#dc2626' }}>⚠ Teguran Bidang</div>
+                        <div style={{ marginTop: '6px', fontSize: '0.72rem', fontWeight: '700', color: '#dc2626' }}>Teguran Bidang</div>
                       )}
                       {l.rating && (
                         <div style={{ marginTop: '6px', fontSize: '0.75rem', color: '#d97706' }}>{'★'.repeat(l.rating)}{'☆'.repeat(5 - l.rating)}</div>
@@ -313,11 +306,11 @@ export default function LaporanMasyarakat() {
                           <div style={{ fontSize: '0.75rem', color: '#4b5563' }}>{l.nama_petugas}{l.jadwal_armada ? ` • ${l.jadwal_armada}` : ''}</div>
                         </div>
                       ) : l.status === 'selesai' ? (
-                        <span style={{ fontSize: '0.8rem', color: '#6b7280' }}>{l.nama_petugas || '—'}</span>
+                        <span style={{ fontSize: '0.8rem', color: '#5b6673' }}>{l.nama_petugas || '—'}</span>
                       ) : (
                         <button onClick={() => bukaJadwalkan(l)} style={{
-                          display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '7px 12px', borderRadius: '8px', border: 'none',
-                          background: '#ecfdf5', color: '#047857', fontWeight: 700, fontSize: '0.8rem', cursor: 'pointer', fontFamily: 'inherit'
+                          display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '7px 12px', borderRadius: '4px', border: 'none',
+                          background: '#e7f1eb', color: '#17533a', fontWeight: 700, fontSize: '0.8rem', cursor: 'pointer', fontFamily: 'inherit'
                         }}>
                           <CalendarPlus size={15} /> Jadwalkan
                         </button>
@@ -327,17 +320,17 @@ export default function LaporanMasyarakat() {
                     <td style={{ padding: '16px 24px', textAlign: 'right' }}>
                       <div style={{ display: 'inline-flex', gap: '8px' }}>
                         <button onClick={() => setSelectedReport(l)} title="Detail Laporan" style={{
-                          padding: '8px', borderRadius: '8px', border: '1px solid #e5e7eb', background: 'white', color: '#4b5563', cursor: 'pointer', display: 'flex', transition: 'all 0.2s'
+                          padding: '8px', borderRadius: '4px', border: '1px solid #d8dde3', background: 'white', color: '#4b5563', cursor: 'pointer', display: 'flex', transition: 'all 0.2s'
                         }} onMouseOver={e=>e.currentTarget.style.background='#f3f4f6'} onMouseOut={e=>e.currentTarget.style.background='white'}>
                           <Eye size={16} />
                         </button>
                         <button onClick={() => startEdit(l)} title="Ubah Prioritas" style={{
-                          padding: '8px', borderRadius: '8px', border: '1px solid #e5e7eb', background: 'white', color: '#2563eb', cursor: 'pointer', display: 'flex', transition: 'all 0.2s'
+                          padding: '8px', borderRadius: '4px', border: '1px solid #d8dde3', background: 'white', color: '#2563eb', cursor: 'pointer', display: 'flex', transition: 'all 0.2s'
                         }} onMouseOver={e=>e.currentTarget.style.background='#eff6ff'} onMouseOut={e=>e.currentTarget.style.background='white'}>
                           <Edit2 size={16} />
                         </button>
                         <button onClick={() => setReportToDelete(l)} title="Hapus Laporan" style={{
-                          padding: '8px', borderRadius: '8px', border: '1px solid #fee2e2', background: 'white', color: '#dc2626', cursor: 'pointer', display: 'flex', transition: 'all 0.2s'
+                          padding: '8px', borderRadius: '4px', border: '1px solid #fee2e2', background: 'white', color: '#dc2626', cursor: 'pointer', display: 'flex', transition: 'all 0.2s'
                         }} onMouseOver={e=>e.currentTarget.style.background='#fef2f2'} onMouseOut={e=>e.currentTarget.style.background='white'}>
                           <Trash2 size={16} />
                         </button>
@@ -346,7 +339,7 @@ export default function LaporanMasyarakat() {
                   </tr>
                 ))}
                 {filteredList.length === 0 && (
-                  <tr><td colSpan="7" style={{ padding: '40px', textAlign: 'center', color: '#9ca3af' }}>
+                  <tr><td colSpan="7" style={{ padding: '40px', textAlign: 'center', color: '#8a939d' }}>
                     {activeTab === 'semua' ? 'Belum ada laporan masuk' : `Tidak ada laporan dengan status "${activeTab}"`}
                   </td></tr>
                 )}
@@ -358,31 +351,30 @@ export default function LaporanMasyarakat() {
         {/* Detail Panel */}
         {selectedReport && (
           <div style={{ 
-            background: 'white', borderRadius: '20px', border: '1px solid #f3f4f6', 
-            boxShadow: '0 10px 30px rgba(0,0,0,0.05)', padding: '30px',
-            animation: 'fadeInUp 0.3s ease-out', position: 'sticky', top: '90px'
+            background: 'white', borderRadius: '6px', border: '1px solid #f3f4f6', 
+            boxShadow: '0 1px 2px rgba(16,24,40,0.06)', padding: '30px', position: 'sticky', top: '90px'
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-              <span style={{ fontWeight: '800', color: '#111827', fontSize: '1.1rem' }}>Detail Laporan</span>
-              <button onClick={() => setSelectedReport(null)} style={{ background: 'none', border: 'none', color: '#9ca3af', cursor: 'pointer' }}>
+              <span style={{ fontWeight: '700', color: '#1f2933', fontSize: '1.1rem' }}>Detail Laporan</span>
+              <button onClick={() => setSelectedReport(null)} style={{ background: 'none', border: 'none', color: '#8a939d', cursor: 'pointer' }}>
                 <X size={20} />
               </button>
             </div>
 
             {/* Photo */}
             <div style={{ marginBottom: '24px' }}>
-              <div style={{ fontSize: '0.8rem', color: '#9ca3af', fontWeight: '600', textTransform: 'uppercase', marginBottom: '8px' }}>Foto Bukti</div>
+              <div style={{ fontSize: '0.8rem', color: '#8a939d', fontWeight: '600', textTransform: 'uppercase', marginBottom: '8px' }}>Foto Bukti</div>
               {selectedReport.foto ? (
                 <img 
                   src={`${API_URL}/uploads/${selectedReport.foto}`} 
                   alt="Bukti Sampah" 
-                  style={{ width: '100%', maxHeight: '200px', objectFit: 'cover', borderRadius: '12px', border: '1px solid #e5e7eb' }}
+                  style={{ width: '100%', maxHeight: '200px', objectFit: 'cover', borderRadius: '6px', border: '1px solid #d8dde3' }}
                   onError={(e) => { e.currentTarget.src = 'https://images.unsplash.com/photo-1611284446314-60a58ac0deb9?w=500&auto=format&fit=crop&q=60'; }}
                 />
               ) : (
                 <div style={{ 
-                  height: '140px', borderRadius: '12px', border: '1.5px dashed #e5e7eb', background: '#f9fafb',
-                  display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#9ca3af', gap: '8px'
+                  height: '140px', borderRadius: '6px', border: '1.5px dashed #d8dde3', background: '#f7f8f9',
+                  display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#8a939d', gap: '8px'
                 }}>
                   <ImageIcon size={32} />
                   <span style={{ fontSize: '0.85rem' }}>Tidak ada foto bukti</span>
@@ -393,17 +385,17 @@ export default function LaporanMasyarakat() {
             {/* Badges Info */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '24px' }}>
               <div>
-                <div style={{ fontSize: '0.75rem', color: '#9ca3af', fontWeight: '600', marginBottom: '6px' }}>Status</div>
+                <div style={{ fontSize: '0.75rem', color: '#8a939d', fontWeight: '600', marginBottom: '6px' }}>Status</div>
                 <span style={{ 
-                  display: 'inline-block', padding: '6px 12px', borderRadius: '100px', fontSize: '0.8rem', fontWeight: '700',
+                  display: 'inline-block', padding: '6px 12px', borderRadius: '4px', fontSize: '0.8rem', fontWeight: '700',
                   background: getStatusInfo(selectedReport.status).bg, color: getStatusInfo(selectedReport.status).text,
                   border: `1px solid ${getStatusInfo(selectedReport.status).border}`
                 }}>{getStatusInfo(selectedReport.status).label}</span>
               </div>
               <div>
-                <div style={{ fontSize: '0.75rem', color: '#9ca3af', fontWeight: '600', marginBottom: '6px' }}>Prioritas</div>
+                <div style={{ fontSize: '0.75rem', color: '#8a939d', fontWeight: '600', marginBottom: '6px' }}>Prioritas</div>
                 <span style={{ 
-                  display: 'inline-block', padding: '6px 12px', borderRadius: '100px', fontSize: '0.8rem', fontWeight: '700',
+                  display: 'inline-block', padding: '6px 12px', borderRadius: '4px', fontSize: '0.8rem', fontWeight: '700',
                   background: getPriorityInfo(selectedReport.prioritas).bg, color: getPriorityInfo(selectedReport.prioritas).text,
                   border: `1px solid ${getPriorityInfo(selectedReport.prioritas).border}`
                 }}>{getPriorityInfo(selectedReport.prioritas).label}</span>
@@ -413,27 +405,27 @@ export default function LaporanMasyarakat() {
             {/* Rows info */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
               <div>
-                <div style={{ fontSize: '0.8rem', color: '#9ca3af', fontWeight: '600', textTransform: 'uppercase', marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <div style={{ fontSize: '0.8rem', color: '#8a939d', fontWeight: '600', textTransform: 'uppercase', marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}>
                   <User size={14} /> Pelapor
                 </div>
                 <div style={{ fontWeight: '700', color: '#374151' }}>{selectedReport.nama_pelapor}</div>
-                <div style={{ fontSize: '0.85rem', color: '#6b7280', marginTop: '2px' }}>Telepon/WA: {selectedReport.nomor_telepon}</div>
-                <div style={{ fontSize: '0.8rem', color: '#7c3aed', marginTop: '2px' }}>
+                <div style={{ fontSize: '0.85rem', color: '#5b6673', marginTop: '2px' }}>Telepon/WA: {selectedReport.nomor_telepon}</div>
+                <div style={{ fontSize: '0.8rem', color: '#5b6673', marginTop: '2px' }}>
                   Masuk lewat {SUMBER_LABEL[selectedReport.sumber || 'website']}{selectedReport.nama_pencatat ? ` • dicatat oleh ${selectedReport.nama_pencatat}` : ''}
                 </div>
               </div>
 
               <div>
-                <div style={{ fontSize: '0.8rem', color: '#9ca3af', fontWeight: '600', textTransform: 'uppercase', marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <div style={{ fontSize: '0.8rem', color: '#8a939d', fontWeight: '600', textTransform: 'uppercase', marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}>
                   <FileText size={14} /> Deskripsi Masalah
                 </div>
-                <div style={{ fontSize: '0.9rem', color: '#4b5563', lineHeight: '1.6', background: '#f9fafb', padding: '12px', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
+                <div style={{ fontSize: '0.9rem', color: '#4b5563', lineHeight: '1.6', background: '#f7f8f9', padding: '12px', borderRadius: '4px', border: '1px solid #d8dde3' }}>
                   {selectedReport.deskripsi}
                 </div>
               </div>
 
               <div>
-                <div style={{ fontSize: '0.8rem', color: '#9ca3af', fontWeight: '600', textTransform: 'uppercase', marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <div style={{ fontSize: '0.8rem', color: '#8a939d', fontWeight: '600', textTransform: 'uppercase', marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}>
                   <MapPin size={14} /> Lokasi Kejadian
                 </div>
                 <div style={{ fontSize: '0.9rem', color: '#4b5563', lineHeight: '1.5', marginBottom: '10px' }}>
@@ -442,8 +434,8 @@ export default function LaporanMasyarakat() {
                 {selectedReport.latitude && selectedReport.longitude ? (
                   <div>
                     {/* Koordinat */}
-                    <div style={{ marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem', color: '#6b7280', fontFamily: 'monospace' }}>
-                      <MapPin size={13} color="#059669" />
+                    <div style={{ marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem', color: '#5b6673', fontFamily: 'monospace' }}>
+                      <MapPin size={13} color="#1f6b47" />
                       {selectedReport.latitude.toFixed(6)}, {selectedReport.longitude.toFixed(6)}
                     </div>
                     {/* Tombol Google Maps */}
@@ -452,39 +444,37 @@ export default function LaporanMasyarakat() {
                       target="_blank" rel="noopener noreferrer"
                       style={{
                         display: 'inline-flex', alignItems: 'center', gap: '6px',
-                        padding: '9px 16px', borderRadius: '10px', textDecoration: 'none',
-                        background: 'linear-gradient(135deg, #1a73e8, #1557b0)',
+                        padding: '9px 16px', borderRadius: '6px', textDecoration: 'none',
+                        background: '#2b5c8a',
                         color: 'white', fontWeight: '700', fontSize: '0.82rem',
-                        boxShadow: '0 3px 10px rgba(26,115,232,0.25)',
+                        boxShadow: '0 1px 2px rgba(16,24,40,0.06)',
                         transition: 'all 0.2s',
                       }}
-                      onMouseOver={e => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 5px 14px rgba(26,115,232,0.35)'; }}
-                      onMouseOut={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 3px 10px rgba(26,115,232,0.25)'; }}
                     >
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="white"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
                       Buka di Google Maps
                     </a>
                   </div>
                 ) : (
-                  <div style={{ fontSize: '0.85rem', color: '#9ca3af', fontStyle: 'italic' }}>Koordinat tidak tersedia</div>
+                  <div style={{ fontSize: '0.85rem', color: '#8a939d', fontStyle: 'italic' }}>Koordinat tidak tersedia</div>
                 )}
               </div>
 
               {/* Patokan / Landmark */}
               {selectedReport.patokan && (
-                <div style={{ background: '#fffbeb', padding: '16px', borderRadius: '12px', border: '1px solid #fde68a' }}>
+                <div style={{ background: '#fffbeb', padding: '16px', borderRadius: '6px', border: '1px solid #fde68a' }}>
                   <div style={{ fontSize: '0.8rem', color: '#92400e', fontWeight: '700', textTransform: 'uppercase', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <Landmark size={14} /> Patokan Lokasi
                   </div>
                   <div style={{ fontSize: '0.9rem', color: '#78350f', lineHeight: '1.6', fontStyle: 'italic' }}>
-                    📍 {selectedReport.patokan}
+                    {selectedReport.patokan}
                   </div>
                 </div>
               )}
 
               {/* Teguran dari pengawas bidang */}
               {selectedReport.teguran_pengawas && selectedReport.status !== 'selesai' && (
-                <div style={{ background: '#fef2f2', padding: '16px', borderRadius: '12px', border: '1px solid #fecaca' }}>
+                <div style={{ background: '#fef2f2', padding: '16px', borderRadius: '6px', border: '1px solid #fecaca' }}>
                   <div style={{ fontSize: '0.8rem', color: '#dc2626', fontWeight: '700', textTransform: 'uppercase', marginBottom: '6px' }}>Teguran dari Bidang</div>
                   <div style={{ fontSize: '0.9rem', color: '#7f1d1d', lineHeight: '1.6' }}>{selectedReport.teguran_pengawas}</div>
                   {selectedReport.teguran_at && <div style={{ marginTop: '6px', fontSize: '0.75rem', color: '#ef4444' }}>{new Date(selectedReport.teguran_at.replace(' ', 'T') + 'Z').toLocaleString('id-ID')}</div>}
@@ -493,7 +483,7 @@ export default function LaporanMasyarakat() {
 
               {/* Petugas yang menangani */}
               {selectedReport.ditangani_oleh && (
-                <div style={{ background: '#eff6ff', padding: '16px', borderRadius: '12px', border: '1px solid #bfdbfe' }}>
+                <div style={{ background: '#eff6ff', padding: '16px', borderRadius: '6px', border: '1px solid #bfdbfe' }}>
                   <div style={{ fontSize: '0.8rem', color: '#2563eb', fontWeight: '700', textTransform: 'uppercase', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <UserCheck size={14} /> Ditangani Oleh Sopir dan Tim
                   </div>
@@ -506,14 +496,14 @@ export default function LaporanMasyarakat() {
                   )}
                   {selectedReport.jadwal_kru && <div style={{ marginTop: '2px', fontSize: '0.8rem', color: '#3b82f6' }}>Kru: {selectedReport.jadwal_kru}</div>}
                   {selectedReport.catatan_tindak_lanjut && (
-                    <div style={{ marginTop: '10px', padding: '10px', background: 'white', borderRadius: '8px', fontSize: '0.85rem', color: '#374151', lineHeight: '1.6', border: '1px solid #dbeafe', fontStyle: 'italic' }}>
-                      💬 "{selectedReport.catatan_tindak_lanjut}"
+                    <div style={{ marginTop: '10px', padding: '10px', background: 'white', borderRadius: '4px', fontSize: '0.85rem', color: '#374151', lineHeight: '1.6', border: '1px solid #dbeafe', fontStyle: 'italic' }}>
+                      "{selectedReport.catatan_tindak_lanjut}"
                     </div>
                   )}
                   {selectedReport.foto_tindak_lanjut && (
                     <a href={`${API_URL}/uploads/${selectedReport.foto_tindak_lanjut}`} target="_blank" rel="noopener noreferrer">
                       <img src={`${API_URL}/uploads/${selectedReport.foto_tindak_lanjut}`} alt="Foto kegiatan penanganan"
-                        style={{ marginTop: '10px', width: '100%', maxHeight: '180px', objectFit: 'cover', borderRadius: '8px', border: '1px solid #dbeafe', cursor: 'zoom-in' }} />
+                        style={{ marginTop: '10px', width: '100%', maxHeight: '180px', objectFit: 'cover', borderRadius: '4px', border: '1px solid #dbeafe', cursor: 'zoom-in' }} />
                     </a>
                   )}
                   <div style={{ marginTop: '8px', fontSize: '0.78rem', color: '#60a5fa' }}>
@@ -524,8 +514,8 @@ export default function LaporanMasyarakat() {
 
               {/* Umpan balik ke pelapor */}
               {selectedReport.status === 'selesai' && (
-                <div style={{ background: '#f0fdf4', padding: '16px', borderRadius: '12px', border: '1px solid #bbf7d0' }}>
-                  <div style={{ fontSize: '0.8rem', color: '#15803d', fontWeight: '700', textTransform: 'uppercase', marginBottom: '8px' }}>Umpan Balik Pelapor</div>
+                <div style={{ background: '#f1f7f3', padding: '16px', borderRadius: '6px', border: '1px solid #b9d8c6' }}>
+                  <div style={{ fontSize: '0.8rem', color: '#17533a', fontWeight: '700', textTransform: 'uppercase', marginBottom: '8px' }}>Umpan Balik Pelapor</div>
                   {selectedReport.rating ? (
                     <div style={{ marginBottom: '10px' }}>
                       <div style={{ fontSize: '1.1rem', color: '#d97706' }}>{'★'.repeat(selectedReport.rating)}{'☆'.repeat(5 - selectedReport.rating)}</div>
@@ -535,7 +525,7 @@ export default function LaporanMasyarakat() {
                     <div style={{ fontSize: '0.85rem', color: '#4b5563', marginBottom: '10px' }}>Pelapor belum memberi penilaian.</div>
                   )}
                   <a href={linkWhatsApp(selectedReport)} target="_blank" rel="noopener noreferrer"
-                    style={{ display: 'block', textAlign: 'center', padding: '10px', background: '#16a34a', color: 'white', borderRadius: '8px', fontWeight: '700', fontSize: '0.85rem', textDecoration: 'none' }}>
+                    style={{ display: 'block', textAlign: 'center', padding: '10px', background: '#1f6b47', color: 'white', borderRadius: '4px', fontWeight: '700', fontSize: '0.85rem', textDecoration: 'none' }}>
                     Kabari Pelapor via WhatsApp
                   </a>
                 </div>
@@ -548,8 +538,8 @@ export default function LaporanMasyarakat() {
                 <button
                   onClick={() => bukaJadwalkan(selectedReport)}
                   style={{
-                    width: '100%', padding: '12px', background: 'linear-gradient(135deg, #059669, #047857)', color: 'white',
-                    border: 'none', borderRadius: '10px', fontSize: '0.9rem', fontWeight: '700', cursor: 'pointer',
+                    width: '100%', padding: '12px', background: '#1f6b47', color: 'white',
+                    border: 'none', borderRadius: '6px', fontSize: '0.9rem', fontWeight: '700', cursor: 'pointer',
                     display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', fontFamily: 'inherit'
                   }}
                 >
@@ -564,16 +554,16 @@ export default function LaporanMasyarakat() {
       {/* Edit Modal / Backdrop */}
       {editingReport && (
         <div style={{
-          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)',
+          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)',
           display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000
         }}>
           <div style={{
-            background: 'white', borderRadius: '24px', padding: '36px', width: '100%', maxWidth: '440px',
-            boxShadow: '0 20px 40px rgba(0,0,0,0.15)', animation: 'fadeInUp 0.25s ease-out'
+            background: 'white', borderRadius: '6px', padding: '36px', width: '100%', maxWidth: '440px',
+            boxShadow: '0 1px 2px rgba(16,24,40,0.06)'
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-              <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: '800', color: '#111827' }}>Prioritas {editingReport.kode_laporan}</h3>
-              <button onClick={() => setEditingReport(null)} style={{ background: 'none', border: 'none', color: '#9ca3af', cursor: 'pointer' }}>
+              <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: '700', color: '#1f2933' }}>Prioritas {editingReport.kode_laporan}</h3>
+              <button onClick={() => setEditingReport(null)} style={{ background: 'none', border: 'none', color: '#8a939d', cursor: 'pointer' }}>
                 <X size={20} />
               </button>
             </div>
@@ -584,28 +574,28 @@ export default function LaporanMasyarakat() {
                 <select 
                   value={editPrioritas} 
                   onChange={e => setEditPrioritas(e.target.value)}
-                  style={{ width: '100%', padding: '12px', borderRadius: '10px', border: '1.5px solid #e5e7eb', outline: 'none', fontFamily: 'inherit' }}
+                  style={{ width: '100%', padding: '12px', borderRadius: '6px', border: '1.5px solid #d8dde3', outline: 'none', fontFamily: 'inherit' }}
                 >
                   <option value="">Belum ditentukan</option>
                   <option value="rendah">Rendah</option>
                   <option value="sedang">Sedang</option>
                   <option value="tinggi">Tinggi</option>
                 </select>
-                <div style={{ marginTop: '6px', fontSize: '0.78rem', color: '#6b7280' }}>
+                <div style={{ marginTop: '6px', fontSize: '0.78rem', color: '#5b6673' }}>
                   Status laporan mengikuti jadwal pengangkutannya: diproses saat dijadwalkan, selesai saat sopir menyelesaikan jadwal.
                 </div>
               </div>
 
               <div style={{ display: 'flex', gap: '12px', marginTop: '10px' }}>
                 <button type="button" onClick={() => setEditingReport(null)} style={{
-                  flex: 1, padding: '12px', border: '1px solid #e5e7eb', background: 'white', color: '#4b5563',
-                  borderRadius: '10px', fontWeight: '600', cursor: 'pointer', fontFamily: 'inherit'
+                  flex: 1, padding: '12px', border: '1px solid #d8dde3', background: 'white', color: '#4b5563',
+                  borderRadius: '6px', fontWeight: '600', cursor: 'pointer', fontFamily: 'inherit'
                 }}>
                   Batal
                 </button>
                 <button type="submit" disabled={updating} style={{
-                  flex: 1, padding: '12px', border: 'none', background: 'linear-gradient(135deg, #059669, #047857)', color: 'white',
-                  borderRadius: '10px', fontWeight: '700', cursor: updating ? 'not-allowed' : 'pointer', fontFamily: 'inherit',
+                  flex: 1, padding: '12px', border: 'none', background: '#1f6b47', color: 'white',
+                  borderRadius: '6px', fontWeight: '700', cursor: updating ? 'not-allowed' : 'pointer', fontFamily: 'inherit',
                   display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px'
                 }}>
                   {updating ? 'Menyimpan...' : <><Check size={16} /> Simpan</>}
@@ -621,10 +611,10 @@ export default function LaporanMasyarakat() {
         <div style={overlay}>
           <div style={{ ...kotak, maxWidth: '520px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-              <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: '800', color: '#111827' }}>Catat Laporan Masyarakat</h3>
-              <button onClick={() => setCatat(null)} style={{ background: 'none', border: 'none', color: '#9ca3af', cursor: 'pointer' }}><X size={20} /></button>
+              <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: '700', color: '#1f2933' }}>Catat Laporan Masyarakat</h3>
+              <button onClick={() => setCatat(null)} style={{ background: 'none', border: 'none', color: '#8a939d', cursor: 'pointer' }}><X size={20} /></button>
             </div>
-            <p style={{ margin: '0 0 18px', fontSize: '0.84rem', color: '#6b7280' }}>Untuk laporan atau permohonan pelayanan yang masuk lewat telepon, WhatsApp, surat, atau pelapor yang datang langsung.</p>
+            <p style={{ margin: '0 0 18px', fontSize: '0.84rem', color: '#5b6673' }}>Untuk laporan atau permohonan pelayanan yang masuk lewat telepon, WhatsApp, surat, atau pelapor yang datang langsung.</p>
             <form onSubmit={kirimCatat}>
               <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
                 <div style={{ flex: 2, minWidth: '200px' }}>
@@ -645,13 +635,13 @@ export default function LaporanMasyarakat() {
               <input required value={catat.nomor_telepon} onChange={e => setCatat({ ...catat, nomor_telepon: e.target.value })} placeholder="08xxxxxxxxxx" style={inp} />
               <label style={lbl}>Lokasi</label>
               <input required value={catat.alamat_lokasi} onChange={e => setCatat({ ...catat, alamat_lokasi: e.target.value })} placeholder="contoh: Lapangan Desa Ciracap, Kec. Ciracap" style={inp} />
-              <label style={lbl}>Patokan <span style={{ color: '#9ca3af', fontWeight: 400 }}>(opsional)</span></label>
+              <label style={lbl}>Patokan <span style={{ color: '#8a939d', fontWeight: 400 }}>(opsional)</span></label>
               <input value={catat.patokan} onChange={e => setCatat({ ...catat, patokan: e.target.value })} placeholder="contoh: depan masjid" style={inp} />
               <label style={lbl}>Keterangan</label>
               <textarea required rows={3} value={catat.deskripsi} onChange={e => setCatat({ ...catat, deskripsi: e.target.value })} placeholder="contoh: Permohonan pengangkutan sampah bekas acara desa" style={{ ...inp, resize: 'vertical' }} />
               <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
                 <div style={{ flex: 1, minWidth: '150px' }}>
-                  <label style={lbl}>Prioritas <span style={{ color: '#9ca3af', fontWeight: 400 }}>(opsional)</span></label>
+                  <label style={lbl}>Prioritas <span style={{ color: '#8a939d', fontWeight: 400 }}>(opsional)</span></label>
                   <select value={catat.prioritas} onChange={e => setCatat({ ...catat, prioritas: e.target.value })} style={inp}>
                     <option value="">Belum ditentukan</option>
                     <option value="rendah">Rendah</option>
@@ -660,7 +650,7 @@ export default function LaporanMasyarakat() {
                   </select>
                 </div>
                 <div style={{ flex: 1, minWidth: '150px' }}>
-                  <label style={lbl}>Foto <span style={{ color: '#9ca3af', fontWeight: 400 }}>(opsional)</span></label>
+                  <label style={lbl}>Foto <span style={{ color: '#8a939d', fontWeight: 400 }}>(opsional)</span></label>
                   <input type="file" accept="image/*" onChange={e => setCatatFoto(e.target.files[0] || null)} style={{ ...inp, padding: '8px' }} />
                 </div>
               </div>
@@ -675,13 +665,13 @@ export default function LaporanMasyarakat() {
         <div style={overlay}>
           <div style={{ ...kotak, maxWidth: '540px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-              <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: '800', color: '#111827' }}>Jadwalkan Pengangkutan</h3>
-              <button onClick={() => setJadwalkan(null)} style={{ background: 'none', border: 'none', color: '#9ca3af', cursor: 'pointer' }}><X size={20} /></button>
+              <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: '700', color: '#1f2933' }}>Jadwalkan Pengangkutan</h3>
+              <button onClick={() => setJadwalkan(null)} style={{ background: 'none', border: 'none', color: '#8a939d', cursor: 'pointer' }}><X size={20} /></button>
             </div>
-            <div style={{ background: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: '10px', padding: '12px', margin: '0 0 18px', fontSize: '0.85rem', color: '#374151', lineHeight: 1.5 }}>
+            <div style={{ background: '#f7f8f9', border: '1px solid #d8dde3', borderRadius: '6px', padding: '12px', margin: '0 0 18px', fontSize: '0.85rem', color: '#374151', lineHeight: 1.5 }}>
               <div style={{ fontWeight: 700 }}>{jadwalkan.laporan.kode_laporan} • {jadwalkan.laporan.nama_pelapor}</div>
               <div><MapPin size={12} /> {jadwalkan.laporan.alamat_lokasi || jadwalkan.laporan.patokan || '-'}</div>
-              <div style={{ color: '#6b7280' }}>{jadwalkan.laporan.deskripsi}</div>
+              <div style={{ color: '#5b6673' }}>{jadwalkan.laporan.deskripsi}</div>
             </div>
             <form onSubmit={(e) => { e.preventDefault(); kirimJadwalkan(false); }}>
               <label style={lbl}>Prioritas</label>
@@ -712,15 +702,15 @@ export default function LaporanMasyarakat() {
                 {petugasList.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
               </select>
               <label style={lbl}>Kru ({jadwalkan.kru_ids.length} dipilih)</label>
-              <div style={{ border: '1.5px solid #e5e7eb', borderRadius: '10px', padding: '8px 12px', marginBottom: '14px', maxHeight: '140px', overflowY: 'auto' }}>
-                {kruList.length === 0 && <div style={{ fontSize: '0.85rem', color: '#9ca3af' }}>Belum ada data kru aktif</div>}
+              <div style={{ border: '1.5px solid #d8dde3', borderRadius: '6px', padding: '8px 12px', marginBottom: '14px', maxHeight: '140px', overflowY: 'auto' }}>
+                {kruList.length === 0 && <div style={{ fontSize: '0.85rem', color: '#8a939d' }}>Belum ada data kru aktif</div>}
                 {kruList.filter(k => String(k.id) !== String(jadwalkan.sopir_id)).map(k => (
                   <label key={k.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '4px 0', fontSize: '0.9rem', cursor: 'pointer' }}>
-                    <input type="checkbox" checked={jadwalkan.kru_ids.includes(k.id)} onChange={() => toggleKru(k.id)} /> {k.name}{k.peran === 'sopir' && <span style={{ fontSize: '0.75rem', color: '#0369a1' }}>(sopir)</span>}
+                    <input type="checkbox" checked={jadwalkan.kru_ids.includes(k.id)} onChange={() => toggleKru(k.id)} /> {k.name}{k.peran === 'sopir' && <span style={{ fontSize: '0.75rem', color: '#1d4f73' }}>(sopir)</span>}
                   </label>
                 ))}
               </div>
-              <label style={lbl}>Catatan <span style={{ color: '#9ca3af', fontWeight: 400 }}>(opsional)</span></label>
+              <label style={lbl}>Catatan <span style={{ color: '#8a939d', fontWeight: 400 }}>(opsional)</span></label>
               <input value={jadwalkan.catatan} onChange={e => setJadwalkan({ ...jadwalkan, catatan: e.target.value })} style={inp} />
               <button type="submit" disabled={updating} style={tombolUtama}>{updating ? 'Menyimpan...' : 'Simpan Jadwal'}</button>
             </form>
@@ -741,8 +731,8 @@ export default function LaporanMasyarakat() {
               {bentrok.map((b, i) => <li key={i}>{b}</li>)}
             </ul>
             <div style={{ display: 'flex', gap: '10px' }}>
-              <button onClick={() => setBentrok(null)} style={{ flex: 1, padding: '10px', border: '1px solid #e5e7eb', background: 'white', borderRadius: '8px', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>Ubah Lagi</button>
-              <button onClick={() => kirimJadwalkan(true)} style={{ flex: 1, padding: '10px', border: 'none', background: '#d97706', color: 'white', borderRadius: '8px', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>Tetap Simpan</button>
+              <button onClick={() => setBentrok(null)} style={{ flex: 1, padding: '10px', border: '1px solid #d8dde3', background: 'white', borderRadius: '4px', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>Ubah Lagi</button>
+              <button onClick={() => kirimJadwalkan(true)} style={{ flex: 1, padding: '10px', border: 'none', background: '#d97706', color: 'white', borderRadius: '4px', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>Tetap Simpan</button>
             </div>
           </div>
         </div>
@@ -751,12 +741,12 @@ export default function LaporanMasyarakat() {
       {/* Delete Confirmation Modal */}
       {reportToDelete && (
         <div style={{
-          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)',
+          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)',
           display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000
         }}>
           <div style={{
-            background: 'white', borderRadius: '24px', padding: '36px', width: '100%', maxWidth: '400px',
-            boxShadow: '0 20px 40px rgba(0,0,0,0.15)', animation: 'fadeInUp 0.25s ease-out', textAlign: 'center'
+            background: 'white', borderRadius: '6px', padding: '36px', width: '100%', maxWidth: '400px',
+            boxShadow: '0 1px 2px rgba(16,24,40,0.06)', textAlign: 'center'
           }}>
             <div style={{
               width: '64px', height: '64px', borderRadius: '50%', background: '#fee2e2', color: '#dc2626',
@@ -764,20 +754,20 @@ export default function LaporanMasyarakat() {
             }}>
               <AlertTriangle size={32} />
             </div>
-            <h3 style={{ margin: '0 0 10px', fontSize: '1.25rem', fontWeight: '800', color: '#111827' }}>Hapus Laporan?</h3>
-            <p style={{ color: '#6b7280', fontSize: '0.9rem', marginBottom: '28px', lineHeight: '1.6' }}>
+            <h3 style={{ margin: '0 0 10px', fontSize: '1.25rem', fontWeight: '700', color: '#1f2933' }}>Hapus Laporan?</h3>
+            <p style={{ color: '#5b6673', fontSize: '0.9rem', marginBottom: '28px', lineHeight: '1.6' }}>
               Apakah Anda yakin ingin menghapus laporan <strong>{reportToDelete.kode_laporan}</strong>? Tindakan ini tidak dapat dibatalkan.
             </p>
             <div style={{ display: 'flex', gap: '12px' }}>
               <button onClick={() => setReportToDelete(null)} style={{
-                flex: 1, padding: '12px', border: '1px solid #e5e7eb', background: 'white', color: '#4b5563',
-                borderRadius: '10px', fontWeight: '600', cursor: 'pointer', fontFamily: 'inherit'
+                flex: 1, padding: '12px', border: '1px solid #d8dde3', background: 'white', color: '#4b5563',
+                borderRadius: '6px', fontWeight: '600', cursor: 'pointer', fontFamily: 'inherit'
               }}>
                 Batal
               </button>
               <button onClick={confirmDelete} disabled={updating} style={{
                 flex: 1, padding: '12px', border: 'none', background: '#dc2626', color: 'white',
-                borderRadius: '10px', fontWeight: '700', cursor: updating ? 'not-allowed' : 'pointer', fontFamily: 'inherit',
+                borderRadius: '6px', fontWeight: '700', cursor: updating ? 'not-allowed' : 'pointer', fontFamily: 'inherit',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px'
               }}>
                 {updating ? 'Menghapus...' : 'Ya, Hapus'}

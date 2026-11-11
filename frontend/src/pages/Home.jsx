@@ -1,375 +1,90 @@
-import { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Camera, MapPin, Truck, ArrowRight, Leaf, ChevronDown, Phone, Mail, Building2 } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Phone, Mail, MapPin } from 'lucide-react';
+import KepalaSitus from '../components/KepalaSitus';
 
-const steps = [
-  {
-    icon: <Camera size={32} />,
-    title: 'Foto & Laporkan',
-    desc: 'Buka kamera langsung dari browser, potret lokasi sampah liar. GPS otomatis terdeteksi.',
-    color: '#6366f1',
-    bg: 'linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%)',
-  },
-  {
-    icon: <MapPin size={32} />,
-    title: 'Lokasi Otomatis',
-    desc: 'Sistem mendeteksi koordinat & alamat lokasi Anda secara otomatis saat foto diambil.',
-    color: '#059669',
-    bg: 'linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%)',
-  },
-  {
-    icon: <Truck size={32} />,
-    title: 'Tindak Lanjut',
-    desc: 'Petugas DLH terdekat segera dijadwalkan untuk membersihkan lokasi yang dilaporkan.',
-    color: '#f59e0b',
-    bg: 'linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%)',
-  },
+const LANGKAH = [
+  ['Buka formulir laporan', 'Pilih menu Lapor Sampah. Tidak perlu membuat akun.'],
+  ['Isi data dan ambil foto', 'Tuliskan nama, nomor WhatsApp, dan keterangan, lalu foto tumpukan sampah langsung dari kamera.'],
+  ['Tentukan lokasi', 'Lokasi terisi dari GPS ponsel. Geser penanda di peta bila kurang tepat dan tambahkan patokan.'],
+  ['Simpan kode laporan', 'Setelah terkirim Anda mendapat kode laporan untuk memantau status dan memberi penilaian.'],
+];
+
+const STATUS = [
+  ['Masuk', 'Laporan diterima admin Korwil dan menunggu ditentukan prioritasnya.'],
+  ['Diproses', 'Pengangkutan sudah dijadwalkan: tanggal, armada, dan petugas sudah ditentukan.'],
+  ['Selesai', 'Sampah sudah diangkut. Foto hasil pengangkutan dapat dilihat di halaman Cek Status.'],
 ];
 
 export default function Home() {
-  const navigate = useNavigate();
-  const [scrolled, setScrolled] = useState(false);
-
-  useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 20);
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  const tombol = { display: 'inline-block', padding: '10px 18px', borderRadius: '4px', fontWeight: 600, fontSize: '0.95rem' };
 
   return (
-    <div style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: '#1f2937', overflowX: 'hidden' }}>
+    <div style={{ background: '#f3f4f6', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+      <KepalaSitus />
 
-      {/* ===== NAVBAR ===== */}
-      <header style={{
-        padding: '0 40px',
-        height: '72px',
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        background: scrolled ? 'rgba(255,255,255,0.85)' : 'transparent',
-        backdropFilter: scrolled ? 'blur(20px) saturate(180%)' : 'none',
-        position: 'fixed',
-        top: 0,
-        width: '100%',
-        boxSizing: 'border-box',
-        zIndex: 100,
-        borderBottom: scrolled ? '1px solid rgba(229,231,235,0.6)' : '1px solid transparent',
-        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <div style={{
-            width: '36px', height: '36px',
-            background: 'linear-gradient(135deg, #059669, #10b981)',
-            borderRadius: '10px',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            boxShadow: '0 2px 8px rgba(5, 150, 105, 0.3)',
-          }}>
-            <Leaf size={20} color="white" />
-          </div>
-          <span style={{ fontWeight: '800', fontSize: '1.15rem', color: '#064e3b', letterSpacing: '-0.3px' }}>
-            DLH Sukabumi
-          </span>
-        </div>
-        <nav style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <Link to="/cek-status" style={{
-            padding: '8px 18px', borderRadius: '10px', border: '1.5px solid #064e3b',
-            color: '#064e3b', fontWeight: '600', fontSize: '0.9rem',
-          }}>Cek Status Laporan</Link>
-          <Link to="/login" style={{
-            padding: '8px 18px', borderRadius: '10px',
-            background: '#064e3b', color: 'white', fontWeight: '600', fontSize: '0.9rem',
-            transition: 'all 0.2s', boxShadow: '0 2px 8px rgba(6, 78, 59, 0.2)',
-          }}
-            onMouseOver={e => { e.currentTarget.style.background = '#047857'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
-            onMouseOut={e => { e.currentTarget.style.background = '#064e3b'; e.currentTarget.style.transform = 'translateY(0)'; }}
-          >Login Petugas</Link>
-        </nav>
-      </header>
-
-      <main>
-        {/* ===== HERO SECTION ===== */}
-        <section style={{
-          minHeight: '100vh',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          textAlign: 'center',
-          padding: '120px 24px 80px',
-          position: 'relative',
-          background: 'linear-gradient(160deg, #f0fdf4 0%, #ecfdf5 25%, #e0e7ff 50%, #eef2ff 75%, #f0fdf4 100%)',
-          backgroundSize: '400% 400%',
-          animation: 'gradient-shift 15s ease infinite',
-        }}>
-          {/* Decorative orbs */}
-          <div style={{
-            position: 'absolute', top: '15%', left: '10%', width: '300px', height: '300px',
-            background: 'radial-gradient(circle, rgba(16, 185, 129, 0.12) 0%, transparent 70%)',
-            borderRadius: '50%', filter: 'blur(40px)', pointerEvents: 'none',
-            animation: 'float 6s ease-in-out infinite',
-          }} />
-          <div style={{
-            position: 'absolute', bottom: '20%', right: '10%', width: '250px', height: '250px',
-            background: 'radial-gradient(circle, rgba(99, 102, 241, 0.1) 0%, transparent 70%)',
-            borderRadius: '50%', filter: 'blur(40px)', pointerEvents: 'none',
-            animation: 'float 8s ease-in-out infinite 2s',
-          }} />
-
-          {/* Badge */}
-          <div style={{
-            display: 'inline-flex', alignItems: 'center', gap: '8px',
-            padding: '8px 20px', borderRadius: '100px',
-            background: 'rgba(255,255,255,0.7)', backdropFilter: 'blur(10px)',
-            border: '1px solid rgba(16, 185, 129, 0.2)',
-            fontSize: '0.85rem', fontWeight: '600', color: '#059669',
-            marginBottom: '28px',
-            animation: 'fadeInUp 0.6s ease-out',
-          }}>
-            <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#10b981', animation: 'pulse-glow 2s infinite' }} />
-            Platform Digital Partisipatif
-          </div>
-
-          {/* Heading */}
-          <h1 style={{
-            fontSize: 'clamp(2.5rem, 5vw, 4rem)',
-            fontWeight: '800',
-            color: '#064e3b',
-            margin: '0 auto 20px',
-            maxWidth: '800px',
-            lineHeight: '1.1',
-            letterSpacing: '-1.5px',
-            animation: 'fadeInUp 0.6s ease-out 0.15s both',
-          }}>
-            Wujudkan <span style={{
-              background: 'linear-gradient(135deg, #059669, #6366f1)',
-              WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
-            }}>Sukabumi Bersih</span> Bersama
-          </h1>
-
-          <p style={{
-            fontSize: 'clamp(1rem, 1.5vw, 1.25rem)',
-            color: '#4b5563',
-            maxWidth: '560px',
-            margin: '0 auto 44px',
-            lineHeight: '1.7',
-            animation: 'fadeInUp 0.6s ease-out 0.3s both',
-          }}>
-            Laporkan tumpukan sampah liar di sekitar Anda. Cukup foto, lokasi otomatis terdeteksi, petugas segera bertindak.
-          </p>
-
-          {/* CTA Buttons */}
-          <div style={{
-            display: 'flex', gap: '16px', flexWrap: 'wrap', justifyContent: 'center',
-            animation: 'fadeInUp 0.6s ease-out 0.45s both',
-          }}>
-            <button onClick={() => navigate('/laporan')} style={{
-              padding: '16px 36px', fontSize: '1.05rem',
-              background: 'linear-gradient(135deg, #059669, #047857)',
-              color: 'white', border: 'none', borderRadius: '14px',
-              cursor: 'pointer', fontWeight: '700', fontFamily: 'inherit',
-              boxShadow: '0 8px 24px rgba(5, 150, 105, 0.3), inset 0 1px 0 rgba(255,255,255,0.15)',
-              transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-              display: 'flex', alignItems: 'center', gap: '10px',
-            }}
-              onMouseOver={e => { e.currentTarget.style.transform = 'translateY(-3px)'; e.currentTarget.style.boxShadow = '0 12px 32px rgba(5, 150, 105, 0.4), inset 0 1px 0 rgba(255,255,255,0.15)'; }}
-              onMouseOut={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 8px 24px rgba(5, 150, 105, 0.3), inset 0 1px 0 rgba(255,255,255,0.15)'; }}
-            >
-              <Camera size={20} /> Laporkan Sekarang <ArrowRight size={18} />
-            </button>
-            <button onClick={() => navigate('/cek-status')} style={{
-              padding: '16px 32px', fontSize: '1.05rem', background: 'white', color: '#047857',
-              border: '2px solid #059669', borderRadius: '14px', cursor: 'pointer', fontWeight: '700', fontFamily: 'inherit',
-            }}>
-              Cek Status Laporan
-            </button>
-          </div>
-
-          {/* Scroll indicator */}
-          <div style={{
-            position: 'absolute', bottom: '32px',
-            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px',
-            color: '#9ca3af', fontSize: '0.8rem', fontWeight: '500',
-            animation: 'fadeIn 1s ease-out 1s both',
-          }}>
-            <span>Scroll untuk lihat selengkapnya</span>
-            <ChevronDown size={18} style={{ animation: 'float 2s ease-in-out infinite' }} />
-          </div>
-        </section>
-
-
-
-        {/* ===== HOW IT WORKS ===== */}
-        <section style={{
-          padding: '100px 24px',
-          maxWidth: '1100px', margin: '0 auto',
-        }}>
-          <div style={{ textAlign: 'center', marginBottom: '64px' }}>
-            <div style={{
-              display: 'inline-block', padding: '6px 16px', borderRadius: '100px',
-              background: '#ecfdf5', color: '#059669', fontSize: '0.8rem',
-              fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1.5px',
-              marginBottom: '16px',
-            }}>Cara Kerja</div>
-            <h2 style={{
-              fontSize: 'clamp(1.8rem, 3vw, 2.5rem)',
-              fontWeight: '800', color: '#064e3b',
-              margin: '0 0 16px', letterSpacing: '-0.5px',
-            }}>Tiga Langkah Mudah</h2>
-            <p style={{ fontSize: '1.1rem', color: '#6b7280', maxWidth: '500px', margin: '0 auto' }}>
-              Proses pelaporan yang cepat, mudah, dan transparan untuk semua warga.
+      <main style={{ flex: 1, maxWidth: '1080px', width: '100%', margin: '0 auto', padding: '32px 20px 48px' }}>
+        <section style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '24px', alignItems: 'start' }}>
+          <div style={{ background: 'white', border: '1px solid #d8dde3', borderRadius: '6px', padding: '28px' }}>
+            <div style={{ fontSize: '0.85rem', color: '#5b6673', marginBottom: '6px' }}>Layanan pengaduan masyarakat</div>
+            <h1 style={{ fontSize: '1.6rem', marginBottom: '12px' }}>Laporan Sampah dan Permohonan Pengangkutan</h1>
+            <p style={{ color: '#3a4550', marginBottom: '20px' }}>
+              Laporkan tumpukan sampah liar atau ajukan permohonan pengangkutan sampah kepada Dinas Lingkungan Hidup
+              Kabupaten Sukabumi. Laporan diterima admin Koordinator Wilayah, lalu dijadwalkan pengangkutannya.
+            </p>
+            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+              <Link to="/laporan" style={{ ...tombol, background: '#1f6b47', color: 'white' }}>Buat Laporan</Link>
+              <Link to="/cek-status" style={{ ...tombol, border: '1px solid #b9c2cb', color: '#1f2933', background: 'white' }}>Cek Status Laporan</Link>
+            </div>
+            <p style={{ color: '#5b6673', fontSize: '0.85rem', marginTop: '18px' }}>
+              Tidak bisa mengisi formulir? Laporan juga dapat disampaikan lewat telepon, WhatsApp, atau surat ke kantor Korwil,
+              dan akan dicatatkan oleh admin.
             </p>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '28px' }}>
-            {steps.map((step, i) => (
-              <div key={i} style={{
-                padding: '40px 32px',
-                background: 'white',
-                borderRadius: '24px',
-                border: '1px solid #f3f4f6',
-                boxShadow: '0 4px 6px -1px rgba(0,0,0,0.04)',
-                transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
-                cursor: 'default',
-                position: 'relative',
-                overflow: 'hidden',
-                animation: `fadeInUp 0.6s ease-out ${0.15 * i}s both`,
-              }}
-                onMouseOver={e => { e.currentTarget.style.transform = 'translateY(-8px)'; e.currentTarget.style.boxShadow = '0 20px 40px -12px rgba(0,0,0,0.1)'; }}
-                onMouseOut={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 4px 6px -1px rgba(0,0,0,0.04)'; }}
-              >
-                {/* Step number watermark */}
-                <div style={{
-                  position: 'absolute', top: '-10px', right: '-5px',
-                  fontSize: '8rem', fontWeight: '900', color: 'rgba(0,0,0,0.02)',
-                  lineHeight: 1, pointerEvents: 'none',
-                }}>
-                  {i + 1}
-                </div>
-
-                <div style={{
-                  width: '64px', height: '64px', borderRadius: '18px',
-                  background: step.bg, color: step.color,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  marginBottom: '24px',
-                }}>
-                  {step.icon}
-                </div>
-
-                <div style={{
-                  fontSize: '0.75rem', fontWeight: '700', color: step.color,
-                  textTransform: 'uppercase', letterSpacing: '1.5px', marginBottom: '10px',
-                }}>Langkah {i + 1}</div>
-                <h3 style={{ fontSize: '1.4rem', fontWeight: '700', marginBottom: '12px', color: '#111827' }}>{step.title}</h3>
-                <p style={{ color: '#6b7280', lineHeight: '1.7', fontSize: '0.95rem' }}>{step.desc}</p>
-              </div>
-            ))}
+          <div style={{ background: 'white', border: '1px solid #d8dde3', borderRadius: '6px', padding: '24px 28px' }}>
+            <h2 style={{ fontSize: '1.05rem', marginBottom: '14px' }}>Cara melapor</h2>
+            <ol style={{ listStyle: 'none', display: 'grid', gap: '14px' }}>
+              {LANGKAH.map(([judul, isi], i) => (
+                <li key={judul} style={{ display: 'flex', gap: '12px' }}>
+                  <span style={{ flexShrink: 0, width: '24px', height: '24px', borderRadius: '50%', border: '1px solid #1f6b47', color: '#1f6b47', fontSize: '0.8rem', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{i + 1}</span>
+                  <span>
+                    <span style={{ display: 'block', fontWeight: 600 }}>{judul}</span>
+                    <span style={{ display: 'block', color: '#5b6673', fontSize: '0.9rem' }}>{isi}</span>
+                  </span>
+                </li>
+              ))}
+            </ol>
           </div>
         </section>
 
-        {/* ===== CTA SECTION ===== */}
-        <section style={{ padding: '0 24px 100px' }}>
-          <div style={{
-            maxWidth: '1100px', margin: '0 auto',
-            background: 'linear-gradient(135deg, #064e3b 0%, #047857 50%, #059669 100%)',
-            borderRadius: '32px',
-            padding: '80px 48px',
-            textAlign: 'center',
-            position: 'relative',
-            overflow: 'hidden',
-          }}>
-            {/* Decorative pattern */}
-            <div style={{
-              position: 'absolute', inset: 0,
-              backgroundImage: 'radial-gradient(circle at 20% 50%, rgba(255,255,255,0.05) 0%, transparent 50%), radial-gradient(circle at 80% 50%, rgba(255,255,255,0.05) 0%, transparent 50%)',
-              pointerEvents: 'none',
-            }} />
-
-            <h2 style={{
-              fontSize: 'clamp(1.8rem, 3vw, 2.5rem)',
-              fontWeight: '800', color: 'white',
-              margin: '0 0 16px', letterSpacing: '-0.5px',
-              position: 'relative',
-            }}>
-              Temukan Sampah Liar?<br />Laporkan Sekarang!
-            </h2>
-            <p style={{
-              fontSize: '1.1rem', color: 'rgba(255,255,255,0.8)',
-              maxWidth: '500px', margin: '0 auto 40px',
-              position: 'relative',
-            }}>
-              Satu laporan Anda bisa membuat lingkungan sekitar menjadi lebih bersih dan sehat.
-            </p>
-            <button onClick={() => navigate('/laporan')} style={{
-              padding: '18px 48px', fontSize: '1.1rem',
-              background: 'white', color: '#064e3b',
-              border: 'none', borderRadius: '14px',
-              cursor: 'pointer', fontWeight: '800', fontFamily: 'inherit',
-              boxShadow: '0 8px 24px rgba(0,0,0,0.15)',
-              transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-              display: 'inline-flex', alignItems: 'center', gap: '10px',
-              position: 'relative',
-            }}
-              onMouseOver={e => { e.currentTarget.style.transform = 'translateY(-3px) scale(1.02)'; e.currentTarget.style.boxShadow = '0 16px 40px rgba(0,0,0,0.2)'; }}
-              onMouseOut={e => { e.currentTarget.style.transform = 'translateY(0) scale(1)'; e.currentTarget.style.boxShadow = '0 8px 24px rgba(0,0,0,0.15)'; }}
-            >
-              <Camera size={20} /> Buat Laporan <ArrowRight size={18} />
-            </button>
-          </div>
+        <section style={{ background: 'white', border: '1px solid #d8dde3', borderRadius: '6px', padding: '24px 28px', marginTop: '24px' }}>
+          <h2 style={{ fontSize: '1.05rem', marginBottom: '14px' }}>Arti status laporan</h2>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.92rem' }}>
+            <tbody>
+              {STATUS.map(([s, arti]) => (
+                <tr key={s} style={{ borderTop: '1px solid #eceff2' }}>
+                  <td style={{ padding: '10px 12px 10px 0', fontWeight: 600, width: '120px', verticalAlign: 'top' }}>{s}</td>
+                  <td style={{ padding: '10px 0', color: '#3a4550' }}>{arti}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </section>
-
-        {/* ===== FOOTER ===== */}
-        <footer style={{
-          background: '#fafafa',
-          borderTop: '1px solid #e5e7eb',
-          padding: '48px 24px 32px',
-        }}>
-          <div style={{
-            maxWidth: '1100px', margin: '0 auto',
-            display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start',
-            flexWrap: 'wrap', gap: '32px',
-          }}>
-            <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
-                <div style={{
-                  width: '32px', height: '32px',
-                  background: 'linear-gradient(135deg, #059669, #10b981)',
-                  borderRadius: '8px',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                }}>
-                  <Leaf size={16} color="white" />
-                </div>
-                <span style={{ fontWeight: '700', fontSize: '1rem', color: '#064e3b' }}>DLH Kabupaten Sukabumi</span>
-              </div>
-              <p style={{ fontSize: '0.85rem', color: '#9ca3af', maxWidth: '300px', lineHeight: '1.6' }}>
-                Dinas Lingkungan Hidup Kabupaten Sukabumi — Bersama wujudkan lingkungan bersih dan sehat.
-              </p>
-            </div>
-            <div style={{ display: 'flex', gap: '48px', flexWrap: 'wrap' }}>
-              <div>
-                <div style={{ fontSize: '0.8rem', fontWeight: '700', color: '#374151', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '12px' }}>Kontak</div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  <span style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem', color: '#6b7280' }}>
-                    <Phone size={14} /> (0266) 225 078
-                  </span>
-                  <span style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem', color: '#6b7280' }}>
-                    <Mail size={14} /> dlh@sukabumikab.go.id
-                  </span>
-                  <span style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem', color: '#6b7280' }}>
-                    <Building2 size={14} /> Jl. Bhayangkara No. 1, Palabuhanratu
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div style={{
-            maxWidth: '1100px', margin: '32px auto 0',
-            borderTop: '1px solid #e5e7eb', paddingTop: '20px',
-            textAlign: 'center', fontSize: '0.8rem', color: '#9ca3af',
-          }}>
-            © 2024 Dinas Lingkungan Hidup Kabupaten Sukabumi. Hak Cipta Dilindungi.
-          </div>
-        </footer>
       </main>
+
+      <footer style={{ background: 'white', borderTop: '1px solid #d8dde3' }}>
+        <div style={{ maxWidth: '1080px', margin: '0 auto', padding: '20px', display: 'flex', justifyContent: 'space-between', gap: '20px', flexWrap: 'wrap', fontSize: '0.85rem', color: '#5b6673' }}>
+          <div>
+            <div style={{ fontWeight: 600, color: '#1f2933' }}>Dinas Lingkungan Hidup Kabupaten Sukabumi</div>
+            <div>Sistem Pengelolaan Sampah</div>
+          </div>
+          <div style={{ display: 'grid', gap: '4px' }}>
+            <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Phone size={14} /> (0266) 225 078</span>
+            <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Mail size={14} /> dlh@sukabumikab.go.id</span>
+            <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><MapPin size={14} /> Jl. Bhayangkara No. 1, Palabuhanratu</span>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }

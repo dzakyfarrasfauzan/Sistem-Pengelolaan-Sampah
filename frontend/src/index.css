@@ -1,6 +1,7 @@
 /* ============================================
-   Global Design System
-   Sistem Pengelolaan Sampah — DLH Sukabumi
+   Gaya dasar — Sistem Pengelolaan Sampah DLH Kabupaten Sukabumi
+   Tampilan sederhana ala aplikasi perkantoran: warna datar, garis tipis,
+   sudut kecil, dan huruf bawaan sistem operasi.
    ============================================ */
 
 *, *::before, *::after {
@@ -10,87 +11,35 @@
 }
 
 :root {
-  /* Primary Palette — Emerald */
-  --primary-50: #ecfdf5;
-  --primary-100: #d1fae5;
-  --primary-200: #a7f3d0;
-  --primary-300: #6ee7b7;
-  --primary-400: #34d399;
-  --primary-500: #10b981;
-  --primary-600: #059669;
-  --primary-700: #047857;
-  --primary-800: #065f46;
-  --primary-900: #064e3b;
+  /* Warna utama: hijau DLH */
+  --hijau: #1f6b47;
+  --hijau-tua: #17533a;
+  --hijau-muda: #e7f1eb;
 
-  /* Accent — Indigo */
-  --accent-50: #eef2ff;
-  --accent-100: #e0e7ff;
-  --accent-400: #818cf8;
-  --accent-500: #6366f1;
-  --accent-600: #4f46e5;
+  /* Netral */
+  --teks: #1f2933;
+  --teks-redup: #5b6673;
+  --garis: #d8dde3;
+  --latar: #f3f4f6;
+  --putih: #ffffff;
 
-  /* Neutrals */
-  --gray-50: #f9fafb;
-  --gray-100: #f3f4f6;
-  --gray-200: #e5e7eb;
-  --gray-300: #d1d5db;
-  --gray-400: #9ca3af;
-  --gray-500: #6b7280;
-  --gray-600: #4b5563;
-  --gray-700: #374151;
-  --gray-800: #1f2937;
-  --gray-900: #111827;
-  --gray-950: #030712;
-
-  /* Functional */
-  --danger: #ef4444;
-  --warning: #f59e0b;
-  --info: #3b82f6;
-
-  /* Shadows */
-  --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
-  --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.07), 0 2px 4px -2px rgba(0,0,0,0.05);
-  --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.08), 0 4px 6px -4px rgba(0,0,0,0.04);
-  --shadow-xl: 0 20px 25px -5px rgba(0,0,0,0.08), 0 8px 10px -6px rgba(0,0,0,0.03);
-  --shadow-2xl: 0 25px 50px -12px rgba(0,0,0,0.15);
-  --shadow-glow: 0 0 40px rgba(16, 185, 129, 0.15);
-
-  /* Radius */
-  --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 16px;
-  --radius-xl: 24px;
-  --radius-2xl: 32px;
-  --radius-full: 9999px;
-
-  /* Transitions */
-  --ease: cubic-bezier(0.4, 0, 0.2, 1);
-
-  /* Font */
-  --font: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  --font: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }
 
 html {
-  scroll-behavior: smooth;
+  font-size: 15px;
 }
 
 body {
   font-family: var(--font);
-  color: var(--gray-800);
-  background: var(--gray-50);
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-rendering: optimizeLegibility;
-  line-height: 1.6;
+  color: var(--teks);
+  background: var(--latar);
+  line-height: 1.5;
   overflow-x: hidden;
 }
 
 #root {
   width: 100%;
-  max-width: 100%;
-  margin: 0;
-  text-align: left;
-  border: none;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -98,10 +47,13 @@ body {
 
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font);
-  font-weight: 700;
-  color: var(--gray-900);
-  line-height: 1.2;
+  font-weight: 600;
+  color: var(--teks);
+  line-height: 1.3;
 }
+h1 { font-size: 1.4rem; }
+h2 { font-size: 1.2rem; }
+h3 { font-size: 1.05rem; }
 
 a {
   text-decoration: none;
@@ -113,54 +65,176 @@ img {
   display: block;
 }
 
-/* Utility Animations */
-@keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(30px); }
-  to { opacity: 1; transform: translateY(0); }
+button, input, select, textarea {
+  font-family: inherit;
+  font-size: inherit;
+}
+
+input:focus, select:focus, textarea:focus {
+  outline: 2px solid rgba(31, 107, 71, 0.35);
+  outline-offset: 0;
+  border-color: var(--hijau) !important;
+}
+
+table th {
+  font-weight: 600;
 }
 
 @keyframes fadeIn {
   from { opacity: 0; }
   to { opacity: 1; }
 }
-
-@keyframes slideInLeft {
-  from { opacity: 0; transform: translateX(-20px); }
-  to { opacity: 1; transform: translateX(0); }
+@keyframes fadeInUp {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
-
-@keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-10px); }
-}
-
-@keyframes pulse-glow {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
-  50% { box-shadow: 0 0 20px 10px rgba(16, 185, 129, 0); }
-}
-
 @keyframes spin {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
 }
 
-@keyframes gradient-shift {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
+/* ============================================
+   Layout panel (admin, sopir, pengawas)
+   ============================================ */
+.panel {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+.panel-atas {
+  height: 52px;
+  background: var(--hijau-tua);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  position: sticky;
+  top: 0;
+  z-index: 30;
+}
+.panel-merek {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+.panel-merek strong {
+  font-size: 0.95rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.panel-merek span {
+  font-size: 0.82rem;
+  opacity: 0.8;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.panel-akun {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-size: 0.85rem;
+}
+.panel-akun .nama {
+  text-align: right;
+  line-height: 1.25;
+}
+.panel-akun .nama small {
+  display: block;
+  opacity: 0.75;
+  font-size: 0.75rem;
+}
+.panel-keluar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  border-radius: 4px;
+  padding: 5px 10px;
+  cursor: pointer;
+  font-size: 0.82rem;
+}
+.panel-keluar:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+.panel-badan {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+.panel-menu {
+  width: 220px;
+  flex-shrink: 0;
+  background: var(--putih);
+  border-right: 1px solid var(--garis);
+  padding: 12px 0;
+}
+.panel-menu .judul-menu {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--teks-redup);
+  padding: 6px 18px 8px;
+}
+.panel-menu a {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 18px;
+  color: #3a4550;
+  border-left: 3px solid transparent;
+  font-size: 0.92rem;
+}
+.panel-menu a:hover {
+  background: #f5f7f6;
+}
+.panel-menu a.active {
+  background: var(--hijau-muda);
+  border-left-color: var(--hijau);
+  color: var(--hijau-tua);
+  font-weight: 600;
+}
+.panel-isi {
+  flex: 1;
+  min-width: 0;
+  overflow-y: auto;
+}
+/* Halaman di dalam panel memakai padding sendiri; disamakan agar rapi */
+.panel-isi > div {
+  padding: 24px 28px !important;
+}
+
+@media (max-width: 768px) {
+  .panel-merek span,
+  .panel-akun .nama { display: none; }
+  .panel-badan { flex-direction: column; }
+  .panel-menu {
+    width: 100%;
+    display: flex;
+    overflow-x: auto;
+    padding: 0;
+    border-right: none;
+    border-bottom: 1px solid var(--garis);
+    position: sticky;
+    top: 52px;
+    z-index: 20;
+  }
+  .panel-menu .judul-menu { display: none; }
+  .panel-menu a {
+    white-space: nowrap;
+    border-left: none;
+    border-bottom: 3px solid transparent;
+    padding: 10px 14px;
+  }
+  .panel-menu a.active { border-bottom-color: var(--hijau); }
+  .panel-isi > div { padding: 16px !important; }
 }
 
 /* Scrollbar */
-::-webkit-scrollbar {
-  width: 6px;
-}
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-::-webkit-scrollbar-thumb {
-  background: var(--gray-300);
-  border-radius: 3px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: var(--gray-400);
-}
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #c4cad1; border-radius: 4px; }

@@ -1,87 +1,12 @@
-import { NavLink, Outlet, useNavigate } from 'react-router-dom';
-import axios from 'axios';
-import {
-  LayoutDashboard,
-  CalendarDays,
-  MessageSquareWarning,
-  LogOut
-} from 'lucide-react';
-import { API_URL } from '../config';
-import NotifikasiLonceng from './NotifikasiLonceng';
+import { LayoutDashboard, MessageSquareWarning, CalendarDays } from 'lucide-react';
+import PanelLayout from './PanelLayout';
+
+const MENU = [
+  { to: '/pengawas/dashboard', label: 'Dashboard', Icon: LayoutDashboard },
+  { to: '/pengawas/laporan', label: 'Pemantauan Laporan', Icon: MessageSquareWarning },
+  { to: '/pengawas/jadwal', label: 'Jadwal Pengangkutan', Icon: CalendarDays },
+];
 
 export default function PengawasLayout() {
-  const navigate = useNavigate();
-
-  const handleLogout = async () => {
-    try {
-      await axios.post(`${API_URL}/logout`, {}, { withCredentials: true });
-      navigate('/login');
-    } catch {
-      navigate('/login');
-    }
-  };
-
-  const navStyles = ({ isActive }) => ({
-    display: 'flex',
-    alignItems: 'center',
-    gap: '12px',
-    padding: '12px 20px',
-    margin: '8px 16px',
-    borderRadius: '12px',
-    color: isActive ? '#fff' : '#d1d5db',
-    background: isActive ? 'linear-gradient(90deg, #a855f7 0%, #7e22ce 100%)' : 'transparent',
-    textDecoration: 'none',
-    fontWeight: '500',
-    transition: 'all 0.3s ease',
-    boxShadow: isActive ? '0 4px 12px rgba(168, 85, 247, 0.3)' : 'none'
-  });
-
-  return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: '#f3f4f6', fontFamily: 'Inter, sans-serif' }}>
-      {/* Sidebar */}
-      <aside style={{ width: '280px', background: '#3b0764', color: 'white', display: 'flex', flexDirection: 'column', boxShadow: '4px 0 10px rgba(0,0,0,0.1)', zIndex: 20 }}>
-        <div style={{ padding: '24px', textAlign: 'center', borderBottom: '1px solid rgba(255,255,255,0.1)', marginBottom: '20px' }}>
-          <h2 style={{ color: '#e9d5ff', margin: 0, fontSize: '1.5rem', fontWeight: 'bold' }}>DLH BIDANG</h2>
-          <p style={{ margin: '4px 0 0', fontSize: '0.85rem', color: '#d8b4fe' }}>Pengawasan Pelayanan Pengaduan</p>
-        </div>
-
-        <nav style={{ flex: 1 }}>
-          <NavLink to="/pengawas/dashboard" style={navStyles}><LayoutDashboard size={20} /> Dashboard</NavLink>
-          <NavLink to="/pengawas/laporan" style={navStyles}><MessageSquareWarning size={20} /> Pemantauan Laporan</NavLink>
-          <NavLink to="/pengawas/jadwal" style={navStyles}><CalendarDays size={20} /> Jadwal Pengangkutan</NavLink>
-        </nav>
-
-        <div style={{ padding: '20px' }}>
-          <button 
-            onClick={handleLogout}
-            style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '12px', background: 'rgba(255, 255, 255, 0.1)', color: '#fff', border: '1px solid rgba(255, 255, 255, 0.2)', borderRadius: '12px', cursor: 'pointer', fontWeight: 'bold', transition: 'all 0.3s' }}
-            onMouseOver={(e) => { e.currentTarget.style.background = '#ef4444'; e.currentTarget.style.borderColor = '#ef4444'; }}
-            onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)'; e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.2)'; }}
-          >
-            <LogOut size={18} /> Logout
-          </button>
-        </div>
-      </aside>
-
-      {/* Main Content */}
-      <main style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-        <header style={{ height: '70px', background: 'white', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', padding: '0 40px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <NotifikasiLonceng />
-            <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: '#a855f7', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' }}>
-              B
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column' }}>
-              <span style={{ fontSize: '0.95rem', fontWeight: '600', color: '#111827' }}>Akun Pengawas Bidang</span>
-              <span style={{ fontSize: '0.8rem', color: '#6b7280' }}>Pemantauan Korwil</span>
-            </div>
-          </div>
-        </header>
-
-        <div style={{ flex: 1, overflowY: 'auto' }}>
-          <Outlet />
-        </div>
-      </main>
-    </div>
-  );
+  return <PanelLayout judulMenu="Pengawas Bidang" menu={MENU} />;
 }

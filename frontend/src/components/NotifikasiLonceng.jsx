@@ -47,7 +47,7 @@ function bunyikan() {
 const WARNA_JENIS = {
   teguran: '#dc2626', terlambat: '#dc2626', kendaraan_rusak: '#ea580c',
   laporan_baru: '#2563eb', laporan_ditugaskan: '#2563eb', jadwal_baru: '#0891b2', armada_diganti: '#ea580c',
-  laporan_selesai: '#059669', pengangkutan_selesai: '#059669', penilaian: '#d97706',
+  laporan_selesai: '#1f6b47', pengangkutan_selesai: '#1f6b47', penilaian: '#d97706',
 };
 
 const waktuLalu = (t) => {
@@ -149,26 +149,26 @@ export default function NotifikasiLonceng() {
     <>
       <div ref={panelRef} style={{ position: 'relative' }}>
         <button onClick={() => setBuka(!buka)} aria-label="Pemberitahuan" title="Pemberitahuan"
-          style={{ position: 'relative', width: '42px', height: '42px', borderRadius: '50%', border: '1px solid #e5e7eb', background: buka ? '#f3f4f6' : 'white', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#374151' }}>
-          <Bell size={20} />
+          style={{ position: 'relative', width: '34px', height: '34px', borderRadius: '4px', border: '1px solid rgba(255,255,255,0.45)', background: buka ? 'rgba(255,255,255,0.15)' : 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white' }}>
+          <Bell size={17} />
           {belumDibaca > 0 && (
-            <span style={{ position: 'absolute', top: '-4px', right: '-4px', minWidth: '20px', height: '20px', padding: '0 5px', borderRadius: '10px', background: '#ef4444', color: 'white', fontSize: '0.7rem', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid white', boxSizing: 'border-box' }}>
+            <span style={{ position: 'absolute', top: '-4px', right: '-4px', minWidth: '20px', height: '20px', padding: '0 5px', borderRadius: '6px', background: '#ef4444', color: 'white', fontSize: '0.7rem', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid #17533a', boxSizing: 'border-box' }}>
               {belumDibaca > 99 ? '99+' : belumDibaca}
             </span>
           )}
         </button>
 
         {buka && (
-          <div style={{ position: 'absolute', right: 0, top: '52px', width: '380px', maxWidth: 'calc(100vw - 32px)', background: 'white', borderRadius: '16px', boxShadow: '0 20px 40px rgba(0,0,0,0.15)', border: '1px solid #e5e7eb', zIndex: 2000, overflow: 'hidden' }}>
+          <div style={{ position: 'absolute', right: 0, top: '42px', width: '380px', maxWidth: 'calc(100vw - 32px)', background: 'white', borderRadius: '6px', boxShadow: '0 1px 2px rgba(16,24,40,0.06)', border: '1px solid #d8dde3', zIndex: 2000, overflow: 'hidden' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 16px', borderBottom: '1px solid #f3f4f6' }}>
-              <div style={{ fontWeight: 700, color: '#111827' }}>Pemberitahuan</div>
+              <div style={{ fontWeight: 700, color: '#1f2933' }}>Pemberitahuan</div>
               <div style={{ display: 'flex', gap: '6px' }}>
                 <button onClick={ubahSuara} title={suaraAktif ? 'Matikan suara' : 'Hidupkan suara'}
-                  style={{ border: 'none', background: '#f3f4f6', borderRadius: '8px', padding: '6px', cursor: 'pointer', color: '#374151', display: 'flex' }}>
+                  style={{ border: 'none', background: '#f3f4f6', borderRadius: '4px', padding: '6px', cursor: 'pointer', color: '#374151', display: 'flex' }}>
                   {suaraAktif ? <Volume2 size={16} /> : <VolumeX size={16} />}
                 </button>
                 {belumDibaca > 0 && (
-                  <button onClick={bacaSemua} style={{ border: 'none', background: '#eff6ff', color: '#2563eb', borderRadius: '8px', padding: '6px 10px', cursor: 'pointer', fontSize: '0.78rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <button onClick={bacaSemua} style={{ border: 'none', background: '#eff6ff', color: '#2563eb', borderRadius: '4px', padding: '6px 10px', cursor: 'pointer', fontSize: '0.78rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
                     <CheckCheck size={14} /> Tandai semua dibaca
                   </button>
                 )}
@@ -176,20 +176,20 @@ export default function NotifikasiLonceng() {
             </div>
             <div style={{ maxHeight: '420px', overflowY: 'auto' }}>
               {list.length === 0 ? (
-                <div style={{ padding: '30px 16px', textAlign: 'center', color: '#9ca3af', fontSize: '0.9rem' }}>Belum ada pemberitahuan</div>
+                <div style={{ padding: '30px 16px', textAlign: 'center', color: '#8a939d', fontSize: '0.9rem' }}>Belum ada pemberitahuan</div>
               ) : list.map(n => (
                 <button key={n.id} onClick={() => bukaNotifikasi(n)}
-                  style={{ display: 'flex', gap: '10px', width: '100%', textAlign: 'left', padding: '12px 16px', border: 'none', borderBottom: '1px solid #f9fafb', background: n.dibaca ? 'white' : '#eff6ff', cursor: 'pointer', fontFamily: 'inherit' }}>
+                  style={{ display: 'flex', gap: '10px', width: '100%', textAlign: 'left', padding: '12px 16px', border: 'none', borderBottom: '1px solid #f7f8f9', background: n.dibaca ? 'white' : '#eff6ff', cursor: 'pointer', fontFamily: 'inherit' }}>
                   <span style={{ width: '8px', height: '8px', borderRadius: '50%', marginTop: '6px', flexShrink: 0, background: n.dibaca ? 'transparent' : (WARNA_JENIS[n.jenis] || '#2563eb') }} />
                   <span style={{ flex: 1 }}>
-                    <span style={{ display: 'block', fontWeight: n.dibaca ? 500 : 700, color: WARNA_JENIS[n.jenis] || '#111827', fontSize: '0.88rem' }}>{n.judul}</span>
+                    <span style={{ display: 'block', fontWeight: n.dibaca ? 500 : 700, color: WARNA_JENIS[n.jenis] || '#1f2933', fontSize: '0.88rem' }}>{n.judul}</span>
                     <span style={{ display: 'block', color: '#4b5563', fontSize: '0.82rem', lineHeight: 1.45, marginTop: '2px' }}>{n.pesan}</span>
-                    <span style={{ display: 'block', color: '#9ca3af', fontSize: '0.74rem', marginTop: '4px' }}>{waktuLalu(n.created_at)}</span>
+                    <span style={{ display: 'block', color: '#8a939d', fontSize: '0.74rem', marginTop: '4px' }}>{waktuLalu(n.created_at)}</span>
                   </span>
                 </button>
               ))}
             </div>
-            <div style={{ padding: '10px 16px', background: '#f9fafb', color: '#6b7280', fontSize: '0.75rem', textAlign: 'center' }}>
+            <div style={{ padding: '10px 16px', background: '#f7f8f9', color: '#5b6673', fontSize: '0.75rem', textAlign: 'center' }}>
               Riwayat pemberitahuan disimpan selama {masaSimpan} hari
             </div>
           </div>
@@ -197,23 +197,23 @@ export default function NotifikasiLonceng() {
       </div>
 
       {/* Pop up pemberitahuan baru */}
-      <div style={{ position: 'fixed', top: '20px', right: '20px', zIndex: 3000, display: 'flex', flexDirection: 'column', gap: '10px', width: '340px', maxWidth: 'calc(100vw - 40px)' }}>
+      <div style={{ position: 'fixed', top: '62px', right: '16px', zIndex: 3000, display: 'flex', flexDirection: 'column', gap: '10px', width: '340px', maxWidth: 'calc(100vw - 40px)' }}>
         {popup.map(n => (
           <div key={n.kunci} role="alert" onClick={() => bukaNotifikasi(n)}
-            style={{ background: 'white', borderRadius: '14px', boxShadow: '0 12px 30px rgba(0,0,0,0.18)', borderLeft: `5px solid ${WARNA_JENIS[n.jenis] || '#2563eb'}`, padding: '14px 16px', cursor: 'pointer', display: 'flex', gap: '10px', animation: 'notifMasuk 0.3s ease-out' }}>
+            style={{ background: 'white', borderRadius: '6px', boxShadow: '0 1px 2px rgba(16,24,40,0.06)', borderLeft: `4px solid ${WARNA_JENIS[n.jenis] || '#2563eb'}`, padding: '14px 16px', cursor: 'pointer', display: 'flex', gap: '10px' }}>
             <Bell size={18} color={WARNA_JENIS[n.jenis] || '#2563eb'} style={{ flexShrink: 0, marginTop: '2px' }} />
             <div style={{ flex: 1 }}>
-              <div style={{ fontWeight: 700, color: '#111827', fontSize: '0.9rem' }}>{n.judul}</div>
+              <div style={{ fontWeight: 700, color: '#1f2933', fontSize: '0.9rem' }}>{n.judul}</div>
               <div style={{ color: '#4b5563', fontSize: '0.83rem', lineHeight: 1.45, marginTop: '2px' }}>{n.pesan}</div>
             </div>
             <button onClick={(e) => { e.stopPropagation(); setPopup(p => p.filter(x => x.kunci !== n.kunci)); }} aria-label="Tutup"
-              style={{ border: 'none', background: 'none', cursor: 'pointer', color: '#9ca3af', alignSelf: 'flex-start', padding: 0 }}>
+              style={{ border: 'none', background: 'none', cursor: 'pointer', color: '#8a939d', alignSelf: 'flex-start', padding: 0 }}>
               <X size={16} />
             </button>
           </div>
         ))}
       </div>
-      <style>{'@keyframes notifMasuk { from { opacity: 0; transform: translateX(40px); } to { opacity: 1; transform: translateX(0); } }'}</style>
+      <style>{'@keyframes notifMasuk { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }'}</style>
     </>
   );
 }
