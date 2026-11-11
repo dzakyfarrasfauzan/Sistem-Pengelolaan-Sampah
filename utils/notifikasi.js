@@ -1,8 +1,10 @@
 // ============================================
 // Notifikasi (pemberitahuan) untuk akun admin, sopir, dan pengawas.
-// Riwayat disimpan selama 30 hari, setelah itu dihapus otomatis.
+// Notifikasi disimpan di basis data, lalu langsung dikirim ke akun penerima
+// melalui WebSocket (Socket.IO). Riwayat disimpan 30 hari, lalu dihapus otomatis.
 // ============================================
 const db = require('../database/db');
+const socket = require('./socket');
 
 const MASA_SIMPAN_HARI = 30;
 const BATAS_TERLAMBAT_JAM = 48;
@@ -26,6 +28,8 @@ function kirim(tujuan, { jenis, judul, pesan, tautan = null }) {
         }
         const ins = db.prepare('INSERT INTO notifikasi (user_id, jenis, judul, pesan, tautan) VALUES (?, ?, ?, ?, ?)');
         db.transaction(() => { for (const id of ids) ins.run(id, jenis, judul, pesan, tautan); })();
+        // Dorong ke browser penerima secara real-time
+        socket.kirimKe(ids, { jenis, judul, pesan, tautan });
     } catch (err) {
         // Notifikasi gagal tidak boleh menggagalkan proses utama
         console.error('Gagal mengirim notifikasi:', err.message);

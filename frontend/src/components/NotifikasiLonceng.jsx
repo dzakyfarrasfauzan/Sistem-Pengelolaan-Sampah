@@ -1,10 +1,17 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { io } from 'socket.io-client';
 import { Bell, X, Volume2, VolumeX, CheckCheck } from 'lucide-react';
 import { API_URL } from '../config';
 
-const INTERVAL_MS = 15000;   // cek pemberitahuan baru setiap 15 detik
+const INTERVAL_MS = 60000;   // cadangan bila koneksi WebSocket terputus
+
+// Koneksi WebSocket (Socket.IO) ke backend. Lewat proxy Vite: /be/socket.io -> backend /socket.io
+function sambungSocket() {
+  if (/^https?:\/\//.test(API_URL)) return io(API_URL, { withCredentials: true });
+  return io({ path: `${API_URL}/socket.io`, withCredentials: true });
+}
 const LAMA_POPUP_MS = 7000;  // pop up hilang otomatis setelah 7 detik
 const KUNCI_SUARA = 'notifikasi-suara';
 
@@ -98,8 +105,12 @@ export default function NotifikasiLonceng() {
 
   useEffect(() => {
     const awal = setTimeout(muat, 0);
+    // Notifikasi real-time: server mendorong pemberitahuan baru lewat WebSocket
+    const socket = sambungSocket();
+    socket.on('notifikasi', muat);
+    socket.on('connect', muat); // tersambung ulang: ambil notifikasi yang mungkin terlewat
     const timer = setInterval(muat, INTERVAL_MS);
-    return () => { clearTimeout(awal); clearInterval(timer); };
+    return () => { clearTimeout(awal); clearInterval(timer); socket.disconnect(); };
   }, [muat]);
 
   // Tutup panel bila klik di luar lonceng

@@ -9,7 +9,7 @@ export default defineConfig({
     proxy: {
       '/be': {
         target: 'http://localhost:3000',
-        changeOrigin: true,
+        changeOrigin: true, ws: true,
         rewrite: (p) => p.replace(/^\/be/, ''),
       },
     },

@@ -4,6 +4,7 @@
 // ============================================
 
 const express = require('express');
+const http = require('http');
 const path = require('path');
 const session = require('express-session');
 
@@ -33,12 +34,13 @@ app.use(express.json());
 // Static files (foto laporan masyarakat)
 app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
 
-// Session configuration
-app.use(session({
+// Session configuration (dipakai juga oleh koneksi WebSocket notifikasi)
+const sessionMiddleware = session({
     secret: 'sampah-dlh-sukabumi-secret-2024',
     resave: false,
     saveUninitialized: false
-}));
+});
+app.use(sessionMiddleware);
 
 // ============================================
 // Routes
@@ -91,7 +93,11 @@ const buatJadwalOtomatis = () => {
 buatJadwalOtomatis();
 setInterval(buatJadwalOtomatis, 60 * 60 * 1000);
 
-app.listen(PORT, () => {
+// Server HTTP + WebSocket (Socket.IO) untuk notifikasi real-time
+const server = http.createServer(app);
+require('./utils/socket').pasang(server, sessionMiddleware, FRONTEND_URL);
+
+server.listen(PORT, () => {
     console.log('============================================');
     console.log('  Sistem Pengelolaan Sampah');
     console.log('  Dinas Lingkungan Hidup Kabupaten Sukabumi');
