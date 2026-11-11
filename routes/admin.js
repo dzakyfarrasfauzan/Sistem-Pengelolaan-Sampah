@@ -117,7 +117,7 @@ const dipakaiJadwal = (id) =>
 router.get('/petugas', (req, res) => {
     try {
         const list = db.prepare(`
-            SELECT id, name, username, role AS peran, phone, address, status, created_at
+            SELECT id, name, username, role AS peran, juga_kru, phone, address, status, created_at
             FROM users WHERE role IN ('sopir','kru')
             ORDER BY CASE role WHEN 'sopir' THEN 1 ELSE 2 END, name
         `).all();
@@ -127,17 +127,17 @@ router.get('/petugas', (req, res) => {
 
 router.post('/petugas', (req, res) => {
     try {
-        const { name, peran, username, password, phone, address } = req.body;
+        const { name, peran, username, password, phone, address, juga_kru } = req.body;
         if (!name || !name.trim()) return res.status(400).json({ success: false, message: 'Nama wajib diisi' });
         if (!PERAN.includes(peran)) return res.status(400).json({ success: false, message: 'Peran harus sopir atau kru' });
         if (peran === 'sopir' && (!username || !password)) {
             return res.status(400).json({ success: false, message: 'Sopir wajib memiliki username dan password untuk login' });
         }
-        db.prepare(`INSERT INTO users (name, username, password, role, phone, address, status) VALUES (?, ?, ?, ?, ?, ?, 'aktif')`).run(
+        db.prepare(`INSERT INTO users (name, username, password, role, juga_kru, phone, address, status) VALUES (?, ?, ?, ?, ?, ?, ?, 'aktif')`).run(
             name.trim(),
             peran === 'sopir' ? username.trim() : null,
             peran === 'sopir' ? bcrypt.hashSync(password, 10) : null,
-            peran, phone || null, address || null
+            peran, peran === 'sopir' && juga_kru ? 1 : 0, phone || null, address || null
         );
         res.json({ success: true });
     } catch (err) {
@@ -148,7 +148,7 @@ router.post('/petugas', (req, res) => {
 
 router.put('/petugas/:id', (req, res) => {
     try {
-        const { name, peran, username, password, phone, address, status } = req.body;
+        const { name, peran, username, password, phone, address, status, juga_kru } = req.body;
         const lama = db.prepare("SELECT * FROM users WHERE id = ? AND role IN ('sopir','kru')").get(req.params.id);
         if (!lama) return res.status(404).json({ success: false, message: 'Petugas tidak ditemukan' });
         if (!PERAN.includes(peran)) return res.status(400).json({ success: false, message: 'Peran harus sopir atau kru' });
@@ -162,8 +162,8 @@ router.put('/petugas/:id', (req, res) => {
             pass = password && password.trim() !== '' ? bcrypt.hashSync(password, 10) : lama.password;
             if (!pass) return res.status(400).json({ success: false, message: 'Isi password untuk akun login sopir' });
         }
-        db.prepare(`UPDATE users SET name = ?, username = ?, password = ?, role = ?, phone = ?, address = ?, status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`)
-          .run(name, user, pass, peran, phone || null, address || null, status || 'aktif', lama.id);
+        db.prepare(`UPDATE users SET name = ?, username = ?, password = ?, role = ?, juga_kru = ?, phone = ?, address = ?, status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`)
+          .run(name, user, pass, peran, peran === 'sopir' && juga_kru ? 1 : 0, phone || null, address || null, status || 'aktif', lama.id);
         res.json({ success: true });
     } catch (err) {
         if (err.message.includes('UNIQUE')) return res.status(400).json({ success: false, message: 'Username sudah dipakai' });
@@ -185,13 +185,15 @@ router.delete('/petugas/:id', (req, res) => {
     } catch (err) { res.status(500).json({ success: false, message: err.message }); }
 });
 
-// Validasi tim: satu sopir aktif dan kru aktif (armada kecil seperti cator boleh tanpa kru)
+// Validasi tim: satu sopir aktif dan kru aktif (armada kecil seperti cator boleh tanpa kru).
+// Sopir yang ditandai "juga kru" boleh menjadi kru pada jadwal lain (mis. pagi kru, siang sopir cator).
 function cekTim(sopirId, kruIds) {
     if (!sopirId) return 'Sopir wajib dipilih';
     const sopir = db.prepare("SELECT id FROM users WHERE id = ? AND role = 'sopir' AND status = 'aktif'").get(sopirId);
     if (!sopir) return 'Sopir tidak ditemukan atau tidak aktif';
     for (const k of kruIds) {
-        const kru = db.prepare("SELECT id FROM users WHERE id = ? AND role = 'kru' AND status = 'aktif'").get(k);
+        if (String(k) === String(sopirId)) return 'Sopir tidak dapat sekaligus menjadi kru pada jadwal yang sama';
+        const kru = db.prepare("SELECT id FROM users WHERE id = ? AND status = 'aktif' AND (role = 'kru' OR (role = 'sopir' AND juga_kru = 1))").get(k);
         if (!kru) return 'Kru tidak ditemukan atau tidak aktif';
     }
     return null;

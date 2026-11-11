@@ -18,6 +18,7 @@ CREATE TABLE IF NOT EXISTS users (
     phone TEXT,
     address TEXT,
     status TEXT DEFAULT 'aktif' CHECK(status IN ('aktif','nonaktif')),
+    juga_kru INTEGER DEFAULT 0,     -- sopir yang pada jadwal lain juga bertugas sebagai kru
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );

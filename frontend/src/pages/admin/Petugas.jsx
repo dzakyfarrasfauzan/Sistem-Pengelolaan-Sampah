@@ -5,7 +5,7 @@ import { API_URL } from '../../config';
 
 // Petugas operasional = sopir dan kru dalam satu data, dibedakan dengan kolom peran.
 // Hanya sopir (pemimpin tim) yang memiliki akun login; kru cukup dicatat datanya.
-const KOSONG = { id: null, name: '', peran: 'kru', username: '', password: '', phone: '', address: '', status: 'aktif' };
+const KOSONG = { id: null, name: '', peran: 'kru', username: '', password: '', phone: '', address: '', status: 'aktif', juga_kru: false };
 
 const label = 'Petugas Operasional';
 const endpoint = `${API_URL}/admin/petugas`;
@@ -49,7 +49,7 @@ export default function Petugas() {
   };
 
   const handleOpenEdit = (item) => {
-    setFormData({ ...item, username: item.username || '', phone: item.phone || '', address: item.address || '', password: '' }); // password hanya dikirim bila diganti
+    setFormData({ ...item, juga_kru: !!item.juga_kru, username: item.username || '', phone: item.phone || '', address: item.address || '', password: '' }); // password hanya dikirim bila diganti
     setIsEdit(true);
     setShowModal(true);
   };
@@ -128,6 +128,9 @@ export default function Petugas() {
                   <span style={{ padding: '4px 10px', borderRadius: '20px', fontSize: '0.8rem', fontWeight: 'bold', background: item.peran === 'sopir' ? '#e0f2fe' : '#fef3c7', color: item.peran === 'sopir' ? '#0369a1' : '#b45309' }}>
                     {item.peran === 'sopir' ? 'SOPIR' : 'KRU'}
                   </span>
+                  {item.peran === 'sopir' && !!item.juga_kru && (
+                    <span style={{ marginLeft: '6px', padding: '4px 10px', borderRadius: '20px', fontSize: '0.8rem', fontWeight: 'bold', background: '#fef3c7', color: '#b45309' }}>+ KRU</span>
+                  )}
                 </td>
                 <td style={{ padding: '16px', color: '#4b5563' }}>{item.username || <span style={{ color: '#9ca3af' }}>Tidak login</span>}</td>
                 <td style={{ padding: '16px' }}>{item.phone}</td>
@@ -172,6 +175,11 @@ export default function Petugas() {
 
                   <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500', fontSize: '0.9rem' }}>{isEdit && formData.username ? 'Password Baru (Kosongkan jika tidak diganti)' : 'Password'}</label>
                   <input type="password" required={!isEdit} value={formData.password} onChange={e => setFormData({...formData, password: e.target.value})} style={inputStyle} />
+
+                  <label style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', marginBottom: '15px', fontSize: '0.88rem', color: '#374151', cursor: 'pointer' }}>
+                    <input type="checkbox" checked={!!formData.juga_kru} onChange={e => setFormData({...formData, juga_kru: e.target.checked})} style={{ marginTop: '3px' }} />
+                    <span>Juga bertugas sebagai kru <span style={{ color: '#6b7280' }}>(contoh: pagi menjadi kru, siang menjadi sopir cator)</span></span>
+                  </label>
                 </>
               )}
               

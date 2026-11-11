@@ -53,7 +53,7 @@ export default function Jadwal() {
       if (pt.data.success) {
         const aktif = pt.data.data.filter(x => x.status === 'aktif');
         setSopirList(aktif.filter(x => x.peran === 'sopir'));
-        setKruList(aktif.filter(x => x.peran === 'kru'));
+        setKruList(aktif.filter(x => x.peran === 'kru' || (x.peran === 'sopir' && x.juga_kru)));
       }
     } catch (err) { console.error('Gagal memuat opsi form', err); }
   };
@@ -332,9 +332,9 @@ export default function Jadwal() {
               <label style={label}>Kru ({form.kru_ids.length} dipilih)</label>
               <div style={{ border: '1px solid #d1d5db', borderRadius: '8px', padding: '8px 12px', marginBottom: '14px', maxHeight: '150px', overflowY: 'auto' }}>
                 {kruList.length === 0 && <div style={{ fontSize: '0.85rem', color: '#9ca3af' }}>Belum ada data kru aktif</div>}
-                {kruList.map(k => (
+                {kruList.filter(k => String(k.id) !== String(form.sopir_id)).map(k => (
                   <label key={k.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '4px 0', fontSize: '0.9rem', cursor: 'pointer' }}>
-                    <input type="checkbox" checked={form.kru_ids.includes(k.id)} onChange={() => toggleKru(k.id)} /> {k.name}
+                    <input type="checkbox" checked={form.kru_ids.includes(k.id)} onChange={() => toggleKru(k.id)} /> {k.name}{k.peran === 'sopir' && <span style={{ fontSize: '0.75rem', color: '#0369a1' }}>(sopir)</span>}
                   </label>
                 ))}
               </div>

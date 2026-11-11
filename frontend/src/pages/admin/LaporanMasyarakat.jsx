@@ -56,7 +56,7 @@ export default function LaporanMasyarakat() {
       if (res.data.success) {
         const aktif = (res.data.data || []).filter(p => p.status === 'aktif');
         setPetugasList(aktif.filter(p => p.peran === 'sopir'));
-        setKruList(aktif.filter(p => p.peran === 'kru'));
+        setKruList(aktif.filter(p => p.peran === 'kru' || (p.peran === 'sopir' && p.juga_kru)));
       }
       if (kd.data.success) setKendaraanList((kd.data.data || []).filter(k => k.status_penggunaan !== 'maintenance'));
     } catch (err) {
@@ -718,9 +718,9 @@ export default function LaporanMasyarakat() {
               <label style={lbl}>Kru ({jadwalkan.kru_ids.length} dipilih)</label>
               <div style={{ border: '1.5px solid #e5e7eb', borderRadius: '10px', padding: '8px 12px', marginBottom: '14px', maxHeight: '140px', overflowY: 'auto' }}>
                 {kruList.length === 0 && <div style={{ fontSize: '0.85rem', color: '#9ca3af' }}>Belum ada data kru aktif</div>}
-                {kruList.map(k => (
+                {kruList.filter(k => String(k.id) !== String(jadwalkan.sopir_id)).map(k => (
                   <label key={k.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '4px 0', fontSize: '0.9rem', cursor: 'pointer' }}>
-                    <input type="checkbox" checked={jadwalkan.kru_ids.includes(k.id)} onChange={() => toggleKru(k.id)} /> {k.name}
+                    <input type="checkbox" checked={jadwalkan.kru_ids.includes(k.id)} onChange={() => toggleKru(k.id)} /> {k.name}{k.peran === 'sopir' && <span style={{ fontSize: '0.75rem', color: '#0369a1' }}>(sopir)</span>}
                   </label>
                 ))}
               </div>

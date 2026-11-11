@@ -121,6 +121,11 @@ function uraikanBentrok(lain, { kendaraan_id, sopir_id, kruIds }, label) {
         if (String(o.kendaraan_id) === String(kendaraan_id)) hasil.push(`Armada ${o.nomor_polisi} sudah dijadwalkan di ${tempat}`);
         if (sopir_id && String(o.sopir_id) === String(sopir_id)) hasil.push(`Sopir ${o.sopir_name} sudah bertugas di ${tempat}`);
         const kruLain = String(o.kru_ids || '').split(',').filter(Boolean).map(Number);
+        // Petugas yang merangkap sopir dan kru tidak boleh bertugas di dua jadwal yang waktunya beririsan
+        if (sopir_id && kruLain.includes(Number(sopir_id))) {
+            hasil.push(`${db.prepare('SELECT name FROM users WHERE id = ?').get(sopir_id).name} sudah bertugas sebagai kru di ${tempat}`);
+        }
+        if (o.sopir_id && kruIds.includes(Number(o.sopir_id))) hasil.push(`${o.sopir_name} sudah bertugas sebagai sopir di ${tempat}`);
         const sama = kruIds.filter(k => kruLain.includes(k));
         if (sama.length) {
             const nama = db.prepare(`SELECT GROUP_CONCAT(name, ', ') AS n FROM users WHERE id IN (${sama.map(() => '?').join(',')})`).get(...sama).n;
