@@ -3,6 +3,7 @@ import { Link, NavLink, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { API_URL } from '../config';
 import Lambang from './Lambang';
+import { ShieldCheck } from 'lucide-react';
 
 const tautan = ({ isActive }) => ({
   padding: '6px 2px',
@@ -36,9 +37,11 @@ export default function KepalaSitus() {
   return (
     <header style={{ background: 'white', borderBottom: '1px solid #d8dde3' }}>
       <div style={{ background: '#17533a', color: '#dfece4', fontSize: '0.78rem' }}>
-        <div style={{ maxWidth: '1080px', margin: '0 auto', padding: '4px 20px', display: 'flex', justifyContent: 'space-between' }}>
+        <div style={{ maxWidth: '1080px', margin: '0 auto', padding: '5px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <span>Pemerintah Kabupaten Sukabumi</span>
-          <Link to="/login" style={{ color: '#dfece4' }}>Masuk Petugas</Link>
+          <Link to="/login" className="tombol-petugas" title="Masuk untuk admin, sopir, dan pengawas">
+            <ShieldCheck size={14} /> Masuk Petugas
+          </Link>
         </div>
       </div>
       <div style={{ maxWidth: '1080px', margin: '0 auto', padding: '12px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap' }}>
