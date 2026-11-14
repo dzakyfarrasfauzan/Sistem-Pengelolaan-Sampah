@@ -1,6 +1,6 @@
 // ============================================
 // Akun masyarakat (pelapor)
-// - Daftar dengan email + password, lalu verifikasi kode OTP yang dikirim ke email
+// - Daftar dengan email + password (langsung aktif, tanpa kode verifikasi)
 // - Masuk dengan email + password, atau dengan akun Google
 // - Lupa password: kode OTP ke email, lalu password baru
 // - Laporan Saya: riwayat dan status laporan milik akun
@@ -80,60 +80,38 @@ router.post('/daftar', async (req, res) => {
         if (!password || String(password).length < 8) return res.status(400).json({ success: false, message: 'Password minimal 8 karakter' });
 
         const ada = db.prepare('SELECT * FROM masyarakat WHERE email = ?').get(alamat);
-        if (ada && ada.email_terverifikasi) {
+        if (ada && (ada.password || ada.google_id)) {
             return res.status(400).json({ success: false, message: ada.google_id && !ada.password ? 'Email ini sudah terdaftar dengan Google. Silakan masuk dengan Google.' : 'Email sudah terdaftar. Silakan masuk.' });
         }
-        const hash = bcrypt.hashSync(String(password), 10);
-        if (ada) {
-            // Pendaftaran sebelumnya belum diverifikasi: perbarui datanya
-            db.prepare('UPDATE masyarakat SET nama = ?, no_wa = ?, password = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?').run(nama, rapikanWa(req.body.no_wa), hash, ada.id);
-        } else {
-            db.prepare('INSERT INTO masyarakat (nama, email, password, no_wa) VALUES (?, ?, ?, ?)').run(nama, alamat, hash, rapikanWa(req.body.no_wa));
-        }
-        const r = await kirimOtp(alamat, 'verifikasi');
-        res.json({ success: true, perluVerifikasi: true, email: alamat, message: r.ok ? `Kode verifikasi dikirim ke ${alamat}.` : pesanTunggu(r) });
+        const { lastInsertRowid } = db.prepare('INSERT INTO masyarakat (nama, email, password, no_wa) VALUES (?, ?, ?, ?)')
+            .run(nama, alamat, bcrypt.hashSync(String(password), 10), rapikanWa(req.body.no_wa));
+        const m = db.prepare('SELECT * FROM masyarakat WHERE id = ?').get(lastInsertRowid);
+        masukkanSesi(req, m);
+        res.json({ success: true, akun: dataAkun(m), message: 'Pendaftaran berhasil.' });
     } catch (err) { res.status(500).json({ success: false, message: err.message }); }
 });
 
-// POST /masyarakat/kirim-ulang-kode  { email, tujuan }
+// POST /masyarakat/kirim-ulang-kode  { email } - kode atur ulang password
 router.post('/kirim-ulang-kode', async (req, res) => {
     try {
         const alamat = rapikanEmail(req.body.email);
-        const tujuan = req.body.tujuan === 'reset' ? 'reset' : 'verifikasi';
+        const tujuan = 'reset';
         const m = db.prepare('SELECT * FROM masyarakat WHERE email = ?').get(alamat);
-        if (!m || (tujuan === 'verifikasi' && m.email_terverifikasi)) return res.json({ success: true, message: 'Bila email terdaftar, kode baru sudah dikirim.' });
+        if (!m) return res.json({ success: true, message: 'Bila email terdaftar, kode baru sudah dikirim.' });
         const r = await kirimOtp(alamat, tujuan);
         if (!r.ok) return res.status(429).json({ success: false, message: pesanTunggu(r) });
         res.json({ success: true, message: `Kode baru dikirim ke ${alamat}.` });
     } catch (err) { res.status(500).json({ success: false, message: err.message }); }
 });
 
-// POST /masyarakat/verifikasi  { email, kode }
-router.post('/verifikasi', (req, res) => {
-    try {
-        const alamat = rapikanEmail(req.body.email);
-        const m = db.prepare('SELECT * FROM masyarakat WHERE email = ?').get(alamat);
-        if (!m) return res.status(404).json({ success: false, message: 'Akun tidak ditemukan' });
-        const salah = cekOtp(alamat, 'verifikasi', req.body.kode);
-        if (salah) return res.status(400).json({ success: false, message: salah });
-        db.prepare('UPDATE masyarakat SET email_terverifikasi = 1, updated_at = CURRENT_TIMESTAMP WHERE id = ?').run(m.id);
-        masukkanSesi(req, m);
-        res.json({ success: true, akun: dataAkun(m), message: 'Email terverifikasi. Akun Anda sudah aktif.' });
-    } catch (err) { res.status(500).json({ success: false, message: err.message }); }
-});
-
 // POST /masyarakat/masuk  { email, password }
-router.post('/masuk', async (req, res) => {
+router.post('/masuk', (req, res) => {
     try {
         const alamat = rapikanEmail(req.body.email);
         const m = db.prepare('SELECT * FROM masyarakat WHERE email = ?').get(alamat);
         if (!m || !m.password || !bcrypt.compareSync(String(req.body.password || ''), m.password)) {
             const pesan = m && !m.password && m.google_id ? 'Akun ini terdaftar dengan Google. Silakan masuk dengan Google.' : 'Email atau password salah';
             return res.status(401).json({ success: false, message: pesan });
-        }
-        if (!m.email_terverifikasi) {
-            const r = await kirimOtp(alamat, 'verifikasi');
-            return res.json({ success: false, perluVerifikasi: true, email: alamat, message: r.ok ? `Email belum diverifikasi. Kode baru dikirim ke ${alamat}.` : `Email belum diverifikasi. ${pesanTunggu(r)}` });
         }
         masukkanSesi(req, m);
         res.json({ success: true, akun: dataAkun(m) });
@@ -171,7 +149,7 @@ router.post('/google', async (req, res) => {
 router.post('/lupa-password', async (req, res) => {
     try {
         const alamat = rapikanEmail(req.body.email);
-        const m = db.prepare('SELECT id FROM masyarakat WHERE email = ? AND email_terverifikasi = 1').get(alamat);
+        const m = db.prepare('SELECT id FROM masyarakat WHERE email = ? AND password IS NOT NULL').get(alamat);
         if (m) {
             const r = await kirimOtp(alamat, 'reset');
             if (!r.ok) return res.status(429).json({ success: false, message: pesanTunggu(r) });

@@ -5,7 +5,7 @@ import { API_URL } from '../../config';
 import { KotakAkun, Pesan, TombolGoogle } from '../../components/AkunForm';
 import { gaya } from '../../components/akunGaya';
 
-// Pendaftaran akun masyarakat. Setelah daftar, kode OTP dikirim ke email untuk verifikasi.
+// Pendaftaran akun masyarakat. Setelah daftar, akun langsung aktif dan masuk.
 export default function Daftar() {
   const navigate = useNavigate();
   const [params] = useSearchParams();
@@ -22,8 +22,8 @@ export default function Daftar() {
     if (f.password !== f.ulangi) return setGalat('Ulangi password tidak sama');
     setProses(true);
     try {
-      const r = await axios.post(`${API_URL}/masyarakat/daftar`, f, { withCredentials: true });
-      navigate(`/verifikasi?email=${encodeURIComponent(r.data.email)}&lanjut=${encodeURIComponent(lanjut)}`, { state: { pesan: r.data.message } });
+      await axios.post(`${API_URL}/masyarakat/daftar`, f, { withCredentials: true });
+      navigate(lanjut, { replace: true });
     } catch (err) {
       setGalat(err.response?.data?.message || 'Gagal mendaftar. Coba lagi.');
     } finally { setProses(false); }
