@@ -174,7 +174,7 @@ export default function SopirJadwal() {
   return (
     <div style={{ padding: '40px', fontFamily: 'inherit' }}>
       <h1 style={{ margin: '0 0 8px', color: '#1f2933' }}>Jadwal Pengangkutan</h1>
-      <p style={{ color: '#5b6673', margin: '0 0 30px' }}>Periksa armada sebelum berangkat, laksanakan pengangkutan bersama kru, lalu periksa kembali armada sesudah pulang dari TPA. Foto boleh diambil dari galeri.</p>
+      <p style={{ color: '#5b6673', margin: '0 0 30px' }}>Periksa armada sebelum berangkat, laksanakan pengangkutan bersama kru, lalu periksa kembali armada sesudah pulang dari TPA. Foto bisa diambil langsung dengan kamera atau dipilih dari galeri.</p>
 
       {list.length === 0 ? (
         <div style={{ background: 'white', padding: '40px', textAlign: 'center', borderRadius: '6px', color: '#5b6673' }}>
