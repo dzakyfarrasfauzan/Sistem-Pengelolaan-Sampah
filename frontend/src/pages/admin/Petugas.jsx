@@ -133,7 +133,7 @@ export default function Petugas() {
                   )}
                 </td>
                 <td style={{ padding: '16px', color: '#4b5563' }}>{item.username || <span style={{ color: '#8a939d' }}>Tidak login</span>}</td>
-                <td style={{ padding: '16px' }}>{item.phone}</td>
+                <td style={{ padding: '16px' }}>{item.phone || <span style={{ color: '#8a939d' }}>–</span>}</td>
                 <td style={{ padding: '16px' }}>
                   <span style={{ padding: '4px 10px', borderRadius: '6px', fontSize: '0.8rem', fontWeight: 'bold', background: item.status === 'aktif' ? '#e7f1eb' : '#fee2e2', color: item.status === 'aktif' ? '#1f6b47' : '#dc2626' }}>
                     {item.status.toUpperCase()}
@@ -183,10 +183,10 @@ export default function Petugas() {
                 </>
               )}
               
-              <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500', fontSize: '0.9rem' }}>Nomor HP</label>
+              <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500', fontSize: '0.9rem' }}>No. HP <span style={{ color: '#8a939d', fontWeight: 400 }}>(opsional)</span></label>
               <input value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} style={inputStyle} />
               
-              <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500', fontSize: '0.9rem' }}>Alamat Domisili</label>
+              <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500', fontSize: '0.9rem' }}>Alamat <span style={{ color: '#8a939d', fontWeight: 400 }}>(opsional)</span></label>
               <textarea value={formData.address} onChange={e => setFormData({...formData, address: e.target.value})} style={{...inputStyle, resize: 'vertical'}} />
               
               <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500', fontSize: '0.9rem' }}>Status</label>
