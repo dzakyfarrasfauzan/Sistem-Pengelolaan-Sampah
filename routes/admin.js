@@ -44,7 +44,15 @@ router.get('/dashboard', (req, res) => {
         }
         const statusJadwalHariIni = db.prepare(`SELECT status, COUNT(*) AS jumlah FROM jadwal_pengangkutan WHERE tanggal = ? AND status != 'batal' GROUP BY status`).all(today);
 
-        res.json({ success: true, stats, jadwalTerbaru, laporanTerbaru, perBulan, statusJadwalHariIni });
+        // Daftar "perlu tindakan hari ini" untuk dashboard
+        const laporanPerluJadwal = db.prepare(`SELECT id, kode_laporan, nama_pelapor, alamat_lokasi, prioritas, created_at FROM laporan_masyarakat
+            WHERE status = 'masuk'
+            ORDER BY CASE prioritas WHEN 'tinggi' THEN 0 WHEN 'sedang' THEN 1 WHEN 'rendah' THEN 2 ELSE 3 END, created_at ASC LIMIT 8`).all();
+        const teguran = db.prepare(`SELECT id, kode_laporan, teguran_pengawas FROM laporan_masyarakat
+            WHERE teguran_pengawas IS NOT NULL AND status != 'selesai' ORDER BY created_at ASC LIMIT 5`).all();
+        const armadaRusak = db.prepare(`SELECT id, nomor_polisi, jenis_kendaraan, kondisi FROM kendaraan WHERE kondisi != 'baik' ORDER BY nomor_polisi`).all();
+
+        res.json({ success: true, stats, jadwalTerbaru, laporanTerbaru, perBulan, statusJadwalHariIni, laporanPerluJadwal, teguran, armadaRusak });
     } catch (err) {
         res.status(500).json({ success: false, message: err.message });
     }

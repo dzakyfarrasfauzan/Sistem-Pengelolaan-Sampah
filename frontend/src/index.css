@@ -223,6 +223,22 @@ table th {
 .panel-isi tbody tr { transition: background 0.12s; }
 .panel-isi tbody tr:hover { background: #f8fbf9; }
 
+/* Dashboard (beranda) admin dan pengawas */
+.beranda-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+.sel-angka:hover { background: #f8fbf9; }
+.baris-tugas { transition: border-color 0.12s, background 0.12s; }
+.baris-tugas:hover { border-color: #cfe2d6 !important; background: #fbfdfc; }
+@media (max-width: 1000px) {
+  .beranda-grid { grid-template-columns: 1fr; }
+  .strip-angka { grid-template-columns: repeat(2, 1fr) !important; }
+  .strip-angka > * > div { border-left: none !important; border-bottom: 1px solid #eef0f2; }
+}
+
 /* Scrollbar */
 ::-webkit-scrollbar { width: 8px; height: 8px; }
 ::-webkit-scrollbar-track { background: transparent; }

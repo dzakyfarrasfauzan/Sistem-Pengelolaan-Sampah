@@ -46,7 +46,10 @@ router.get('/dashboard', (req, res) => {
                    SUM(CASE WHEN status = 'selesai' THEN 1 ELSE 0 END) AS selesai
             FROM laporan_masyarakat GROUP BY bulan ORDER BY bulan DESC LIMIT 6
         `).all();
-        res.json({ success: true, stats, peringatan, perBulan });
+        const belumDiprioritaskan = db.prepare(`${SELECT_LAPORAN} WHERE lm.status = 'masuk' AND lm.prioritas IS NULL ORDER BY lm.created_at ASC LIMIT 8`).all();
+        J.pastikanJadwalHarian();
+        const jadwalHariIni = db.prepare(`SELECT ${J.KOLOM_JADWAL} ${J.JOIN_JADWAL} WHERE j.tanggal = ? AND j.status != 'batal' ORDER BY j.jam ASC`).all(J.hariIni());
+        res.json({ success: true, stats, peringatan, perBulan, belumDiprioritaskan, jadwalHariIni });
     } catch (err) { res.status(500).json({ success: false, message: err.message }); }
 });
 
