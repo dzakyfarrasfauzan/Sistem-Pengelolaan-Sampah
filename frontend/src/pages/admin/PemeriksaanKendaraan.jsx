@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { ClipboardCheck } from 'lucide-react';
+import { Lencana } from '../../components/Ui';
 import { API_URL } from '../../config';
 
-const warnaKondisi = (k) => k === 'baik' ? ['#e7f1eb', '#1f6b47'] : k === 'rusak ringan' ? ['#fef3c7', '#d97706'] : ['#fee2e2', '#dc2626'];
 
 // Riwayat pemeriksaan kesiapan armada yang dikirim sopir
 export default function PemeriksaanKendaraan() {
@@ -62,7 +62,6 @@ export default function PemeriksaanKendaraan() {
             ) : tampil.length === 0 ? (
               <tr><td colSpan="8" style={{ padding: '20px', textAlign: 'center', color: '#8a939d' }}>Belum ada data pemeriksaan.</td></tr>
             ) : tampil.map(p => {
-              const [bg, fg] = warnaKondisi(p.kondisi);
               return (
                 <tr key={p.id} style={{ borderTop: '1px solid #f3f4f6', fontSize: '0.9rem' }}>
                   <td style={th}>{p.created_at}</td>
@@ -70,7 +69,7 @@ export default function PemeriksaanKendaraan() {
                   <td style={th}>{p.sopir_name || '-'}</td>
                   <td style={th}><div>{p.lokasi_tampil || '-'}</div><div style={{ fontSize: '0.8rem', color: '#5b6673' }}>{p.tanggal} {p.jam}</div></td>
                   <td style={{ ...th, textTransform: 'capitalize' }}>{p.jenis}</td>
-                  <td style={th}><span style={{ padding: '4px 10px', borderRadius: '6px', fontSize: '0.8rem', fontWeight: 'bold', background: bg, color: fg }}>{p.kondisi.toUpperCase()}</span></td>
+                  <td style={th}><Lencana nilai={p.kondisi} /></td>
                   <td style={{ ...th, color: '#4b5563', maxWidth: '220px' }}>{p.catatan || '-'}</td>
                   <td style={th}>
                     <a href={`${API_URL}/uploads/${p.foto}`} target="_blank" rel="noopener noreferrer">

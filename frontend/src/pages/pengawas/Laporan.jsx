@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { X, AlertTriangle, Star } from 'lucide-react';
+import { RingkasanAngka, KotakCari, TabFilter, Lencana } from '../../components/Ui';
 import { API_URL } from '../../config';
 import { formatUmur } from '../../utils/format';
 
@@ -16,6 +17,7 @@ export default function PengawasLaporan() {
   const [list, setList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('semua');
+  const [cari, setCari] = useState('');
   const [dipilih, setDipilih] = useState(null);
   const [teguran, setTeguran] = useState('');
   const [menyimpan, setMenyimpan] = useState(false);
@@ -53,7 +55,8 @@ export default function PengawasLaporan() {
   };
 
   const tampil = list.filter(l =>
-    filter === 'semua' ? true : filter === 'terlambat' ? l.terlambat === 1 : l.status === filter);
+    (filter === 'semua' ? true : filter === 'terlambat' ? l.terlambat === 1 : l.status === filter)
+    && `${l.kode_laporan} ${l.nama_pelapor || ''} ${l.alamat_lokasi || ''}`.toLowerCase().includes(cari.toLowerCase()));
 
   if (loading) return <div style={{ padding: '40px' }}>Memuat data...</div>;
 
@@ -62,12 +65,15 @@ export default function PengawasLaporan() {
       <h1 style={{ margin: '0 0 6px', color: '#1f2933' }}>Pemantauan Laporan Masyarakat</h1>
       <p style={{ margin: '0 0 20px', color: '#5b6673' }}>Laporan yang belum selesai lebih dari 2 hari ditandai terlambat. Beri teguran agar admin Korwil segera menindaklanjuti.</p>
 
-      <div style={{ display: 'flex', gap: '8px', marginBottom: '16px', flexWrap: 'wrap' }}>
-        {[['semua', 'Semua'], ['terlambat', 'Terlambat'], ['masuk', 'Masuk'], ['diproses', 'Diproses'], ['selesai', 'Selesai']].map(([v, t]) => (
-          <button key={v} onClick={() => setFilter(v)} style={{ padding: '8px 16px', borderRadius: '6px', border: '1px solid #d1d5db', cursor: 'pointer', fontWeight: '600', background: filter === v ? (v === 'terlambat' ? '#dc2626' : '#1f2933') : 'white', color: filter === v ? 'white' : '#374151' }}>
-            {t} ({list.filter(l => v === 'semua' ? true : v === 'terlambat' ? l.terlambat === 1 : l.status === v).length})
-          </button>
-        ))}
+      <RingkasanAngka data={[
+        { label: 'Total laporan', nilai: list.length },
+        { label: 'Terlambat ditangani', nilai: list.filter(l => l.terlambat === 1).length, warna: '#c0392b' },
+        { label: 'Sedang diproses', nilai: list.filter(l => l.status === 'diproses').length, warna: '#3b6ea8' },
+        { label: 'Selesai', nilai: list.filter(l => l.status === 'selesai').length, warna: '#2f8a5b' },
+      ]} />
+      <div style={{ display: 'flex', gap: '10px', marginBottom: '12px', flexWrap: 'wrap', alignItems: 'center' }}>
+        <TabFilter aktif={filter} onPilih={setFilter} pilihan={[['semua', 'Semua'], ['terlambat', 'Terlambat'], ['masuk', 'Masuk'], ['diproses', 'Diproses'], ['selesai', 'Selesai']].map(([v, t]) => ({ nilai: v, label: t, jumlah: list.filter(l => v === 'semua' ? true : v === 'terlambat' ? l.terlambat === 1 : l.status === v).length }))} />
+        <KotakCari nilai={cari} onUbah={setCari} petunjuk="Cari kode, pelapor, lokasi..." />
       </div>
 
       <div style={{ background: 'white', border: '1px solid #e1e5e9', borderRadius: '10px', boxShadow: '0 1px 2px rgba(16,24,40,0.06)', overflowX: 'auto' }}>
@@ -96,7 +102,7 @@ export default function PengawasLaporan() {
                     <div style={{ fontSize: '0.78rem', color: '#5b6673' }}>{waktu(l.created_at)}</div>
                   </td>
                   <td style={{ padding: '14px', fontSize: '0.85rem', color: '#374151', maxWidth: '220px' }}>{l.alamat_lokasi || '-'}</td>
-                  <td style={{ padding: '14px', fontSize: '0.85rem', textTransform: 'capitalize' }}>{l.prioritas || <span style={{ color: '#8a939d' }}>Belum</span>}</td>
+                  <td style={{ padding: '14px' }}><Lencana nilai={l.prioritas} kosong="Belum" /></td>
                   <td style={{ padding: '14px' }}>
                     <span style={{ padding: '4px 10px', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 700, background: bg, color: fg }}>{label}</span>
                     {l.terlambat === 1 && <div style={{ marginTop: '6px', fontSize: '0.72rem', fontWeight: 700, color: '#dc2626' }}>TERLAMBAT</div>}

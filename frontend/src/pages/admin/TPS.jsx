@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Plus, Edit2, Trash2, X, AlertTriangle } from 'lucide-react';
+import { KotakCari, Lencana, RingkasanAngka } from '../../components/Ui';
 import { API_URL } from '../../config';
 
 export default function TPS() {
   const [tpsList, setTpsList] = useState([]);
+  const [cari, setCari] = useState('');
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState('');
   
@@ -92,8 +94,11 @@ export default function TPS() {
 
   return (
     <div style={{ padding: '40px', fontFamily: 'inherit' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-        <h1 style={{ margin: 0, color: '#1f2933' }}>Kelola Data TPS</h1>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '18px', gap: '12px', flexWrap: 'wrap' }}>
+        <div>
+          <h1 style={{ margin: 0, color: '#1f2933' }}>Data TPS</h1>
+          <p style={{ margin: '4px 0 0', color: '#5b6673', fontSize: '0.92rem' }}>Tempat penampungan sementara yang dilewati jalur layanan Korwil.</p>
+        </div>
         <button onClick={handleOpenAdd} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 20px', background: '#1f6b47', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>
           <Plus size={18} /> Tambah TPS
         </button>
@@ -105,6 +110,14 @@ export default function TPS() {
         </div>
       )}
 
+      <RingkasanAngka data={[
+        { label: 'Total TPS/TPA', nilai: tpsList.length },
+        { label: 'Aktif', nilai: tpsList.filter(t => t.status === 'aktif').length, warna: '#2f8a5b' },
+        { label: 'Nonaktif', nilai: tpsList.filter(t => t.status !== 'aktif').length, warna: '#8a939d' },
+      ]} />
+      <div style={{ display: 'flex', gap: '10px', marginBottom: '12px', flexWrap: 'wrap' }}>
+        <KotakCari nilai={cari} onUbah={setCari} petunjuk="Cari nama TPS atau alamat..." />
+      </div>
       <div style={{ background: 'white', border: '1px solid #e1e5e9', borderRadius: '10px', boxShadow: '0 1px 2px rgba(16,24,40,0.06)', overflow: 'hidden' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
           <thead>
@@ -119,15 +132,13 @@ export default function TPS() {
           <tbody>
             {loading ? (
               <tr><td colSpan="5" style={{ padding: '20px', textAlign: 'center' }}>Memuat data...</td></tr>
-            ) : tpsList.map(tps => (
+            ) : tpsList.filter(t => `${t.nama_tps} ${t.alamat}`.toLowerCase().includes(cari.toLowerCase())).map(tps => (
               <tr key={tps.id} style={{ borderTop: '1px solid #f3f4f6' }}>
                 <td style={{ padding: '16px', fontWeight: '500', color: '#1f2933' }}>{tps.nama_tps}</td>
                 <td style={{ padding: '16px', color: '#5b6673' }}>{tps.alamat}</td>
                 <td style={{ padding: '16px' }}>{tps.kapasitas}</td>
                 <td style={{ padding: '16px' }}>
-                  <span style={{ padding: '4px 10px', borderRadius: '6px', fontSize: '0.8rem', fontWeight: 'bold', background: tps.status === 'aktif' ? '#e7f1eb' : '#fee2e2', color: tps.status === 'aktif' ? '#1f6b47' : '#dc2626' }}>
-                    {tps.status.toUpperCase()}
-                  </span>
+                  <Lencana nilai={tps.status} />
                 </td>
                 <td style={{ padding: '16px', textAlign: 'center' }}>
                   <button onClick={() => handleOpenEdit(tps)} style={{ background: '#f3f4f6', color: '#3b82f6', border: 'none', padding: '8px', borderRadius: '4px', cursor: 'pointer', marginRight: '8px' }}><Edit2 size={16} /></button>

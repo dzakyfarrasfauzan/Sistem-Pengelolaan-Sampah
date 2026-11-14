@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Plus, Edit2, Trash2, X } from 'lucide-react';
+import { KotakCari, Lencana, RingkasanAngka } from '../../components/Ui';
 import { API_URL } from '../../config';
 
 // Jalur layanan: rute pengangkutan yang melewati beberapa titik, desa, dan TPS
@@ -11,6 +12,7 @@ export default function JalurLayanan() {
   const [tpsList, setTpsList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [form, setForm] = useState(null);
+  const [cari, setCari] = useState('');
 
   const muat = async () => {
     try {
@@ -63,7 +65,16 @@ export default function JalurLayanan() {
           <Plus size={18} /> Tambah Jalur
         </button>
       </div>
-      <p style={{ color: '#5b6673', margin: '0 0 24px' }}>Rute pengangkutan yang dilalui satu armada dalam sehari, beserta titik, desa, dan TPS yang dilayani.</p>
+      <p style={{ color: '#5b6673', margin: '0 0 18px', fontSize: '0.92rem' }}>Rute pengangkutan yang dilalui satu armada dalam sehari, beserta titik, desa, dan TPS yang dilayani.</p>
+      <RingkasanAngka data={[
+        { label: 'Total jalur', nilai: list.length },
+        { label: 'Aktif', nilai: list.filter(j => j.status === 'aktif').length, warna: '#2f8a5b' },
+        { label: 'Jadwal rutin / minggu', nilai: list.reduce((a, j) => a + (j.jumlah_rutin || 0), 0), warna: '#3b6ea8' },
+        { label: 'Belum ada TPS', nilai: list.filter(j => !j.tps_names).length, warna: '#c98a1a' },
+      ]} />
+      <div style={{ display: 'flex', gap: '10px', marginBottom: '12px', flexWrap: 'wrap' }}>
+        <KotakCari nilai={cari} onUbah={setCari} petunjuk="Cari jalur, desa, atau kecamatan..." />
+      </div>
 
       <div style={{ background: 'white', border: '1px solid #e1e5e9', borderRadius: '10px', boxShadow: '0 1px 2px rgba(16,24,40,0.06)', overflowX: 'auto' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: '820px' }}>
@@ -76,7 +87,7 @@ export default function JalurLayanan() {
           <tbody>
             {loading ? <tr><td colSpan="6" style={{ padding: '20px', textAlign: 'center' }}>Memuat data...</td></tr>
               : list.length === 0 ? <tr><td colSpan="6" style={{ padding: '20px', textAlign: 'center', color: '#5b6673' }}>Belum ada jalur layanan</td></tr>
-              : list.map(j => (
+              : list.filter(j => `${j.nama_jalur} ${j.desa || ''} ${j.kecamatan || ''} ${j.alamat_pelayanan || ''}`.toLowerCase().includes(cari.toLowerCase())).map(j => (
                 <tr key={j.id} style={{ borderTop: '1px solid #f3f4f6', verticalAlign: 'top' }}>
                   <td style={th}>
                     <div style={{ fontWeight: 700, color: '#1f2933' }}>{j.nama_jalur}</div>
@@ -91,7 +102,7 @@ export default function JalurLayanan() {
                     {j.jarak_km ? `${j.jarak_km} km` : '-'} • {j.estimasi_tonase ? `${j.estimasi_tonase} ton` : '-'}
                   </td>
                   <td style={th}>
-                    <span style={{ padding: '4px 10px', borderRadius: '6px', fontSize: '0.8rem', fontWeight: 700, background: j.status === 'aktif' ? '#e7f1eb' : '#f3f4f6', color: j.status === 'aktif' ? '#1f6b47' : '#5b6673' }}>{j.status.toUpperCase()}</span>
+                    <Lencana nilai={j.status} />
                   </td>
                   <td style={{ ...th, textAlign: 'center', whiteSpace: 'nowrap' }}>
                     <button onClick={() => bukaEdit(j)} style={{ background: '#f3f4f6', color: '#3b82f6', border: 'none', padding: '8px', borderRadius: '4px', cursor: 'pointer', marginRight: '8px' }}><Edit2 size={16} /></button>

@@ -206,6 +206,23 @@ table th {
   .panel-isi > div { padding: 16px !important; }
 }
 
+/* Tabel di panel petugas: kepala tabel dan baris yang seragam */
+.panel-isi table { border-collapse: collapse; }
+.panel-isi thead tr { background: #f6f8f7 !important; }
+.panel-isi thead th {
+  font-size: 0.74rem !important;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #5b6673 !important;
+  font-weight: 600;
+  padding-top: 11px !important;
+  padding-bottom: 11px !important;
+  border-bottom: 1px solid #e1e5e9;
+  white-space: nowrap;
+}
+.panel-isi tbody tr { transition: background 0.12s; }
+.panel-isi tbody tr:hover { background: #f8fbf9; }
+
 /* Scrollbar */
 ::-webkit-scrollbar { width: 8px; height: 8px; }
 ::-webkit-scrollbar-track { background: transparent; }

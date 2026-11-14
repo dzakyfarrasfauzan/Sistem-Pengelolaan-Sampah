@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Plus, Edit2, Trash2, X, AlertTriangle } from 'lucide-react';
+import { KotakCari, Lencana, RingkasanAngka } from '../../components/Ui';
 import { API_URL } from '../../config';
 
 export default function Kendaraan() {
   const [list, setList] = useState([]);
+  const [cari, setCari] = useState('');
   const [loading, setLoading] = useState(true);
   
   // Modal state
@@ -79,13 +81,25 @@ export default function Kendaraan() {
 
   return (
     <div style={{ padding: '40px', fontFamily: 'inherit' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-        <h1 style={{ margin: 0, color: '#1f2933' }}>Kelola Data Kendaraan</h1>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '18px', gap: '12px', flexWrap: 'wrap' }}>
+        <div>
+          <h1 style={{ margin: 0, color: '#1f2933' }}>Data Kendaraan</h1>
+          <p style={{ margin: '4px 0 0', color: '#5b6673', fontSize: '0.92rem' }}>Armada pengangkut Korwil beserta kondisi terakhir dari pemeriksaan sopir.</p>
+        </div>
         <button onClick={handleOpenAdd} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 20px', background: '#1f6b47', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>
           <Plus size={18} /> Tambah Kendaraan
         </button>
       </div>
 
+      <RingkasanAngka data={[
+        { label: 'Total armada', nilai: list.length },
+        { label: 'Kondisi baik', nilai: list.filter(k => k.kondisi === 'baik').length, warna: '#2f8a5b' },
+        { label: 'Perlu perbaikan', nilai: list.filter(k => k.kondisi !== 'baik').length, warna: '#c0392b' },
+        { label: 'Sedang digunakan', nilai: list.filter(k => k.status_penggunaan === 'digunakan').length, warna: '#3b6ea8' },
+      ]} />
+      <div style={{ display: 'flex', gap: '10px', marginBottom: '12px', flexWrap: 'wrap' }}>
+        <KotakCari nilai={cari} onUbah={setCari} petunjuk="Cari nomor polisi atau jenis..." />
+      </div>
       <div style={{ background: 'white', border: '1px solid #e1e5e9', borderRadius: '10px', boxShadow: '0 1px 2px rgba(16,24,40,0.06)', overflow: 'hidden' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
           <thead>
@@ -101,20 +115,16 @@ export default function Kendaraan() {
           <tbody>
             {loading ? (
               <tr><td colSpan="6" style={{ padding: '20px', textAlign: 'center' }}>Memuat data...</td></tr>
-            ) : list.map(item => (
+            ) : list.filter(k => `${k.nomor_polisi} ${k.jenis_kendaraan}`.toLowerCase().includes(cari.toLowerCase())).map(item => (
               <tr key={item.id} style={{ borderTop: '1px solid #f3f4f6' }}>
                 <td style={{ padding: '16px', fontWeight: 'bold', color: '#1f2933' }}>{item.nomor_polisi}</td>
                 <td style={{ padding: '16px', color: '#4b5563' }}>{item.jenis_kendaraan}</td>
                 <td style={{ padding: '16px' }}>{item.kapasitas_angkut}</td>
                 <td style={{ padding: '16px' }}>
-                  <span style={{ padding: '4px 10px', borderRadius: '6px', fontSize: '0.8rem', fontWeight: 'bold', background: item.kondisi === 'baik' ? '#e7f1eb' : '#fee2e2', color: item.kondisi === 'baik' ? '#1f6b47' : '#dc2626' }}>
-                    {item.kondisi.toUpperCase()}
-                  </span>
+                  <Lencana nilai={item.kondisi} />
                 </td>
                 <td style={{ padding: '16px' }}>
-                  <span style={{ padding: '4px 10px', borderRadius: '6px', fontSize: '0.8rem', fontWeight: 'bold', background: item.status_penggunaan === 'tersedia' ? '#dbeafe' : '#fef3c7', color: item.status_penggunaan === 'tersedia' ? '#2563eb' : '#d97706' }}>
-                    {item.status_penggunaan.toUpperCase()}
-                  </span>
+                  <Lencana nilai={item.status_penggunaan} />
                 </td>
                 <td style={{ padding: '16px', textAlign: 'center' }}>
                   <button onClick={() => handleOpenEdit(item)} style={{ background: '#f3f4f6', color: '#3b82f6', border: 'none', padding: '8px', borderRadius: '4px', cursor: 'pointer', marginRight: '8px' }}><Edit2 size={16} /></button>

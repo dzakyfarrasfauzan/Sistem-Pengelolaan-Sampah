@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { ChevronRight } from 'lucide-react';
+import { ChevronRight, Search } from 'lucide-react';
 
 // Komponen tampilan bersama untuk panel petugas
 
@@ -44,6 +44,11 @@ const WARNA_STATUS = {
   diproses: ['#fdf1e3', '#8a4b0f'], berjalan: ['#e6eef7', '#1d4f73'],
   selesai: ['#e3f1e8', '#17533a'], diperiksa: ['#e6eef7', '#1d4f73'], batal: ['#fbe9e9', '#9b1c1c'],
   tinggi: ['#fbe9e9', '#9b1c1c'], sedang: ['#fdf1e3', '#8a4b0f'], rendah: ['#e6eef7', '#1d4f73'],
+  aktif: ['#e3f1e8', '#17533a'], nonaktif: ['#f1f3f5', '#5b6673'],
+  baik: ['#e3f1e8', '#17533a'], 'rusak ringan': ['#fdf1e3', '#8a4b0f'], 'rusak berat': ['#fbe9e9', '#9b1c1c'],
+  tersedia: ['#e3f1e8', '#17533a'], digunakan: ['#e6eef7', '#1d4f73'], maintenance: ['#fdf1e3', '#8a4b0f'],
+  sopir: ['#e6eef7', '#1d4f73'], kru: ['#fdf1e3', '#8a4b0f'], rutin: ['#e6eef7', '#1d4f73'], tambahan: ['#fbf1e6', '#8a4b0f'],
+  terlambat: ['#fbe9e9', '#9b1c1c'],
 };
 
 /** Lencana status/prioritas dengan warna yang seragam di semua halaman */
@@ -65,6 +70,50 @@ export function JudulHalaman({ judul, keterangan, children }) {
         {keterangan && <p style={{ color: '#5b6673', fontSize: '0.92rem', marginTop: '2px' }}>{keterangan}</p>}
       </div>
       {children && <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>{children}</div>}
+    </div>
+  );
+}
+
+/** Deretan angka ringkas di atas tabel: [{ label, nilai, warna }] */
+export function RingkasanAngka({ data }) {
+  return (
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '10px', marginBottom: '16px' }}>
+      {data.map(d => (
+        <div key={d.label} style={{ background: 'white', border: '1px solid #e1e5e9', borderRadius: '10px', padding: '12px 14px', borderLeft: `4px solid ${d.warna || '#1f6b47'}` }}>
+          <div style={{ fontSize: '1.35rem', fontWeight: 700, color: '#1f2933', lineHeight: 1.2 }}>{d.nilai}</div>
+          <div style={{ fontSize: '0.8rem', color: '#5b6673' }}>{d.label}</div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/** Kotak pencarian */
+export function KotakCari({ nilai, onUbah, petunjuk = 'Cari...' }) {
+  return (
+    <div style={{ position: 'relative', flex: '1 1 240px', maxWidth: '340px' }}>
+      <Search size={16} color="#8a939d" style={{ position: 'absolute', left: '11px', top: '50%', transform: 'translateY(-50%)' }} />
+      <input value={nilai} onChange={e => onUbah(e.target.value)} placeholder={petunjuk}
+        style={{ width: '100%', padding: '9px 12px 9px 34px', border: '1px solid #d8dde3', borderRadius: '8px', background: 'white', boxSizing: 'border-box' }} />
+    </div>
+  );
+}
+
+/** Tab filter berbentuk pil: pilihan [{ nilai, label, jumlah }] */
+export function TabFilter({ pilihan, aktif, onPilih }) {
+  return (
+    <div style={{ display: 'inline-flex', gap: '4px', background: '#eef1ef', padding: '4px', borderRadius: '10px', flexWrap: 'wrap' }}>
+      {pilihan.map(p => {
+        const on = p.nilai === aktif;
+        return (
+          <button key={p.nilai} type="button" onClick={() => onPilih(p.nilai)} style={{
+            padding: '7px 14px', borderRadius: '7px', border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: '0.86rem',
+            background: on ? 'white' : 'transparent', color: on ? '#17533a' : '#5b6673', boxShadow: on ? '0 1px 2px rgba(16,24,40,0.1)' : 'none',
+          }}>
+            {p.label}{p.jumlah !== undefined && <span style={{ marginLeft: '6px', fontSize: '0.76rem', padding: '1px 7px', borderRadius: '999px', background: on ? '#e3f1e8' : '#dde2df', color: on ? '#17533a' : '#5b6673' }}>{p.jumlah}</span>}
+          </button>
+        );
+      })}
     </div>
   );
 }

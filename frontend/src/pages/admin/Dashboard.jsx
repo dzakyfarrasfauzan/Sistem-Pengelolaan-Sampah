@@ -36,7 +36,14 @@ export default function Dashboard() {
 
   return (
     <div>
-      <JudulHalaman judul={`${sapaan()}, Admin`} keterangan="Ringkasan pelayanan pengangkutan sampah Korwil Jampangkulon hari ini." />
+      <JudulHalaman judul={`${sapaan()}, Admin`} keterangan="Ringkasan pelayanan pengangkutan sampah Korwil Jampangkulon hari ini.">
+        <Link to="/admin/laporan-masyarakat" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '9px 14px', borderRadius: '8px', background: '#1f6b47', color: 'white', fontWeight: 600, fontSize: '0.88rem' }}>
+          <Inbox size={16} /> Jadwalkan Laporan
+        </Link>
+        <Link to="/admin/jadwal" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '9px 14px', borderRadius: '8px', background: 'white', border: '1px solid #d8dde3', color: '#1f2933', fontWeight: 600, fontSize: '0.88rem' }}>
+          <CalendarDays size={16} /> Jadwal Hari Ini
+        </Link>
+      </JudulHalaman>
 
       {stats.teguranPengawas > 0 && (
         <div style={{ background: '#fbe9e9', border: '1px solid #f0c7c7', color: '#9b1c1c', padding: '12px 16px', borderRadius: '10px', marginBottom: '18px', display: 'flex', alignItems: 'center', gap: '10px', fontWeight: 600, fontSize: '0.92rem' }}>

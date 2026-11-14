@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Eye, Trash2, Edit2, Check, X, MapPin, Phone, Calendar, User, FileText, AlertTriangle, Image as ImageIcon, UserCheck, Landmark, CalendarPlus, Plus, Truck } from 'lucide-react';
+import { RingkasanAngka, KotakCari } from '../../components/Ui';
 import { API_URL } from '../../config';
 
 
@@ -33,6 +34,7 @@ export default function LaporanMasyarakat() {
   const [updating, setUpdating] = useState(false);
   const [reportToDelete, setReportToDelete] = useState(null);
   const [activeTab, setActiveTab] = useState('semua');
+  const [cari, setCari] = useState('');
 
   const fetchData = async () => {
     try {
@@ -170,7 +172,8 @@ export default function LaporanMasyarakat() {
   };
 
   // Filter list berdasarkan tab aktif
-  const filteredList = activeTab === 'semua' ? list : list.filter(l => l.status === activeTab);
+  const filteredList = (activeTab === 'semua' ? list : list.filter(l => l.status === activeTab))
+    .filter(l => `${l.kode_laporan} ${l.nama_pelapor} ${l.alamat_lokasi || ''} ${l.deskripsi || ''}`.toLowerCase().includes(cari.toLowerCase()));
 
   const overlay = { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 };
   const kotak = { background: 'white', border: '1px solid #e1e5e9', borderRadius: '10px', padding: '28px', width: '100%', margin: '16px', maxHeight: '92vh', overflowY: 'auto', boxShadow: '0 1px 2px rgba(16,24,40,0.06)' };
@@ -183,7 +186,7 @@ export default function LaporanMasyarakat() {
   return (
     <div style={{ padding: '40px', fontFamily: 'inherit', color: '#1f2937' }}>
       {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px', gap: '16px', flexWrap: 'wrap' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '18px', gap: '16px', flexWrap: 'wrap' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <div>
             <h1 style={{ margin: 0, fontSize: '1.4rem', fontWeight: '700', color: '#1f2933', letterSpacing: '0' }}>Laporan Masyarakat</h1>
@@ -198,18 +201,27 @@ export default function LaporanMasyarakat() {
         </button>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: selectedReport ? '1.2fr 0.8fr' : '1fr', gap: '30px', alignItems: 'start' }}>
+      <RingkasanAngka data={[
+        { label: 'Belum dijadwalkan', nilai: list.filter(l => l.status !== 'selesai' && !l.jadwal_id).length, warna: '#c98a1a' },
+        { label: 'Prioritas tinggi aktif', nilai: list.filter(l => l.status !== 'selesai' && l.prioritas === 'tinggi').length, warna: '#c0392b' },
+        { label: 'Sedang diproses', nilai: list.filter(l => l.status === 'diproses').length, warna: '#3b6ea8' },
+        { label: 'Selesai', nilai: list.filter(l => l.status === 'selesai').length, warna: '#2f8a5b' },
+      ]} />
+      <div style={{ display: 'flex', gap: '10px', marginBottom: '14px', flexWrap: 'wrap' }}>
+        <KotakCari nilai={cari} onUbah={setCari} petunjuk="Cari kode, pelapor, lokasi..." />
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: selectedReport ? '1.2fr 0.8fr' : '1fr', gap: '20px', alignItems: 'start' }}>
         {/* Table List */}
-        <div style={{ background: 'white', borderRadius: '6px', border: '1px solid #f3f4f6', boxShadow: '0 1px 2px rgba(16,24,40,0.06)', overflow: 'hidden' }}>
+        <div style={{ background: 'white', borderRadius: '10px', border: '1px solid #e1e5e9', boxShadow: '0 1px 2px rgba(16,24,40,0.06)', overflow: 'hidden' }}>
 
           {/* === TAB FILTER === */}
           <div style={{ padding: '20px 24px 0', borderBottom: '1px solid #f3f4f6' }}>
             <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
               {[
-                { key: 'semua',    label: 'Semua',    color: '#5b6673', activeBg: '#f3f4f6',  activeText: '#1f2933' },
-                { key: 'masuk',    label: 'Masuk',    color: '#4b5563', activeBg: '#f3f4f6',  activeText: '#1f2933' },
-                { key: 'diproses', label: 'Diproses', color: '#2563eb', activeBg: '#eff6ff',  activeText: '#2563eb' },
-                { key: 'selesai',  label: 'Selesai',  color: '#1f6b47', activeBg: '#e7f1eb',  activeText: '#1f6b47' },
+                { key: 'semua',    label: 'Semua',    color: '#1f6b47', activeBg: '#e7f1eb',  activeText: '#17533a' },
+                { key: 'masuk',    label: 'Masuk',    color: '#1f6b47', activeBg: '#e7f1eb',  activeText: '#17533a' },
+                { key: 'diproses', label: 'Diproses', color: '#1f6b47', activeBg: '#e7f1eb',  activeText: '#17533a' },
+                { key: 'selesai',  label: 'Selesai',  color: '#1f6b47', activeBg: '#e7f1eb',  activeText: '#17533a' },
               ].map(tab => {
                 const isActive = activeTab === tab.key;
                 return (
@@ -230,7 +242,7 @@ export default function LaporanMasyarakat() {
                     {tab.label}
                     <span style={{
                       padding: '2px 8px', borderRadius: '6px', fontSize: '0.75rem', fontWeight: '700',
-                      background: isActive ? (tab.key === 'selesai' ? '#b9d8c6' : tab.key === 'diproses' ? '#bfdbfe' : '#d8dde3') : '#f3f4f6',
+                      background: isActive ? '#b9d8c6' : '#f1f3f5',
                       color: isActive ? tab.activeText : '#8a939d',
                     }}>
                       {counts[tab.key]}

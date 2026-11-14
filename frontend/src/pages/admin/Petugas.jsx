@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Plus, Edit2, Trash2, X, AlertTriangle } from 'lucide-react';
+import { KotakCari, Lencana, RingkasanAngka, TabFilter } from '../../components/Ui';
 import { API_URL } from '../../config';
 
 // Petugas operasional = sopir dan kru dalam satu data, dibedakan dengan kolom peran.
@@ -18,6 +19,7 @@ export default function Petugas() {
   const [showModal, setShowModal] = useState(false);
   const [formData, setFormData] = useState(KOSONG);
   const [filter, setFilter] = useState('semua');
+  const [cari, setCari] = useState('');
   const [isEdit, setIsEdit] = useState(false);
   const [petugasToDelete, setPetugasToDelete] = useState(null);
   const [deleting, setDeleting] = useState(false);
@@ -88,9 +90,9 @@ export default function Petugas() {
 
   return (
     <div style={{ padding: '40px', fontFamily: 'inherit' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '18px', gap: '12px', flexWrap: 'wrap' }}>
         <div>
-          <h1 style={{ margin: 0, color: '#1f2933' }}>Kelola {label}</h1>
+          <h1 style={{ margin: 0, color: '#1f2933' }}>{label}</h1>
           <p style={{ margin: '6px 0 0', color: '#5b6673', fontSize: '0.9rem' }}>Satu tim per kendaraan terdiri dari sopir sebagai pemimpin dan beberapa kru. Hanya sopir yang login.</p>
         </div>
         <button onClick={handleOpenAdd} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 20px', background: '#1f6b47', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>
@@ -98,12 +100,15 @@ export default function Petugas() {
         </button>
       </div>
 
-      <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
-        {[['semua', 'Semua'], ['sopir', 'Sopir'], ['kru', 'Kru']].map(([v, t]) => (
-          <button key={v} onClick={() => setFilter(v)} style={{ padding: '8px 16px', borderRadius: '6px', border: '1px solid #d1d5db', cursor: 'pointer', fontWeight: '600', background: filter === v ? '#1f2933' : 'white', color: filter === v ? 'white' : '#374151' }}>
-            {t} ({v === 'semua' ? list.length : list.filter(p => p.peran === v).length})
-          </button>
-        ))}
+      <RingkasanAngka data={[
+        { label: 'Total petugas', nilai: list.length },
+        { label: 'Sopir', nilai: list.filter(p => p.peran === 'sopir').length, warna: '#3b6ea8' },
+        { label: 'Kru', nilai: list.filter(p => p.peran === 'kru').length, warna: '#c98a1a' },
+        { label: 'Sopir merangkap kru', nilai: list.filter(p => p.peran === 'sopir' && p.juga_kru).length, warna: '#2f8a5b' },
+      ]} />
+      <div style={{ display: 'flex', gap: '10px', marginBottom: '12px', flexWrap: 'wrap', alignItems: 'center' }}>
+        <TabFilter aktif={filter} onPilih={setFilter} pilihan={[['semua', 'Semua'], ['sopir', 'Sopir'], ['kru', 'Kru']].map(([v, t]) => ({ nilai: v, label: t, jumlah: v === 'semua' ? list.length : list.filter(p => p.peran === v).length }))} />
+        <KotakCari nilai={cari} onUbah={setCari} petunjuk="Cari nama atau username..." />
       </div>
 
       <div style={{ background: 'white', border: '1px solid #e1e5e9', borderRadius: '10px', boxShadow: '0 1px 2px rgba(16,24,40,0.06)', overflow: 'hidden' }}>
@@ -121,9 +126,16 @@ export default function Petugas() {
           <tbody>
             {loading ? (
               <tr><td colSpan="6" style={{ padding: '20px', textAlign: 'center' }}>Memuat data...</td></tr>
-            ) : list.filter(item => filter === 'semua' || item.peran === filter).map(item => (
+            ) : list.filter(item => (filter === 'semua' || item.peran === filter) && `${item.name} ${item.username || ''}`.toLowerCase().includes(cari.toLowerCase())).map(item => (
               <tr key={item.id} style={{ borderTop: '1px solid #f3f4f6' }}>
-                <td style={{ padding: '16px', fontWeight: 'bold', color: '#1f2933' }}>{item.name}</td>
+                <td style={{ padding: '16px', fontWeight: 600, color: '#1f2933' }}>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '10px' }}>
+                    <span style={{ width: '32px', height: '32px', borderRadius: '50%', background: item.peran === 'sopir' ? '#e6eef7' : '#fdf1e3', color: item.peran === 'sopir' ? '#1d4f73' : '#8a4b0f', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.78rem', fontWeight: 700 }}>
+                      {item.name.split(/\s+/).slice(0, 2).map(k => k[0]).join('').toUpperCase()}
+                    </span>
+                    {item.name}
+                  </span>
+                </td>
                 <td style={{ padding: '16px' }}>
                   <span style={{ padding: '4px 10px', borderRadius: '6px', fontSize: '0.8rem', fontWeight: 'bold', background: item.peran === 'sopir' ? '#e6eef5' : '#fef3c7', color: item.peran === 'sopir' ? '#1d4f73' : '#b45309' }}>
                     {item.peran === 'sopir' ? 'SOPIR' : 'KRU'}
@@ -135,9 +147,7 @@ export default function Petugas() {
                 <td style={{ padding: '16px', color: '#4b5563' }}>{item.username || <span style={{ color: '#8a939d' }}>Tidak login</span>}</td>
                 <td style={{ padding: '16px' }}>{item.phone || <span style={{ color: '#8a939d' }}>–</span>}</td>
                 <td style={{ padding: '16px' }}>
-                  <span style={{ padding: '4px 10px', borderRadius: '6px', fontSize: '0.8rem', fontWeight: 'bold', background: item.status === 'aktif' ? '#e7f1eb' : '#fee2e2', color: item.status === 'aktif' ? '#1f6b47' : '#dc2626' }}>
-                    {item.status.toUpperCase()}
-                  </span>
+                  <Lencana nilai={item.status} />
                 </td>
                 <td style={{ padding: '16px', textAlign: 'center' }}>
                   <button onClick={() => handleOpenEdit(item)} style={{ background: '#f3f4f6', color: '#3b82f6', border: 'none', padding: '8px', borderRadius: '4px', cursor: 'pointer', marginRight: '8px' }}><Edit2 size={16} /></button>

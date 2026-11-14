@@ -2,10 +2,10 @@ import { useEffect, useMemo, useState } from 'react';
 import axios from 'axios';
 import { Plus, Edit2, Trash2, X, AlertTriangle, ChevronLeft, ChevronRight, Repeat, CalendarDays } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { Lencana } from '../../components/Ui';
 import { API_URL } from '../../config';
 
 const HARI = ['', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'];
-const STATUS_WARNA = { menunggu: ['#e7f1eb', '#1f6b47'], berjalan: ['#fef3c7', '#d97706'], selesai: ['#e7f1eb', '#1f6b47'], batal: ['#f3f4f6', '#5b6673'] };
 
 // Tanggal hari ini menurut WIB
 const hariIni = () => new Date(Date.now() + 7 * 3600 * 1000).toISOString().slice(0, 10);
@@ -116,7 +116,7 @@ export default function Jadwal() {
   const input = { width: '100%', padding: '10px', borderRadius: '4px', border: '1px solid #d1d5db', boxSizing: 'border-box', marginBottom: '14px', fontFamily: 'inherit' };
   const label = { display: 'block', marginBottom: '5px', fontWeight: 500, fontSize: '0.9rem' };
   const th = { padding: '14px 16px' };
-  const tabBtn = (aktif) => ({ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 18px', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 700, fontFamily: 'inherit', background: aktif ? '#1f2933' : 'white', color: aktif ? 'white' : '#4b5563', boxShadow: '0 1px 2px rgba(16,24,40,0.06)' });
+  const tabBtn = (aktif) => ({ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 18px', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 700, fontFamily: 'inherit', background: aktif ? 'white' : 'transparent', color: aktif ? '#17533a' : '#5b6673', boxShadow: aktif ? '0 1px 2px rgba(16,24,40,0.1)' : 'none' });
   const tombolHijau = { display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 18px', background: '#1f6b47', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold', fontFamily: 'inherit' };
 
   return (
@@ -127,7 +127,7 @@ export default function Jadwal() {
         Jadwal tambahan dibuat dari menu Laporan Masyarakat (tombol Jadwalkan) dan diperiksa bentroknya.
       </p>
 
-      <div style={{ display: 'flex', gap: '10px', marginBottom: '20px', flexWrap: 'wrap' }}>
+      <div style={{ display: 'inline-flex', gap: '4px', marginBottom: '20px', flexWrap: 'wrap', background: '#eef1ef', padding: '4px', borderRadius: '10px' }}>
         <button style={tabBtn(tab === 'harian')} onClick={() => setTab('harian')}><CalendarDays size={18} /> Jadwal Harian</button>
         <button style={tabBtn(tab === 'rutin')} onClick={() => setTab('rutin')}><Repeat size={18} /> Jadwal Rutin Mingguan</button>
       </div>
@@ -157,7 +157,6 @@ export default function Jadwal() {
                 {loading ? <tr><td colSpan="7" style={{ padding: '20px', textAlign: 'center' }}>Memuat data...</td></tr>
                   : jadwalTanggal.length === 0 ? <tr><td colSpan="7" style={{ padding: '24px', textAlign: 'center', color: '#5b6673' }}>Tidak ada jadwal pada tanggal ini</td></tr>
                   : jadwalTanggal.map(j => {
-                    const [bg, fg] = STATUS_WARNA[j.status] || STATUS_WARNA.menunggu;
                     return (
                       <tr key={j.id} style={{ borderTop: '1px solid #f3f4f6', verticalAlign: 'top', opacity: j.status === 'batal' ? 0.55 : 1 }}>
                         <td style={th}>
@@ -187,7 +186,7 @@ export default function Jadwal() {
                           <KondisiBadge label="Pulang" kondisi={j.kondisi_pulang} foto={j.foto_pulang} />
                         </td>
                         <td style={th}>
-                          <span style={{ padding: '4px 10px', borderRadius: '6px', fontSize: '0.8rem', fontWeight: 'bold', background: bg, color: fg }}>{j.status.toUpperCase()}</span>
+                          <Lencana nilai={j.status} />
                           {j.foto_kegiatan && (
                             <a href={`${API_URL}/uploads/${j.foto_kegiatan}`} target="_blank" rel="noopener noreferrer" style={{ display: 'block', marginTop: '6px', fontSize: '0.78rem', color: '#2563eb', fontWeight: 600, textDecoration: 'none' }}>Foto kegiatan</a>
                           )}
