@@ -5,20 +5,41 @@ import axios from 'axios';
 import { AlertCircle, CheckCircle2 } from 'lucide-react';
 import { API_URL } from '../config';
 import KepalaSitus from './KepalaSitus';
+import Lambang from './Lambang';
+import IlustrasiTruk from './IlustrasiTruk';
 
 
-/** Kerangka halaman akun: kepala situs + kotak di tengah */
-export function KotakAkun({ judul, keterangan, children, lebar = 400 }) {
+const MANFAAT = [
+  'Laporkan sampah menumpuk lengkap dengan foto dan lokasi',
+  'Pantau status laporan sampai sampah diangkut',
+  'Terima kabar penanganan lewat email',
+];
+
+/** Kerangka halaman akun: kepala situs + kartu dua kolom (keterangan layanan | formulir) */
+export function KotakAkun({ judul, keterangan, children, lebar = 420 }) {
   return (
     <div style={{ minHeight: '100vh', background: '#f3f4f6', display: 'flex', flexDirection: 'column' }}>
       <KepalaSitus />
       <main style={{ flex: 1, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', padding: '40px 16px' }}>
-        <div style={{ width: '100%', maxWidth: `${lebar}px`, background: 'white', border: '1px solid #d8dde3', borderRadius: '6px' }}>
-          <div style={{ padding: '18px 24px', borderBottom: '1px solid #eceff2' }}>
-            <h1 style={{ fontSize: '1.15rem' }}>{judul}</h1>
-            {keterangan && <p style={{ color: '#5b6673', fontSize: '0.86rem', marginTop: '2px' }}>{keterangan}</p>}
+        <div style={{ width: '100%', maxWidth: `${lebar + 380}px`, display: 'flex', flexWrap: 'wrap', background: 'white', border: '1px solid #e1e5e9', borderRadius: '14px', overflow: 'hidden', boxShadow: '0 6px 18px rgba(16,24,40,0.06)' }}>
+          <div style={{ flex: '1 1 300px', background: '#14472e', color: '#dcebe2', padding: '30px 28px', display: 'flex', flexDirection: 'column', gap: '18px' }}>
+            <Lambang ukuran={44} latar="#ffffff" warna="#17533a" />
+            <div>
+              <div style={{ color: 'white', fontSize: '1.2rem', fontWeight: 700, lineHeight: 1.3 }}>Layanan Laporan Sampah</div>
+              <div style={{ fontSize: '0.88rem', marginTop: '4px' }}>Dinas Lingkungan Hidup Kabupaten Sukabumi</div>
+            </div>
+            <ul style={{ listStyle: 'none', display: 'grid', gap: '10px', fontSize: '0.9rem' }}>
+              {MANFAAT.map(m => (
+                <li key={m} style={{ display: 'flex', gap: '8px' }}><CheckCircle2 size={17} color="#e9b949" style={{ flexShrink: 0, marginTop: '2px' }} /> {m}</li>
+              ))}
+            </ul>
+            <div style={{ marginTop: 'auto', opacity: 0.9 }}><IlustrasiTruk /></div>
           </div>
-          <div style={{ padding: '20px 24px 24px' }}>{children}</div>
+          <div style={{ flex: `1 1 ${lebar - 60}px`, padding: '28px 30px' }}>
+            <h1 style={{ fontSize: '1.35rem' }}>{judul}</h1>
+            {keterangan && <p style={{ color: '#5b6673', fontSize: '0.88rem', margin: '4px 0 18px' }}>{keterangan}</p>}
+            {children}
+          </div>
         </div>
       </main>
     </div>

@@ -250,7 +250,7 @@ export default function SopirJadwal() {
 
       {modal && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-          <div style={{ background: 'white', borderRadius: '6px', padding: '28px', width: '100%', maxWidth: '480px', margin: '16px', maxHeight: '92vh', overflowY: 'auto', boxShadow: '0 1px 2px rgba(16,24,40,0.06)' }}>
+          <div style={{ background: 'white', border: '1px solid #e1e5e9', borderRadius: '10px', padding: '28px', width: '100%', maxWidth: '480px', margin: '16px', maxHeight: '92vh', overflowY: 'auto', boxShadow: '0 1px 2px rgba(16,24,40,0.06)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
               <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: '700', color: '#1f2933', textTransform: 'capitalize' }}>Pemeriksaan {modal.jenis}</h3>
               <button onClick={() => setModal(null)} style={{ background: 'none', border: 'none', color: '#8a939d', cursor: 'pointer' }}><X size={20} /></button>
@@ -297,7 +297,7 @@ export default function SopirJadwal() {
 
       {modalSelesai && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-          <div style={{ background: 'white', borderRadius: '6px', padding: '28px', width: '100%', maxWidth: '480px', margin: '16px', maxHeight: '92vh', overflowY: 'auto' }}>
+          <div style={{ background: 'white', border: '1px solid #e1e5e9', borderRadius: '10px', padding: '28px', width: '100%', maxWidth: '480px', margin: '16px', maxHeight: '92vh', overflowY: 'auto' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
               <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: '700', color: '#1f2933' }}>Selesaikan Pengangkutan</h3>
               <button onClick={() => setModalSelesai(null)} style={{ background: 'none', border: 'none', color: '#8a939d', cursor: 'pointer' }}><X size={20} /></button>

@@ -173,7 +173,7 @@ export default function LaporanMasyarakat() {
   const filteredList = activeTab === 'semua' ? list : list.filter(l => l.status === activeTab);
 
   const overlay = { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 };
-  const kotak = { background: 'white', borderRadius: '6px', padding: '28px', width: '100%', margin: '16px', maxHeight: '92vh', overflowY: 'auto', boxShadow: '0 1px 2px rgba(16,24,40,0.06)' };
+  const kotak = { background: 'white', border: '1px solid #e1e5e9', borderRadius: '10px', padding: '28px', width: '100%', margin: '16px', maxHeight: '92vh', overflowY: 'auto', boxShadow: '0 1px 2px rgba(16,24,40,0.06)' };
   const lbl = { display: 'block', marginBottom: '6px', fontWeight: '600', color: '#374151', fontSize: '0.88rem' };
   const inp = { width: '100%', padding: '10px 12px', borderRadius: '6px', border: '1.5px solid #d8dde3', boxSizing: 'border-box', marginBottom: '14px', fontFamily: 'inherit', outline: 'none' };
   const tombolUtama = { width: '100%', padding: '12px', border: 'none', borderRadius: '6px', background: '#1f6b47', color: 'white', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' };
@@ -558,7 +558,7 @@ export default function LaporanMasyarakat() {
           display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000
         }}>
           <div style={{
-            background: 'white', borderRadius: '6px', padding: '36px', width: '100%', maxWidth: '440px',
+            background: 'white', border: '1px solid #e1e5e9', borderRadius: '10px', padding: '36px', width: '100%', maxWidth: '440px',
             boxShadow: '0 1px 2px rgba(16,24,40,0.06)'
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
@@ -745,7 +745,7 @@ export default function LaporanMasyarakat() {
           display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000
         }}>
           <div style={{
-            background: 'white', borderRadius: '6px', padding: '36px', width: '100%', maxWidth: '400px',
+            background: 'white', border: '1px solid #e1e5e9', borderRadius: '10px', padding: '36px', width: '100%', maxWidth: '400px',
             boxShadow: '0 1px 2px rgba(16,24,40,0.06)', textAlign: 'center'
           }}>
             <div style={{

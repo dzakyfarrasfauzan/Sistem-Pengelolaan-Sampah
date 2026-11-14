@@ -255,7 +255,7 @@ export default function Laporan() {
           display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000
         }}>
           <div style={{
-            background: 'white', borderRadius: '6px', padding: '36px', width: '100%', maxWidth: '460px',
+            background: 'white', border: '1px solid #e1e5e9', borderRadius: '10px', padding: '36px', width: '100%', maxWidth: '460px',
             boxShadow: '0 1px 2px rgba(16,24,40,0.06)', margin: '16px',
           }}>
             {/* Header Modal */}

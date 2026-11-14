@@ -98,139 +98,111 @@ table th {
    ============================================ */
 .panel {
   display: flex;
-  flex-direction: column;
   min-height: 100vh;
+  background: var(--latar);
 }
-.panel-atas {
-  height: 52px;
-  background: var(--hijau-tua);
-  color: #fff;
+.panel-samping {
+  width: 248px;
+  flex-shrink: 0;
+  background: #14472e;
+  color: #dcebe2;
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 20px;
+  flex-direction: column;
   position: sticky;
   top: 0;
-  z-index: 30;
+  height: 100vh;
 }
 .panel-merek {
   display: flex;
   align-items: center;
   gap: 10px;
-  min-width: 0;
+  padding: 18px 18px 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
-.panel-merek strong {
-  font-size: 0.95rem;
+.panel-merek strong { display: block; color: #fff; font-size: 0.92rem; font-weight: 600; line-height: 1.25; }
+.panel-merek span { display: block; font-size: 0.75rem; color: #a9c9b6; }
+.panel-tutup { display: none; margin-left: auto; background: none; border: none; color: #fff; cursor: pointer; }
+.panel-samping .judul-menu {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #8fb7a0;
+  padding: 18px 20px 8px;
+}
+.panel-menu { flex: 1; overflow-y: auto; padding: 0 10px; }
+.panel-menu a {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 10px 12px;
+  margin-bottom: 2px;
+  border-radius: 6px;
+  color: #d3e5da;
+  font-size: 0.92rem;
+}
+.panel-menu a:hover { background: rgba(255, 255, 255, 0.07); color: #fff; }
+.panel-menu a.active {
+  background: #ffffff;
+  color: #14472e;
   font-weight: 600;
-  white-space: nowrap;
-}
-.panel-merek span {
-  font-size: 0.82rem;
-  opacity: 0.8;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 .panel-akun {
   display: flex;
   align-items: center;
-  gap: 14px;
-  font-size: 0.85rem;
-}
-.panel-akun .nama {
-  text-align: right;
-  line-height: 1.25;
-}
-.panel-akun .nama small {
-  display: block;
-  opacity: 0.75;
-  font-size: 0.75rem;
-}
-.panel-keluar {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  background: transparent;
-  color: #fff;
-  border: 1px solid rgba(255, 255, 255, 0.45);
-  border-radius: 4px;
-  padding: 5px 10px;
-  cursor: pointer;
-  font-size: 0.82rem;
-}
-.panel-keluar:hover {
-  background: rgba(255, 255, 255, 0.12);
-}
-.panel-badan {
-  display: flex;
-  flex: 1;
-  min-height: 0;
-}
-.panel-menu {
-  width: 220px;
-  flex-shrink: 0;
-  background: var(--putih);
-  border-right: 1px solid var(--garis);
-  padding: 12px 0;
-}
-.panel-menu .judul-menu {
-  font-size: 0.72rem;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: var(--teks-redup);
-  padding: 6px 18px 8px;
-}
-.panel-menu a {
-  display: flex;
-  align-items: center;
   gap: 10px;
-  padding: 9px 18px;
-  color: #3a4550;
-  border-left: 3px solid transparent;
-  font-size: 0.92rem;
+  margin: 10px;
+  padding: 10px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.07);
 }
-.panel-menu a:hover {
-  background: #f5f7f6;
+.panel-akun .avatar {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: #e9b949; color: #3d2c00;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 0.85rem; flex-shrink: 0;
 }
-.panel-menu a.active {
-  background: var(--hijau-muda);
-  border-left-color: var(--hijau);
-  color: var(--hijau-tua);
-  font-weight: 600;
+.panel-akun .nama { flex: 1; min-width: 0; color: #fff; font-size: 0.86rem; line-height: 1.25; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.panel-akun .nama small { display: block; color: #a9c9b6; font-size: 0.74rem; }
+.panel-akun button {
+  background: none; border: 1px solid rgba(255, 255, 255, 0.25); color: #fff;
+  border-radius: 6px; width: 32px; height: 32px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
 }
-.panel-isi {
-  flex: 1;
-  min-width: 0;
-  overflow-y: auto;
-}
-/* Halaman di dalam panel memakai padding sendiri; disamakan agar rapi */
-.panel-isi > div {
-  padding: 24px 28px !important;
-}
+.panel-akun button:hover { background: rgba(255, 255, 255, 0.12); }
 
-@media (max-width: 768px) {
-  .panel-merek span,
-  .panel-akun .nama { display: none; }
-  .panel-badan { flex-direction: column; }
-  .panel-menu {
-    width: 100%;
-    display: flex;
-    overflow-x: auto;
-    padding: 0;
-    border-right: none;
-    border-bottom: 1px solid var(--garis);
-    position: sticky;
-    top: 52px;
-    z-index: 20;
+.panel-kanan { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.panel-atas {
+  height: 60px;
+  background: #fff;
+  border-bottom: 1px solid var(--garis);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 0 28px;
+  position: sticky;
+  top: 0;
+  z-index: 30;
+}
+.panel-buka { display: none; background: none; border: 1px solid var(--garis); border-radius: 6px; width: 36px; height: 36px; cursor: pointer; color: var(--teks); align-items: center; justify-content: center; }
+.panel-judul { flex: 1; min-width: 0; }
+.panel-judul .jejak { font-size: 0.86rem; color: var(--teks-redup); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.panel-judul .jejak span { margin: 0 4px; color: #b9c2cb; }
+.panel-judul .jejak strong { color: var(--teks); font-weight: 600; }
+.panel-judul .tanggal { display: block; font-size: 0.76rem; color: #8a939d; }
+.panel-isi { flex: 1; min-width: 0; }
+.panel-isi > div { padding: 26px 30px !important; }
+.panel-tirai { display: none; }
+
+@media (max-width: 900px) {
+  .panel-samping {
+    position: fixed; left: 0; top: 0; z-index: 60;
+    transform: translateX(-100%); transition: transform 0.2s ease;
   }
-  .panel-menu .judul-menu { display: none; }
-  .panel-menu a {
-    white-space: nowrap;
-    border-left: none;
-    border-bottom: 3px solid transparent;
-    padding: 10px 14px;
-  }
-  .panel-menu a.active { border-bottom-color: var(--hijau); }
+  .panel-samping.buka { transform: translateX(0); }
+  .panel-tutup { display: block; }
+  .panel-tirai { display: block; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.4); z-index: 55; }
+  .panel-buka { display: flex; }
+  .panel-atas { padding: 0 14px; }
   .panel-isi > div { padding: 16px !important; }
 }
 

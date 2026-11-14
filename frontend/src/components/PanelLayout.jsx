@@ -1,27 +1,32 @@
 import { useEffect, useState } from 'react';
-import { NavLink, Outlet, useNavigate } from 'react-router-dom';
+import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { LogOut } from 'lucide-react';
+import { LogOut, Menu as IkonMenu, X } from 'lucide-react';
 import { API_URL } from '../config';
 import NotifikasiLonceng from './NotifikasiLonceng';
+import Lambang from './Lambang';
 
 const NAMA_PERAN = { admin: 'Admin Korwil', sopir: 'Sopir', pengawas: 'Pengawas Bidang' };
+const inisial = (nama = '') => nama.split(/\s+/).filter(Boolean).slice(0, 2).map(k => k[0].toUpperCase()).join('') || '?';
+const tanggalHariIni = () => new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
 
 /**
- * Kerangka halaman untuk pengguna yang login (admin, sopir, pengawas):
- * bilah atas berisi nama instansi dan akun, menu di kiri, isi halaman di kanan.
- * Di layar HP menu berpindah ke atas dan dapat digeser.
+ * Kerangka halaman pengguna yang login (admin, sopir, pengawas):
+ * menu samping hijau tua, bilah atas berisi judul halaman, tanggal, notifikasi, dan akun.
+ * Di layar HP menu samping dibuka lewat tombol menu.
  */
 export default function PanelLayout({ judulMenu, menu }) {
   const navigate = useNavigate();
+  const lokasi = useLocation();
   const [akun, setAkun] = useState(null);
+  const [menuHp, setMenuHp] = useState(false);
 
   useEffect(() => {
     const muat = async () => {
       try {
         const res = await axios.get(`${API_URL}/me`, { withCredentials: true });
         if (res.data.success) setAkun(res.data.user);
-      } catch { /* sesi habis: halaman tetap tampil, API akan menolak */ }
+      } catch { /* sesi habis: API halaman akan menolak */ }
     };
     muat();
   }, []);
@@ -31,36 +36,51 @@ export default function PanelLayout({ judulMenu, menu }) {
     navigate('/login');
   };
 
+  const aktif = menu.find(m => lokasi.pathname.startsWith(m.to));
+
   return (
     <div className="panel">
-      <header className="panel-atas">
+      <aside className={`panel-samping${menuHp ? ' buka' : ''}`}>
         <div className="panel-merek">
-          <strong>DLH Kabupaten Sukabumi</strong>
-          <span>Sistem Pengelolaan Sampah</span>
+          <Lambang ukuran={38} latar="#ffffff" warna="#17533a" />
+          <div>
+            <strong>Sistem Pengelolaan Sampah</strong>
+            <span>DLH Kabupaten Sukabumi</span>
+          </div>
+          <button className="panel-tutup" onClick={() => setMenuHp(false)} aria-label="Tutup menu"><X size={20} /></button>
         </div>
-        <div className="panel-akun">
-          <NotifikasiLonceng />
-          {akun && (
+
+        <div className="judul-menu">{judulMenu}</div>
+        <nav className="panel-menu">
+          {menu.map(({ to, label, Icon }) => (
+            <NavLink key={to} to={to} onClick={() => setMenuHp(false)}>
+              <Icon size={18} strokeWidth={1.9} /> <span>{label}</span>
+            </NavLink>
+          ))}
+        </nav>
+
+        {akun && (
+          <div className="panel-akun">
+            <div className="avatar">{inisial(akun.name)}</div>
             <div className="nama">
               {akun.name}
               <small>{NAMA_PERAN[akun.role] || akun.role}</small>
             </div>
-          )}
-          <button className="panel-keluar" onClick={keluar} title="Keluar">
-            <LogOut size={15} /> Keluar
-          </button>
-        </div>
-      </header>
+            <button onClick={keluar} title="Keluar" aria-label="Keluar"><LogOut size={17} /></button>
+          </div>
+        )}
+      </aside>
+      {menuHp && <div className="panel-tirai" onClick={() => setMenuHp(false)} />}
 
-      <div className="panel-badan">
-        <nav className="panel-menu">
-          <div className="judul-menu">{judulMenu}</div>
-          {menu.map(({ to, label, Icon }) => (
-            <NavLink key={to} to={to}>
-              <Icon size={17} strokeWidth={1.8} /> {label}
-            </NavLink>
-          ))}
-        </nav>
+      <div className="panel-kanan">
+        <header className="panel-atas">
+          <button className="panel-buka" onClick={() => setMenuHp(true)} aria-label="Buka menu"><IkonMenu size={20} /></button>
+          <div className="panel-judul">
+            <div className="jejak">{judulMenu} <span>›</span> <strong>{aktif?.label || 'Dashboard'}</strong></div>
+            <span className="tanggal">{tanggalHariIni()}</span>
+          </div>
+          <NotifikasiLonceng />
+        </header>
         <main className="panel-isi">
           <Outlet />
         </main>

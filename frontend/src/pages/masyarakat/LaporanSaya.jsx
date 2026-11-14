@@ -15,6 +15,28 @@ const STATUS = {
 
 const tgl = (v) => v ? new Date(v.includes('T') || v.length <= 10 ? v : v.replace(' ', 'T') + 'Z').toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : '-';
 
+// Penanda tahapan: Masuk -> Diproses -> Selesai
+function Tahapan({ status }) {
+  const urutan = ['masuk', 'diproses', 'selesai'];
+  const posisi = urutan.indexOf(status);
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', margin: '4px 0 14px' }}>
+      {urutan.map((t, i) => {
+        const lewat = i <= posisi;
+        return (
+          <div key={t} style={{ display: 'flex', alignItems: 'center', flex: i < 2 ? 1 : '0 0 auto' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+              <span style={{ width: '22px', height: '22px', borderRadius: '50%', background: lewat ? '#1f6b47' : 'white', border: `2px solid ${lewat ? '#1f6b47' : '#c4cad1'}`, color: 'white', fontSize: '0.7rem', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{lewat ? '✓' : ''}</span>
+              <span style={{ fontSize: '0.74rem', color: lewat ? '#17533a' : '#8a939d', fontWeight: lewat ? 600 : 400 }}>{STATUS[t].label}</span>
+            </div>
+            {i < 2 && <div style={{ flex: 1, height: '3px', background: i < posisi ? '#1f6b47' : '#e1e5e9', margin: '0 6px 18px', borderRadius: '2px' }} />}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 // Penilaian bintang untuk laporan yang sudah selesai
 function Penilaian({ laporan, onTersimpan }) {
   const [nilai, setNilai] = useState(0);
@@ -78,7 +100,8 @@ export default function LaporanSaya() {
     } catch (err) { setGalat(err.response?.data?.message || 'Gagal menyimpan profil'); }
   };
 
-  const kotak = { background: 'white', border: '1px solid #d8dde3', borderRadius: '6px', padding: '18px 20px' };
+  const kotak = { background: 'white', border: '1px solid #e1e5e9', borderRadius: '12px', padding: '18px 20px' };
+  const hitung = (st) => laporan.filter(l => l.status === st).length;
 
   return (
     <div style={{ minHeight: '100vh', background: '#f3f4f6', display: 'flex', flexDirection: 'column' }}>
@@ -130,6 +153,17 @@ export default function LaporanSaya() {
           </section>
         )}
 
+        {!memuat && laporan.length > 0 && (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '10px', marginBottom: '18px' }}>
+            {[['Semua laporan', laporan.length, '#1f2933'], ['Masuk', hitung('masuk'), STATUS.masuk.warna], ['Diproses', hitung('diproses'), STATUS.diproses.warna], ['Selesai', hitung('selesai'), STATUS.selesai.warna]].map(([n, v, w]) => (
+              <div key={n} style={{ ...kotak, padding: '12px 16px' }}>
+                <div style={{ fontSize: '1.4rem', fontWeight: 700, color: w }}>{v}</div>
+                <div style={{ fontSize: '0.82rem', color: '#5b6673' }}>{n}</div>
+              </div>
+            ))}
+          </div>
+        )}
+
         {memuat ? <div style={{ ...kotak, color: '#5b6673' }}>Memuat laporan...</div>
           : laporan.length === 0 ? (
             <div style={{ ...kotak, color: '#5b6673', textAlign: 'center', padding: '32px' }}>
@@ -152,8 +186,9 @@ export default function LaporanSaya() {
                       </div>
                     </div>
 
+                    <Tahapan status={l.status} />
                     <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap' }}>
-                      {l.foto && <img src={`${API_URL}/uploads/${l.foto}`} alt="Foto laporan" style={{ width: '120px', height: '90px', objectFit: 'cover', borderRadius: '4px', border: '1px solid #d8dde3' }} />}
+                      {l.foto && <img src={`${API_URL}/uploads/${l.foto}`} alt="Foto laporan" style={{ width: '120px', height: '90px', objectFit: 'cover', borderRadius: '8px', border: '1px solid #d8dde3' }} />}
                       <div style={{ flex: 1, minWidth: '200px', fontSize: '0.9rem', lineHeight: 1.6 }}>
                         <div>{l.deskripsi}</div>
                         {(l.alamat_lokasi || l.patokan) && (
@@ -171,7 +206,7 @@ export default function LaporanSaya() {
 
                     {l.status === 'selesai' && (
                       <div style={{ borderTop: '1px solid #eceff2', marginTop: '12px', paddingTop: '12px', display: 'flex', gap: '14px', flexWrap: 'wrap' }}>
-                        {l.foto_tindak_lanjut && <img src={`${API_URL}/uploads/${l.foto_tindak_lanjut}`} alt="Foto hasil pengangkutan" style={{ width: '120px', height: '90px', objectFit: 'cover', borderRadius: '4px', border: '1px solid #d8dde3' }} />}
+                        {l.foto_tindak_lanjut && <img src={`${API_URL}/uploads/${l.foto_tindak_lanjut}`} alt="Foto hasil pengangkutan" style={{ width: '120px', height: '90px', objectFit: 'cover', borderRadius: '8px', border: '1px solid #d8dde3' }} />}
                         <div style={{ fontSize: '0.88rem', color: '#3a4550' }}>
                           <div style={{ fontWeight: 600 }}>Selesai {tgl(l.selesai_at)}</div>
                           {l.catatan_tindak_lanjut && <div>Catatan petugas: {l.catatan_tindak_lanjut}</div>}

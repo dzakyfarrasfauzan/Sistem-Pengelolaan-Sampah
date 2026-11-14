@@ -3,17 +3,14 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { FileText, AlertTriangle, Clock, CheckCircle, Star, Bell } from 'lucide-react';
 import { API_URL } from '../../config';
+import { KartuAngka } from '../../components/Ui';
+import { GrafikBatang } from '../../components/Grafik';
+import { WARNA_SERI, labelBulan } from '../../components/grafikUtil';
 import { formatUmur } from '../../utils/format';
 
-const Kartu = ({ judul, nilai, icon, fg, ket }) => (
-  <div style={{ background: 'white', padding: '16px 18px', borderRadius: '6px', border: '1px solid #d8dde3', borderTop: `3px solid ${fg}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
-    <div>
-      <div style={{ color: '#5b6673', fontSize: '0.85rem' }}>{judul}</div>
-      <div style={{ fontSize: '1.5rem', fontWeight: 600, color: '#1f2933' }}>{nilai}</div>
-      {ket && <div style={{ fontSize: '0.75rem', color: '#8a939d' }}>{ket}</div>}
-    </div>
-    <div style={{ color: fg, opacity: 0.85, display: 'flex' }}>{icon}</div>
-  </div>
+// Kartu angka memakai komponen bersama agar seragam dengan dashboard lain
+const Kartu = ({ judul, nilai, icon, fg, bg, ket }) => (
+  <KartuAngka judul={judul} nilai={nilai} ikon={icon} warna={fg} latar={bg} keterangan={ket} />
 );
 
 // Dashboard pengawas bidang: ringkasan penanganan laporan masyarakat di Korwil
@@ -55,7 +52,7 @@ export default function PengawasDashboard() {
         <Kartu judul="Kepuasan Pelapor" nilai={stats.rataRating ? `${stats.rataRating} / 5` : '-'} icon={<Star size={22} />} bg="#fef9c3" fg="#ca8a04" ket={`${stats.jumlahPenilaian || 0} penilaian`} />
       </div>
 
-      <div style={{ background: 'white', borderRadius: '6px', padding: '24px', boxShadow: '0 1px 2px rgba(16,24,40,0.06)', marginBottom: '24px' }}>
+      <div style={{ background: 'white', border: '1px solid #e1e5e9', borderRadius: '10px', padding: '24px', boxShadow: '0 1px 2px rgba(16,24,40,0.06)', marginBottom: '24px' }}>
         <h3 style={{ margin: '0 0 16px', color: '#1f2933', display: 'flex', alignItems: 'center', gap: '8px' }}>
           <Bell size={20} color="#dc2626" /> Peringatan: Laporan Belum Ditangani Lebih dari {batasHari} Hari
         </h3>
@@ -77,8 +74,15 @@ export default function PengawasDashboard() {
         ))}
       </div>
 
-      <div style={{ background: 'white', borderRadius: '6px', padding: '24px', boxShadow: '0 1px 2px rgba(16,24,40,0.06)' }}>
+      <div style={{ background: 'white', border: '1px solid #e1e5e9', borderRadius: '10px', padding: '24px', boxShadow: '0 1px 2px rgba(16,24,40,0.06)' }}>
         <h3 style={{ margin: '0 0 16px', color: '#1f2933' }}>Rekap Laporan per Bulan</h3>
+        {perBulan.length > 0 && (
+          <div style={{ marginBottom: '16px', maxWidth: '640px' }}>
+            <GrafikBatang
+              data={[...perBulan].reverse().map(b => ({ label: labelBulan(b.bulan), nilai: { masuk: b.jumlah, selesai: b.selesai } }))}
+              seri={[{ kunci: 'masuk', nama: 'Masuk', warna: WARNA_SERI.masuk }, { kunci: 'selesai', nama: 'Selesai', warna: WARNA_SERI.selesai }]} />
+          </div>
+        )}
         <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
           <thead>
             <tr style={{ background: '#f7f8f9', color: '#4b5563', fontSize: '0.9rem' }}>

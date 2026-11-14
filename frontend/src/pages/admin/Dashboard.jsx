@@ -1,29 +1,16 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
-import { 
-  BarChart3, 
-  Trash2, 
-  Truck, 
-  Users, 
-  AlertTriangle,
-  CheckCircle,
-  FileText,
-  MessageSquareWarning,
-  UserCog,
-  Wrench
-} from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Trash2, Truck, Users, AlertTriangle, CheckCircle2, Inbox, Wrench, CalendarDays, Route as IkonJalur, UserCog, BarChart3, MessageSquareWarning, Clock } from 'lucide-react';
 import { API_URL } from '../../config';
+import { Kartu, KartuAngka, Lencana, JudulHalaman } from '../../components/Ui';
+import { GrafikBatang, BilahStatus } from '../../components/Grafik';
+import { WARNA_SERI, labelBulan } from '../../components/grafikUtil';
 
-const StatCard = ({ title, value, icon, color }) => (
-  <div style={{ background: 'white', padding: '16px 18px', borderRadius: '6px', border: '1px solid #d8dde3', borderTop: `3px solid ${color}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
-    <div>
-      <div style={{ color: '#5b6673', fontSize: '0.85rem', marginBottom: '2px' }}>{title}</div>
-      <div style={{ fontSize: '1.5rem', fontWeight: '600', color: '#1f2933' }}>{value}</div>
-    </div>
-    <div style={{ color, opacity: 0.85, display: 'flex' }}>{icon}</div>
-  </div>
-);
+const sapaan = () => {
+  const jam = new Date().getHours();
+  return jam < 11 ? 'Selamat pagi' : jam < 15 ? 'Selamat siang' : jam < 18 ? 'Selamat sore' : 'Selamat malam';
+};
 
 export default function Dashboard() {
   const [data, setData] = useState(null);
@@ -31,94 +18,117 @@ export default function Dashboard() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchDashboard = async () => {
+    const muat = async () => {
       try {
         const res = await axios.get(`${API_URL}/admin/dashboard`, { withCredentials: true });
-        if (res.data.success) {
-          setData(res.data);
-        }
+        if (res.data.success) setData(res.data);
       } catch (err) {
         if (err.response?.status === 401) navigate('/login');
-      } finally {
-        setLoading(false);
-      }
+      } finally { setLoading(false); }
     };
-    fetchDashboard();
+    muat();
   }, [navigate]);
-
 
   if (loading) return <div style={{ padding: '40px', color: '#5b6673' }}>Memuat data dashboard...</div>;
 
-  const { stats, laporanTerbaru } = data || {};
+  const { stats = {}, laporanTerbaru = [], jadwalTerbaru = [], perBulan = [], statusJadwalHariIni = [] } = data || {};
+  const jumlahStatus = (s) => statusJadwalHariIni.find(x => x.status === s)?.jumlah || 0;
 
   return (
-    <div style={{ padding: '40px' }}>
-      <h2 style={{ margin: '0 0 30px', color: '#1f2933', fontSize: '1.4rem' }}>Ringkasan Sistem</h2>
-      
-      {/* Top 4 Stats */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '24px', marginBottom: '24px' }}>
-        <StatCard title="Total TPS" value={stats?.totalTps || 0} icon={<Trash2 size={24} />} color="#3b82f6" />
-        <StatCard title="Total Kendaraan" value={stats?.totalKendaraan || 0} icon={<Truck size={24} />} color="#f59e0b" />
-        <StatCard title="Sopir" value={stats?.totalSopir || 0} icon={<UserCog size={24} />} color="#1f6b47" />
-        <StatCard title="Kru" value={stats?.totalKru || 0} icon={<Users size={24} />} color="#1f6b47" />
-        <StatCard title="Jadwal Hari Ini" value={stats?.jadwalHariIni || 0} icon={<BarChart3 size={24} />} color="#5b6673" />
-      </div>
+    <div>
+      <JudulHalaman judul={`${sapaan()}, Admin`} keterangan="Ringkasan pelayanan pengangkutan sampah Korwil Jampangkulon hari ini." />
 
-      {/* Laporan Stats */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '24px', marginBottom: '40px' }}>
-        <StatCard title="Laporan Masuk" value={stats?.laporanMasuk || 0} icon={<FileText size={24} />} color="#1f6b47" />
-        <StatCard title="Laporan Pending" value={stats?.laporanBelumDitangani || 0} icon={<AlertTriangle size={24} />} color="#ef4444" />
-        <StatCard title="Laporan Selesai" value={stats?.laporanSelesai || 0} icon={<CheckCircle size={24} />} color="#1f6b47" />
-        <StatCard title="Kendaraan Perlu Perbaikan" value={stats?.kendaraanPerluPerbaikan || 0} icon={<Wrench size={24} />} color="#f97316" />
-      </div>
-
-      {stats?.teguranPengawas > 0 && (
-        <div style={{ background: '#fef2f2', border: '1px solid #fecaca', color: '#991b1b', padding: '16px 20px', borderRadius: '6px', marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '10px', fontWeight: '600' }}>
-          <AlertTriangle size={20} /> Ada {stats.teguranPengawas} teguran dari Bidang untuk laporan masyarakat yang belum selesai. Lihat di menu Laporan Publik.
+      {stats.teguranPengawas > 0 && (
+        <div style={{ background: '#fbe9e9', border: '1px solid #f0c7c7', color: '#9b1c1c', padding: '12px 16px', borderRadius: '10px', marginBottom: '18px', display: 'flex', alignItems: 'center', gap: '10px', fontWeight: 600, fontSize: '0.92rem' }}>
+          <AlertTriangle size={18} /> Ada {stats.teguranPengawas} teguran dari Bidang untuk laporan yang belum selesai.
+          <Link to="/admin/laporan-masyarakat" style={{ marginLeft: 'auto', textDecoration: 'underline' }}>Lihat laporan</Link>
         </div>
       )}
 
-      {/* Recent Reports Table */}
-      <div style={{ background: 'white', borderRadius: '6px', padding: '24px', boxShadow: '0 1px 2px rgba(16,24,40,0.06)' }}>
-        <h3 style={{ margin: '0 0 20px', color: '#1f2933', fontSize: '1.2rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <MessageSquareWarning size={20} color="#f59e0b" /> Laporan Terbaru
-        </h3>
-        {laporanTerbaru && laporanTerbaru.length > 0 ? (
-          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-            <thead>
-              <tr style={{ borderBottom: '2px solid #f3f4f6', color: '#5b6673', fontSize: '0.9rem' }}>
-                <th style={{ padding: '12px 0' }}>Kode</th>
-                <th style={{ padding: '12px 0' }}>Pelapor</th>
-                <th style={{ padding: '12px 0' }}>Prioritas</th>
-                <th style={{ padding: '12px 0' }}>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {laporanTerbaru.map((lap) => (
-                <tr key={lap.id} style={{ borderBottom: '1px solid #f3f4f6' }}>
-                  <td style={{ padding: '16px 0', fontWeight: '500', color: '#1f2933' }}>{lap.kode_laporan}</td>
-                  <td style={{ padding: '16px 0', color: '#4b5563' }}>{lap.nama_pelapor}</td>
-                  <td style={{ padding: '16px 0' }}>
-                    <span style={{ padding: '4px 8px', borderRadius: '4px', fontSize: '0.8rem', fontWeight: 'bold', background: lap.prioritas === 'tinggi' ? '#fee2e2' : lap.prioritas ? '#fef3c7' : '#f3f4f6', color: lap.prioritas === 'tinggi' ? '#dc2626' : lap.prioritas ? '#d97706' : '#5b6673' }}>
-                      {(lap.prioritas || 'belum ditentukan').toUpperCase()}
-                    </span>
-                  </td>
-                  <td style={{ padding: '16px 0' }}>
-                    <span style={{ padding: '4px 8px', borderRadius: '4px', fontSize: '0.8rem', background: lap.status === 'selesai' ? '#e7f1eb' : '#e7f1eb', color: lap.status === 'selesai' ? '#1f6b47' : '#1f6b47' }}>
-                      {lap.status}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        ) : (
-          <div style={{ textAlign: 'center', color: '#8a939d', padding: '20px' }}>Belum ada laporan terbaru.</div>
-        )}
+      {/* Angka utama */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: '14px', marginBottom: '18px' }}>
+        <KartuAngka judul="Laporan perlu ditangani" nilai={stats.laporanBelumDitangani || 0} keterangan={`${stats.laporanMasuk || 0} belum dijadwalkan`}
+          ikon={<Inbox size={22} />} warna="#8a4b0f" latar="#fdf1e3" ke="/admin/laporan-masyarakat" />
+        <KartuAngka judul="Jadwal hari ini" nilai={stats.jadwalHariIni || 0} keterangan={`${jumlahStatus('selesai')} selesai, ${jumlahStatus('berjalan')} berjalan`}
+          ikon={<CalendarDays size={22} />} warna="#1d4f73" latar="#e6eef7" ke="/admin/jadwal" />
+        <KartuAngka judul="Laporan selesai" nilai={stats.laporanSelesai || 0} keterangan="sejak sistem dipakai"
+          ikon={<CheckCircle2 size={22} />} />
+        <KartuAngka judul="Armada perlu perbaikan" nilai={stats.kendaraanPerluPerbaikan || 0} keterangan={`dari ${stats.totalKendaraan || 0} armada`}
+          ikon={<Wrench size={22} />} warna="#9b1c1c" latar="#fbe9e9" ke="/admin/kendaraan" />
+      </div>
+
+      {/* Grafik dan jadwal hari ini */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: '14px', marginBottom: '18px' }}>
+        <Kartu judul="Laporan masyarakat 6 bulan terakhir" ikon={<BarChart3 size={18} />}>
+          <GrafikBatang
+            data={perBulan.map(b => ({ label: labelBulan(b.bulan), nilai: { masuk: b.masuk, selesai: b.selesai } }))}
+            seri={[{ kunci: 'masuk', nama: 'Masuk', warna: WARNA_SERI.masuk }, { kunci: 'selesai', nama: 'Selesai', warna: WARNA_SERI.selesai }]} />
+        </Kartu>
+
+        <Kartu judul="Pengangkutan hari ini" ikon={<Truck size={18} />} aksi="Semua jadwal" keAksi="/admin/jadwal">
+          <BilahStatus bagian={[
+            { nama: 'Selesai', nilai: jumlahStatus('selesai'), warna: '#2f8a5b' },
+            { nama: 'Berjalan', nilai: jumlahStatus('berjalan'), warna: '#3b6ea8' },
+            { nama: 'Menunggu', nilai: jumlahStatus('menunggu'), warna: '#c4cad1' },
+          ]} />
+          <div style={{ marginTop: '12px', maxHeight: '196px', overflowY: 'auto' }}>
+            {jadwalTerbaru.length === 0 && <div style={{ color: '#8a939d', fontSize: '0.88rem', padding: '12px 0' }}>Tidak ada jadwal hari ini.</div>}
+            {jadwalTerbaru.map(j => (
+              <div key={j.id} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 0', borderTop: '1px solid #f1f3f5', fontSize: '0.86rem' }}>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', color: '#5b6673', width: '58px', flexShrink: 0 }}><Clock size={13} /> {j.jam}</span>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{j.lokasi_tampil}</div>
+                  <div style={{ color: '#8a939d', fontSize: '0.78rem' }}>{j.nomor_polisi} · {j.sopir_name}</div>
+                </div>
+                <Lencana nilai={j.status} />
+              </div>
+            ))}
+          </div>
+        </Kartu>
+      </div>
+
+      {/* Laporan terbaru dan data operasional */}
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '14px', alignItems: 'flex-start' }}>
+        <Kartu judul="Laporan terbaru" ikon={<MessageSquareWarning size={18} />} aksi="Semua laporan" keAksi="/admin/laporan-masyarakat" gaya={{ flex: '2 1 480px', minWidth: 0 }}>
+          {laporanTerbaru.length === 0 ? <div style={{ color: '#8a939d', fontSize: '0.88rem' }}>Belum ada laporan.</div> : (
+            <div style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.88rem', minWidth: '480px' }}>
+                <thead>
+                  <tr style={{ textAlign: 'left', color: '#5b6673', fontSize: '0.8rem' }}>
+                    <th style={{ padding: '6px 8px 8px 0' }}>Kode</th><th style={{ padding: '6px 8px 8px' }}>Pelapor</th>
+                    <th style={{ padding: '6px 8px 8px' }}>Lokasi</th><th style={{ padding: '6px 8px 8px' }}>Prioritas</th><th style={{ padding: '6px 0 8px 8px' }}>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {laporanTerbaru.map(l => (
+                    <tr key={l.id} style={{ borderTop: '1px solid #f1f3f5' }}>
+                      <td style={{ padding: '10px 8px 10px 0', fontWeight: 600, whiteSpace: 'nowrap' }}>{l.kode_laporan}</td>
+                      <td style={{ padding: '10px 8px' }}>{l.nama_pelapor}</td>
+                      <td style={{ padding: '10px 8px', color: '#5b6673', maxWidth: '220px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{l.alamat_lokasi || '-'}</td>
+                      <td style={{ padding: '10px 8px' }}><Lencana nilai={l.prioritas} kosong="Belum" /></td>
+                      <td style={{ padding: '10px 0 10px 8px' }}><Lencana nilai={l.status} /></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </Kartu>
+
+        <Kartu judul="Data operasional" ikon={<Users size={18} />} gaya={{ flex: '1 1 260px' }}>
+          {[
+            ['Jalur layanan aktif', stats.totalJalur, IkonJalur, '/admin/jalur'],
+            ['TPS', stats.totalTps, Trash2, '/admin/tps'],
+            ['Armada', stats.totalKendaraan, Truck, '/admin/kendaraan'],
+            ['Sopir aktif', stats.totalSopir, UserCog, '/admin/petugas'],
+            ['Kru aktif', stats.totalKru, Users, '/admin/petugas'],
+          ].map(([nama, nilai, Ikon, ke]) => (
+            <Link key={nama} to={ke} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '9px 0', borderTop: '1px solid #f1f3f5', fontSize: '0.9rem', color: '#1f2933' }}>
+              <Ikon size={17} color="#5b6673" /> <span style={{ flex: 1 }}>{nama}</span> <strong>{nilai || 0}</strong>
+            </Link>
+          ))}
+        </Kartu>
       </div>
     </div>
   );
 }
-
-// Ensure MessageSquareWarning is imported from lucide-react above.
-

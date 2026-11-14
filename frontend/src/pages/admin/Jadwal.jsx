@@ -145,7 +145,7 @@ export default function Jadwal() {
             <Link to="/admin/laporan-masyarakat" style={{ ...tombolHijau, textDecoration: 'none' }}><Plus size={18} /> Jadwal Tambahan dari Laporan</Link>
           </div>
 
-          <div style={{ background: 'white', borderRadius: '6px', boxShadow: '0 1px 2px rgba(16,24,40,0.06)', overflowX: 'auto' }}>
+          <div style={{ background: 'white', border: '1px solid #e1e5e9', borderRadius: '10px', boxShadow: '0 1px 2px rgba(16,24,40,0.06)', overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: '960px' }}>
               <thead>
                 <tr style={{ background: '#f7f8f9', color: '#4b5563', fontSize: '0.9rem' }}>
@@ -213,12 +213,12 @@ export default function Jadwal() {
             <button onClick={bukaRutinBaru} style={tombolHijau}><Plus size={18} /> Tambah Jadwal Rutin</button>
           </div>
           {rutinPerHari.length === 0 && (
-            <div style={{ background: 'white', padding: '32px', borderRadius: '6px', textAlign: 'center', color: '#5b6673' }}>
+            <div style={{ background: 'white', padding: '32px', border: '1px solid #e1e5e9', borderRadius: '10px', textAlign: 'center', color: '#5b6673' }}>
               Belum ada jadwal rutin. Tambahkan jalur layanan terlebih dahulu, lalu isi jadwal rutin per hari.
             </div>
           )}
           {rutinPerHari.map(({ hari, list }) => (
-            <div key={hari} style={{ background: 'white', borderRadius: '6px', boxShadow: '0 1px 2px rgba(16,24,40,0.06)', marginBottom: '16px', overflowX: 'auto' }}>
+            <div key={hari} style={{ background: 'white', border: '1px solid #e1e5e9', borderRadius: '10px', boxShadow: '0 1px 2px rgba(16,24,40,0.06)', marginBottom: '16px', overflowX: 'auto' }}>
               <div style={{ padding: '14px 16px', fontWeight: '700', color: '#1f2933', borderBottom: '1px solid #f3f4f6' }}>{HARI[hari]} <span style={{ fontWeight: 500, color: '#5b6673', fontSize: '0.85rem' }}>• {list.length} armada</span></div>
               <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: '860px' }}>
                 <tbody>
@@ -249,7 +249,7 @@ export default function Jadwal() {
       {/* ---------- Form ---------- */}
       {form && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 50 }}>
-          <div style={{ background: 'white', padding: '28px', borderRadius: '6px', width: '100%', maxWidth: '540px', margin: '16px', maxHeight: '92vh', overflowY: 'auto' }}>
+          <div style={{ background: 'white', padding: '28px', border: '1px solid #e1e5e9', borderRadius: '10px', width: '100%', maxWidth: '540px', margin: '16px', maxHeight: '92vh', overflowY: 'auto' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px' }}>
               <h2 style={{ margin: 0, fontSize: '1.2rem' }}>
                 {form.mode === 'rutin' ? (form.id ? 'Ubah Jadwal Rutin' : 'Tambah Jadwal Rutin')
@@ -362,7 +362,7 @@ export default function Jadwal() {
       {/* ---------- Peringatan bentrok ---------- */}
       {bentrok && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-          <div style={{ background: 'white', padding: '28px', borderRadius: '6px', width: '100%', maxWidth: '480px', margin: '16px' }}>
+          <div style={{ background: 'white', padding: '28px', border: '1px solid #e1e5e9', borderRadius: '10px', width: '100%', maxWidth: '480px', margin: '16px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
               <div style={{ width: '44px', height: '44px', borderRadius: '50%', background: '#fef3c7', color: '#d97706', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><AlertTriangle size={24} /></div>
               <h3 style={{ margin: 0, fontSize: '1.1rem' }}>Jadwal Bentrok</h3>
@@ -382,7 +382,7 @@ export default function Jadwal() {
       {/* ---------- Hapus / batal ---------- */}
       {hapus && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-          <div style={{ background: 'white', padding: '28px', borderRadius: '6px', width: '100%', maxWidth: '380px', margin: '16px', textAlign: 'center' }}>
+          <div style={{ background: 'white', padding: '28px', border: '1px solid #e1e5e9', borderRadius: '10px', width: '100%', maxWidth: '380px', margin: '16px', textAlign: 'center' }}>
             <div style={{ width: '56px', height: '56px', borderRadius: '50%', background: '#fee2e2', color: '#dc2626', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 14px' }}><AlertTriangle size={28} /></div>
             <h3 style={{ margin: '0 0 8px', fontSize: '1.1rem' }}>
               {hapus.jenis === 'rutin' ? 'Hapus Jadwal Rutin?' : hapus.item.jenis === 'rutin' ? 'Batalkan Jadwal Hari Ini?' : 'Hapus Jadwal Tambahan?'}

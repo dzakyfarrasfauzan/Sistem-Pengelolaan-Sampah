@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { API_URL } from '../config';
+import Lambang from './Lambang';
 
 const tautan = ({ isActive }) => ({
   padding: '6px 2px',
@@ -42,7 +43,7 @@ export default function KepalaSitus() {
       </div>
       <div style={{ maxWidth: '1080px', margin: '0 auto', padding: '12px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap' }}>
         <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <div style={{ width: '38px', height: '38px', borderRadius: '4px', background: '#1f6b47', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '0.85rem' }}>DLH</div>
+          <Lambang ukuran={40} />
           <div style={{ lineHeight: 1.25 }}>
             <div style={{ fontWeight: 600, color: '#1f2933' }}>Dinas Lingkungan Hidup</div>
             <div style={{ fontSize: '0.82rem', color: '#5b6673' }}>Kabupaten Sukabumi</div>

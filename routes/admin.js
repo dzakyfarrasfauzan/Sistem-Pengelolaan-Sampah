@@ -30,8 +30,21 @@ router.get('/dashboard', (req, res) => {
         };
         const jadwalTerbaru = db.prepare(`${SELECT_JADWAL} WHERE j.tanggal = ? AND j.status != 'batal' ORDER BY j.jam ASC`).all(today);
         const laporanTerbaru = db.prepare(`SELECT * FROM laporan_masyarakat ORDER BY created_at DESC LIMIT 5`).all();
+        // Laporan masuk dan selesai per bulan, 6 bulan terakhir (bulan tanpa laporan tetap ditampilkan 0)
+        const rekap = db.prepare(`SELECT strftime('%Y-%m', created_at) AS bulan, COUNT(*) AS masuk,
+                                  SUM(CASE WHEN status = 'selesai' THEN 1 ELSE 0 END) AS selesai
+                                  FROM laporan_masyarakat GROUP BY bulan`).all();
+        const perBulan = [];
+        const d = new Date(`${today}T00:00:00Z`);
+        for (let i = 5; i >= 0; i--) {
+            const t = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() - i, 1));
+            const bulan = t.toISOString().slice(0, 7);
+            const r = rekap.find(x => x.bulan === bulan) || {};
+            perBulan.push({ bulan, masuk: r.masuk || 0, selesai: r.selesai || 0 });
+        }
+        const statusJadwalHariIni = db.prepare(`SELECT status, COUNT(*) AS jumlah FROM jadwal_pengangkutan WHERE tanggal = ? AND status != 'batal' GROUP BY status`).all(today);
 
-        res.json({ success: true, stats, jadwalTerbaru, laporanTerbaru });
+        res.json({ success: true, stats, jadwalTerbaru, laporanTerbaru, perBulan, statusJadwalHariIni });
     } catch (err) {
         res.status(500).json({ success: false, message: err.message });
     }

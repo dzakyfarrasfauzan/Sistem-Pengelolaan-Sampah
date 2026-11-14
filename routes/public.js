@@ -110,6 +110,21 @@ router.post('/laporan', (req, res, next) => {
     });
 });
 
+// GET /api/public/statistik - angka ringkas untuk beranda
+router.get('/statistik', (req, res) => {
+    try {
+        const satu = (sql) => db.prepare(sql).get().c;
+        res.json({ success: true, data: {
+            totalLaporan: satu('SELECT COUNT(*) AS c FROM laporan_masyarakat'),
+            laporanSelesai: satu("SELECT COUNT(*) AS c FROM laporan_masyarakat WHERE status = 'selesai'"),
+            jumlahTps: satu("SELECT COUNT(*) AS c FROM tps WHERE status = 'aktif'"),
+            jumlahArmada: satu('SELECT COUNT(*) AS c FROM kendaraan'),
+            jumlahJalur: satu("SELECT COUNT(*) AS c FROM jalur_layanan WHERE status = 'aktif'"),
+            rataRating: db.prepare('SELECT ROUND(AVG(rating), 1) AS c FROM laporan_masyarakat WHERE rating IS NOT NULL').get().c,
+        } });
+    } catch (err) { res.status(500).json({ success: false, message: err.message }); }
+});
+
 // POST /api/public/cek-status
 router.post('/cek-status', (req, res) => {
     try {

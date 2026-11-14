@@ -65,7 +65,7 @@ export default function JalurLayanan() {
       </div>
       <p style={{ color: '#5b6673', margin: '0 0 24px' }}>Rute pengangkutan yang dilalui satu armada dalam sehari, beserta titik, desa, dan TPS yang dilayani.</p>
 
-      <div style={{ background: 'white', borderRadius: '6px', boxShadow: '0 1px 2px rgba(16,24,40,0.06)', overflowX: 'auto' }}>
+      <div style={{ background: 'white', border: '1px solid #e1e5e9', borderRadius: '10px', boxShadow: '0 1px 2px rgba(16,24,40,0.06)', overflowX: 'auto' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: '820px' }}>
           <thead>
             <tr style={{ background: '#f7f8f9', color: '#4b5563', fontSize: '0.9rem' }}>
@@ -105,7 +105,7 @@ export default function JalurLayanan() {
 
       {form && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 50 }}>
-          <div style={{ background: 'white', padding: '28px', borderRadius: '6px', width: '100%', maxWidth: '560px', margin: '16px', maxHeight: '90vh', overflowY: 'auto' }}>
+          <div style={{ background: 'white', padding: '28px', border: '1px solid #e1e5e9', borderRadius: '10px', width: '100%', maxWidth: '560px', margin: '16px', maxHeight: '90vh', overflowY: 'auto' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px' }}>
               <h2 style={{ margin: 0, fontSize: '1.2rem' }}>{form.id ? 'Edit Jalur Layanan' : 'Tambah Jalur Layanan'}</h2>
               <button onClick={() => setForm(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#5b6673' }}><X size={20} /></button>

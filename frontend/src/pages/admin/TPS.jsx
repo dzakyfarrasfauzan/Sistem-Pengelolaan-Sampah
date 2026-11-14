@@ -105,7 +105,7 @@ export default function TPS() {
         </div>
       )}
 
-      <div style={{ background: 'white', borderRadius: '6px', boxShadow: '0 1px 2px rgba(16,24,40,0.06)', overflow: 'hidden' }}>
+      <div style={{ background: 'white', border: '1px solid #e1e5e9', borderRadius: '10px', boxShadow: '0 1px 2px rgba(16,24,40,0.06)', overflow: 'hidden' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
           <thead>
             <tr style={{ background: '#f7f8f9', color: '#4b5563', fontSize: '0.9rem' }}>
@@ -142,7 +142,7 @@ export default function TPS() {
       {/* Modal Form */}
       {showModal && (
         <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 50 }}>
-          <div style={{ background: 'white', padding: '30px', borderRadius: '6px', width: '100%', maxWidth: '400px', boxShadow: '0 1px 2px rgba(16,24,40,0.06)' }}>
+          <div style={{ background: 'white', padding: '30px', border: '1px solid #e1e5e9', borderRadius: '10px', width: '100%', maxWidth: '400px', boxShadow: '0 1px 2px rgba(16,24,40,0.06)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
               <h2 style={{ margin: 0, fontSize: '1.2rem' }}>{isEdit ? 'Edit TPS' : 'Tambah TPS Baru'}</h2>
               <button onClick={() => setShowModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#5b6673' }}><X size={20} /></button>
@@ -174,7 +174,7 @@ export default function TPS() {
       {/* Delete Confirmation Modal */}
       {tpsToDelete && (
         <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-          <div style={{ background: 'white', padding: '30px', borderRadius: '6px', width: '100%', maxWidth: '360px', boxShadow: '0 1px 2px rgba(16,24,40,0.06)', textAlign: 'center' }}>
+          <div style={{ background: 'white', padding: '30px', border: '1px solid #e1e5e9', borderRadius: '10px', width: '100%', maxWidth: '360px', boxShadow: '0 1px 2px rgba(16,24,40,0.06)', textAlign: 'center' }}>
             <div style={{ width: '56px', height: '56px', borderRadius: '50%', background: '#fee2e2', color: '#dc2626', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
               <AlertTriangle size={28} />
             </div>

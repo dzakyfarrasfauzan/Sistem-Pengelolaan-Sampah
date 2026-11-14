@@ -42,7 +42,7 @@ export default function PemeriksaanKendaraan() {
       </div>
       <p style={{ color: '#5b6673', margin: '0 0 24px' }}>Hasil pemeriksaan kendaraan oleh sopir sebelum berangkat dan sesudah pulang dari TPA. Kondisi kendaraan pada menu Kendaraan diperbarui otomatis dari pemeriksaan terakhir.</p>
 
-      <div style={{ background: 'white', borderRadius: '6px', boxShadow: '0 1px 2px rgba(16,24,40,0.06)', overflowX: 'auto' }}>
+      <div style={{ background: 'white', border: '1px solid #e1e5e9', borderRadius: '10px', boxShadow: '0 1px 2px rgba(16,24,40,0.06)', overflowX: 'auto' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
           <thead>
             <tr style={{ background: '#f7f8f9', color: '#4b5563', fontSize: '0.9rem' }}>

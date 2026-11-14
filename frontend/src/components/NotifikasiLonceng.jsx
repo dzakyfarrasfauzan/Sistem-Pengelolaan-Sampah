@@ -149,17 +149,17 @@ export default function NotifikasiLonceng() {
     <>
       <div ref={panelRef} style={{ position: 'relative' }}>
         <button onClick={() => setBuka(!buka)} aria-label="Pemberitahuan" title="Pemberitahuan"
-          style={{ position: 'relative', width: '34px', height: '34px', borderRadius: '4px', border: '1px solid rgba(255,255,255,0.45)', background: buka ? 'rgba(255,255,255,0.15)' : 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white' }}>
+          style={{ position: 'relative', width: '38px', height: '38px', borderRadius: '50%', border: '1px solid #d8dde3', background: buka ? '#f1f3f5' : 'white', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#3a4550' }}>
           <Bell size={17} />
           {belumDibaca > 0 && (
-            <span style={{ position: 'absolute', top: '-4px', right: '-4px', minWidth: '20px', height: '20px', padding: '0 5px', borderRadius: '6px', background: '#ef4444', color: 'white', fontSize: '0.7rem', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid #17533a', boxSizing: 'border-box' }}>
+            <span style={{ position: 'absolute', top: '-4px', right: '-4px', minWidth: '20px', height: '20px', padding: '0 5px', borderRadius: '6px', background: '#ef4444', color: 'white', fontSize: '0.7rem', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid white', boxSizing: 'border-box' }}>
               {belumDibaca > 99 ? '99+' : belumDibaca}
             </span>
           )}
         </button>
 
         {buka && (
-          <div style={{ position: 'absolute', right: 0, top: '42px', width: '380px', maxWidth: 'calc(100vw - 32px)', background: 'white', borderRadius: '6px', boxShadow: '0 1px 2px rgba(16,24,40,0.06)', border: '1px solid #d8dde3', zIndex: 2000, overflow: 'hidden' }}>
+          <div style={{ position: 'absolute', right: 0, top: '46px', width: '380px', maxWidth: 'calc(100vw - 32px)', background: 'white', borderRadius: '6px', boxShadow: '0 1px 2px rgba(16,24,40,0.06)', border: '1px solid #d8dde3', zIndex: 2000, overflow: 'hidden' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 16px', borderBottom: '1px solid #f3f4f6' }}>
               <div style={{ fontWeight: 700, color: '#1f2933' }}>Pemberitahuan</div>
               <div style={{ display: 'flex', gap: '6px' }}>
@@ -197,7 +197,7 @@ export default function NotifikasiLonceng() {
       </div>
 
       {/* Pop up pemberitahuan baru */}
-      <div style={{ position: 'fixed', top: '62px', right: '16px', zIndex: 3000, display: 'flex', flexDirection: 'column', gap: '10px', width: '340px', maxWidth: 'calc(100vw - 40px)' }}>
+      <div style={{ position: 'fixed', top: '70px', right: '16px', zIndex: 3000, display: 'flex', flexDirection: 'column', gap: '10px', width: '340px', maxWidth: 'calc(100vw - 40px)' }}>
         {popup.map(n => (
           <div key={n.kunci} role="alert" onClick={() => bukaNotifikasi(n)}
             style={{ background: 'white', borderRadius: '6px', boxShadow: '0 1px 2px rgba(16,24,40,0.06)', borderLeft: `4px solid ${WARNA_JENIS[n.jenis] || '#2563eb'}`, padding: '14px 16px', cursor: 'pointer', display: 'flex', gap: '10px' }}>
