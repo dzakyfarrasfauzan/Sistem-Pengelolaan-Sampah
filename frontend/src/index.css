@@ -233,7 +233,12 @@ table th {
 .sel-angka:hover { background: #f8fbf9; }
 .baris-tugas { transition: border-color 0.12s, background 0.12s; }
 .baris-tugas:hover { border-color: #cfe2d6 !important; background: #fbfdfc; }
+.pita-sel { transition: background 0.12s; }
+.pita-sel:hover { background: rgba(255, 255, 255, 0.18) !important; }
+.kartu-armada { transition: box-shadow 0.12s, transform 0.12s; }
+.kartu-armada:hover { box-shadow: 0 4px 14px rgba(16, 24, 40, 0.08); transform: translateY(-1px); }
 @media (max-width: 1000px) {
+  .pita-angka { grid-template-columns: repeat(2, 1fr) !important; }
   .beranda-grid { grid-template-columns: 1fr; }
   .strip-angka { grid-template-columns: repeat(2, 1fr) !important; }
   .strip-angka > * > div { border-left: none !important; border-bottom: 1px solid #eef0f2; }
