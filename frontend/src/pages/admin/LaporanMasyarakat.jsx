@@ -210,7 +210,7 @@ export default function LaporanMasyarakat() {
       <div style={{ display: 'flex', gap: '10px', marginBottom: '14px', flexWrap: 'wrap' }}>
         <KotakCari nilai={cari} onUbah={setCari} petunjuk="Cari kode, pelapor, lokasi..." />
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: selectedReport ? '1.2fr 0.8fr' : '1fr', gap: '20px', alignItems: 'start' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '20px', alignItems: 'start' }}>
         {/* Table List */}
         <div style={{ background: 'white', borderRadius: '10px', border: '1px solid #e1e5e9', boxShadow: '0 1px 2px rgba(16,24,40,0.06)', overflow: 'hidden' }}>
 
@@ -362,9 +362,10 @@ export default function LaporanMasyarakat() {
 
         {/* Detail Panel */}
         {selectedReport && (
-          <div style={{ 
-            background: 'white', borderRadius: '6px', border: '1px solid #f3f4f6', 
-            boxShadow: '0 1px 2px rgba(16,24,40,0.06)', padding: '30px', position: 'sticky', top: '90px'
+          <div onClick={() => setSelectedReport(null)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '20px' }}>
+          <div onClick={e => e.stopPropagation()} style={{
+            background: 'white', borderRadius: '12px', width: '100%', maxWidth: '640px', maxHeight: '90vh', overflowY: 'auto',
+            boxShadow: '0 20px 50px rgba(16,24,40,0.25)', padding: '28px'
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
               <span style={{ fontWeight: '700', color: '#1f2933', fontSize: '1.1rem' }}>Detail Laporan</span>
@@ -548,7 +549,7 @@ export default function LaporanMasyarakat() {
             {selectedReport.status !== 'selesai' && !selectedReport.jadwal_id && (
               <div style={{ marginTop: '30px', borderTop: '1px solid #f3f4f6', paddingTop: '20px' }}>
                 <button
-                  onClick={() => bukaJadwalkan(selectedReport)}
+                  onClick={() => { const l = selectedReport; setSelectedReport(null); bukaJadwalkan(l); }}
                   style={{
                     width: '100%', padding: '12px', background: '#1f6b47', color: 'white',
                     border: 'none', borderRadius: '6px', fontSize: '0.9rem', fontWeight: '700', cursor: 'pointer',
@@ -559,6 +560,7 @@ export default function LaporanMasyarakat() {
                 </button>
               </div>
             )}
+          </div>
           </div>
         )}
       </div>
