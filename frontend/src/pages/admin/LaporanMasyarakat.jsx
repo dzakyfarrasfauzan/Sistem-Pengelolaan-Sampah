@@ -27,7 +27,7 @@ export default function LaporanMasyarakat() {
   const [petugasList, setPetugasList] = useState([]);
   const [kruList, setKruList] = useState([]);
   const [kendaraanList, setKendaraanList] = useState([]);
-  const [catat, setCatat] = useState(null);         // form catat laporan dari telepon/WhatsApp/surat
+  const [catat, setCatat] = useState(null);         // form catat laporan dari telepon/WhatsApp
   const [catatFoto, setCatatFoto] = useState(null);
   const [jadwalkan, setJadwalkan] = useState(null); // form jadwalkan laporan
   const [bentrok, setBentrok] = useState(null);
@@ -66,7 +66,7 @@ export default function LaporanMasyarakat() {
     }
   };
 
-  // ---------- catat laporan dari telepon / WhatsApp / surat ----------
+  // ---------- catat laporan dari telepon / WhatsApp ----------
   const kirimCatat = async (e) => {
     e.preventDefault();
     setUpdating(true);
@@ -197,7 +197,7 @@ export default function LaporanMasyarakat() {
           display: 'flex', alignItems: 'center', gap: '8px', padding: '11px 18px', border: 'none', borderRadius: '6px',
           background: '#1f6b47', color: 'white', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit'
         }}>
-          <Plus size={18} /> Catat Laporan (Telepon/WA/Surat)
+          <Plus size={18} /> Catat Laporan (Telepon/WA)
         </button>
       </div>
 
@@ -620,7 +620,7 @@ export default function LaporanMasyarakat() {
         </div>
       )}
 
-      {/* Catat laporan dari telepon / WhatsApp / surat */}
+      {/* Catat laporan dari telepon / WhatsApp */}
       {catat && (
         <div style={overlay}>
           <div style={{ ...kotak, maxWidth: '520px' }}>
@@ -628,7 +628,7 @@ export default function LaporanMasyarakat() {
               <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: '700', color: '#1f2933' }}>Catat Laporan Masyarakat</h3>
               <button onClick={() => setCatat(null)} style={{ background: 'none', border: 'none', color: '#8a939d', cursor: 'pointer' }}><X size={20} /></button>
             </div>
-            <p style={{ margin: '0 0 18px', fontSize: '0.84rem', color: '#5b6673' }}>Untuk laporan atau permohonan pelayanan yang masuk lewat telepon, WhatsApp, surat, atau pelapor yang datang langsung.</p>
+            <p style={{ margin: '0 0 18px', fontSize: '0.84rem', color: '#5b6673' }}>Untuk laporan atau permohonan pelayanan yang masuk lewat telepon atau WhatsApp.</p>
             <form onSubmit={kirimCatat}>
               <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
                 <div style={{ flex: 2, minWidth: '200px' }}>
@@ -640,8 +640,6 @@ export default function LaporanMasyarakat() {
                   <select value={catat.sumber} onChange={e => setCatat({ ...catat, sumber: e.target.value })} style={inp}>
                     <option value="telepon">Telepon</option>
                     <option value="whatsapp">WhatsApp</option>
-                    <option value="surat">Surat</option>
-                    <option value="datang langsung">Datang langsung</option>
                   </select>
                 </div>
               </div>

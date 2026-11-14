@@ -1,14 +1,14 @@
 // ============================================
 // Laporan masyarakat: kode laporan dan sinkronisasi dengan jadwal tambahan
-// Laporan dikirim masyarakat lewat website atau dicatat admin dari telepon,
-// WhatsApp, surat, atau pelapor yang datang langsung. Admin menjadwalkan laporan
+// Laporan dikirim masyarakat lewat website atau dicatat admin dari telepon
+// dan WhatsApp (sesuai keterangan admin Korwil). Admin menjadwalkan laporan
 // sebagai jadwal tambahan; statusnya mengikuti jadwal tersebut.
 // ============================================
 const db = require('../database/db');
 const notifikasi = require('./notifikasi');
 const email = require('./email');
 
-const SUMBER = ['website', 'telepon', 'whatsapp', 'surat', 'datang langsung'];
+const SUMBER = ['website', 'telepon', 'whatsapp'];
 
 // Kode laporan mudah dibaca: LP-TanggalWIB-NomorUrutHarian, contoh LP-20261103-001
 function buatKodeLaporan() {

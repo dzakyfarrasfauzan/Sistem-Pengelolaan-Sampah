@@ -532,7 +532,7 @@ router.get('/laporan-masyarakat', (req, res) => {
     }
 });
 
-// Admin mencatat laporan yang masuk lewat telepon, WhatsApp, surat, atau pelapor yang datang langsung
+// Admin mencatat laporan yang masuk lewat telepon atau WhatsApp
 router.post('/laporan-masyarakat', (req, res) => {
     upload.single('foto')(req, res, (errUpload) => {
         if (errUpload) return res.status(400).json({ success: false, message: errUpload.message || 'Gagal mengunggah foto' });
@@ -543,7 +543,7 @@ router.post('/laporan-masyarakat', (req, res) => {
                 if (!(b[k] || '').trim()) return res.status(400).json({ success: false, message: `${nama} wajib diisi` });
             }
             if (!L.SUMBER.includes(b.sumber) || b.sumber === 'website') {
-                return res.status(400).json({ success: false, message: 'Pilih sumber laporan: telepon, WhatsApp, surat, atau datang langsung' });
+                return res.status(400).json({ success: false, message: 'Pilih sumber laporan: telepon atau WhatsApp' });
             }
             const kode = L.buatKodeLaporan();
             db.prepare(`INSERT INTO laporan_masyarakat (kode_laporan, nama_pelapor, nomor_telepon, deskripsi, foto, alamat_lokasi, patokan, sumber, dicatat_oleh, prioritas, status)
