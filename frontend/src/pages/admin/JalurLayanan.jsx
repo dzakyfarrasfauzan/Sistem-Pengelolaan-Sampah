@@ -70,7 +70,6 @@ export default function JalurLayanan() {
         { label: 'Total jalur', nilai: list.length },
         { label: 'Aktif', nilai: list.filter(j => j.status === 'aktif').length, warna: '#2f8a5b' },
         { label: 'Jadwal rutin / minggu', nilai: list.reduce((a, j) => a + (j.jumlah_rutin || 0), 0), warna: '#3b6ea8' },
-        { label: 'Belum ada TPS', nilai: list.filter(j => !j.tps_names).length, warna: '#c98a1a' },
       ]} />
       <div style={{ display: 'flex', gap: '10px', marginBottom: '12px', flexWrap: 'wrap' }}>
         <KotakCari nilai={cari} onUbah={setCari} petunjuk="Cari jalur, desa, atau kecamatan..." />
