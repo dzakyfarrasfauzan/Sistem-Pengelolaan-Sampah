@@ -30,10 +30,15 @@ function reverseGeocode(lat, lon) {
     });
 }
 
-const { buatKodeLaporan } = require('../utils/laporan');
+const { buatKodeLaporan, kabariPelapor } = require('../utils/laporan');
 
 // POST /api/public/laporan
+// Laporan lewat website wajib masuk dengan akun masyarakat; nama dan nomor WhatsApp diambil dari akun
 router.post('/laporan', (req, res, next) => {
+    if (!req.session.masyarakat) return res.status(401).json({ success: false, message: 'Silakan masuk atau daftar terlebih dahulu untuk membuat laporan' });
+    const akun = db.prepare('SELECT * FROM masyarakat WHERE id = ?').get(req.session.masyarakat.id);
+    if (!akun) return res.status(401).json({ success: false, message: 'Silakan masuk kembali' });
+    if (!akun.no_wa) return res.status(400).json({ success: false, message: 'Lengkapi nomor WhatsApp di profil akun terlebih dahulu' });
     upload.single('foto')(req, res, async function (err) {
         if (err) {
             console.error('Upload error:', err.message);
@@ -41,7 +46,10 @@ router.post('/laporan', (req, res, next) => {
         }
 
         try {
-            const { nama_pelapor, nomor_telepon, deskripsi, latitude, longitude, alamat_lokasi, patokan } = req.body;
+            const { deskripsi, latitude, longitude, alamat_lokasi, patokan } = req.body;
+            const nama_pelapor = akun.nama;
+            const nomor_telepon = akun.no_wa;
+            if (!(deskripsi || '').trim()) return res.status(400).json({ success: false, message: 'Deskripsi kondisi wajib diisi' });
 
             // Foto kondisi sampah wajib dilampirkan
             if (!req.file) {
@@ -68,11 +76,12 @@ router.post('/laporan', (req, res, next) => {
                 }
             }
 
-            db.prepare(`
-                INSERT INTO laporan_masyarakat (kode_laporan, nama_pelapor, nomor_telepon, deskripsi, foto, latitude, longitude, alamat_lokasi, patokan, prioritas, status)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'masuk')
+            const simpan = db.prepare(`
+                INSERT INTO laporan_masyarakat (kode_laporan, masyarakat_id, nama_pelapor, nomor_telepon, deskripsi, foto, latitude, longitude, alamat_lokasi, patokan, prioritas, status)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'masuk')
             `).run(
                 kodeLaporan,
+                akun.id,
                 nama_pelapor,
                 nomor_telepon,
                 deskripsi,
@@ -92,6 +101,7 @@ router.post('/laporan', (req, res, next) => {
             notifikasi.kirim({ peran: 'admin' }, { ...isiNotif, tautan: '/admin/laporan-masyarakat' });
             notifikasi.kirim({ peran: 'pengawas' }, { ...isiNotif, pesan: `${kodeLaporan} masuk ke admin Korwil${finalAlamat ? ` (${finalAlamat})` : ''}.`, tautan: '/pengawas/laporan' });
 
+            kabariPelapor(simpan.lastInsertRowid, 'diterima');
             res.json({ success: true, kodeLaporan: kodeLaporan, message: 'Laporan berhasil dikirim' });
         } catch (error) {
             console.error('Laporan submit error:', error.message);
@@ -141,8 +151,11 @@ router.post('/penilaian', (req, res) => {
             return res.status(400).json({ success: false, message: 'Pilih penilaian bintang 1 sampai 5' });
         }
         // Nomor telepon dipakai untuk memastikan yang menilai adalah pelapor itu sendiri
-        const laporan = db.prepare('SELECT id, status, rating FROM laporan_masyarakat WHERE kode_laporan = ? AND nomor_telepon = ?')
-            .get((kode_laporan || '').trim().toUpperCase(), (nomor_telepon || '').trim());
+        // Pemilik akun cukup masuk; tanpa akun, nomor telepon harus sesuai laporan
+        const kodeCari = (kode_laporan || '').trim().toUpperCase();
+        const laporan = req.session.masyarakat
+            ? db.prepare('SELECT id, status, rating FROM laporan_masyarakat WHERE kode_laporan = ? AND (masyarakat_id = ? OR nomor_telepon = ?)').get(kodeCari, req.session.masyarakat.id, (nomor_telepon || '').trim())
+            : db.prepare('SELECT id, status, rating FROM laporan_masyarakat WHERE kode_laporan = ? AND nomor_telepon = ?').get(kodeCari, (nomor_telepon || '').trim());
         if (!laporan) return res.status(404).json({ success: false, message: 'Laporan tidak ditemukan atau nomor telepon tidak sesuai' });
         if (laporan.status !== 'selesai') return res.status(400).json({ success: false, message: 'Laporan belum selesai ditangani' });
         if (laporan.rating) return res.status(400).json({ success: false, message: 'Laporan ini sudah dinilai' });

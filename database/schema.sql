@@ -23,6 +23,32 @@ CREATE TABLE IF NOT EXISTS users (
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Akun masyarakat (pelapor). Terpisah dari akun petugas.
+-- Daftar dengan email + password (diverifikasi kode OTP) atau dengan akun Google.
+CREATE TABLE IF NOT EXISTS masyarakat (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    nama TEXT NOT NULL,
+    email TEXT UNIQUE NOT NULL,
+    password TEXT,                  -- NULL bila hanya masuk dengan Google
+    no_wa TEXT,
+    google_id TEXT UNIQUE,
+    email_terverifikasi INTEGER DEFAULT 0,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Kode OTP yang dikirim ke email (verifikasi pendaftaran / atur ulang password)
+CREATE TABLE IF NOT EXISTS otp_email (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    email TEXT NOT NULL,
+    tujuan TEXT NOT NULL CHECK(tujuan IN ('verifikasi','reset')),
+    kode_hash TEXT NOT NULL,
+    kedaluwarsa DATETIME NOT NULL,
+    percobaan INTEGER DEFAULT 0,
+    dipakai INTEGER DEFAULT 0,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Tabel TPS (Tempat Pembuangan Sementara)
 CREATE TABLE IF NOT EXISTS tps (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -131,6 +157,7 @@ CREATE TABLE IF NOT EXISTS laporan_masyarakat (
     latitude REAL,
     longitude REAL,
     alamat_lokasi TEXT,
+    masyarakat_id INTEGER REFERENCES masyarakat(id), -- akun pelapor (laporan lewat website)
     sumber TEXT DEFAULT 'website' CHECK(sumber IN ('website','telepon','whatsapp','surat','datang langsung')),
     dicatat_oleh INTEGER REFERENCES users(id), -- admin yang mencatat laporan dari telepon/WhatsApp/surat
     prioritas TEXT CHECK(prioritas IN ('tinggi','sedang','rendah')), -- NULL = belum ditentukan admin

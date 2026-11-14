@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -88,9 +88,8 @@ function MapRecenter({ center }) {
 
 
 export default function Laporan() {
+  const [akun, setAkun] = useState(undefined); // akun masyarakat yang sedang masuk
   const [formData, setFormData] = useState({
-    nama_pelapor: '',
-    nomor_telepon: '',
     deskripsi: '',
     alamat_lokasi: '',
     patokan: '',
@@ -112,6 +111,19 @@ export default function Laporan() {
   const canvasRef = useRef(null);
   const watchIdRef = useRef(null);
 
+
+  // Membuat laporan wajib masuk dengan akun masyarakat
+  useEffect(() => {
+    const cek = async () => {
+      try {
+        const r = await axios.get(`${API_URL}/masyarakat/saya`, { withCredentials: true });
+        if (!r.data.akun) { navigate('/masuk?lanjut=/laporan', { replace: true }); return; }
+        if (!r.data.akun.no_wa) { navigate('/laporan-saya?lengkapi=1', { replace: true }); return; }
+        setAkun(r.data.akun);
+      } catch { navigate('/masuk?lanjut=/laporan', { replace: true }); }
+    };
+    cek();
+  }, [navigate]);
 
   useEffect(() => {
     if (cameraActive && streamRef.current && videoRef.current) {
@@ -287,13 +299,18 @@ export default function Laporan() {
     form.append('foto', foto);
     try {
       const res = await axios.post(`${API_URL}/api/public/laporan`, form, {
-        headers: { 'Content-Type': 'multipart/form-data' }
+        headers: { 'Content-Type': 'multipart/form-data' }, withCredentials: true,
       });
       setStatus({ loading: false, success: true, kode: res.data?.kodeLaporan || `LP-${Date.now()}`, error: '' });
     } catch (err) {
       setStatus({ loading: false, success: false, kode: '', error: err.response?.data?.message || 'Gagal mengirim laporan. Coba lagi.' });
     }
   };
+
+  // Menunggu pemeriksaan akun
+  if (!akun) {
+    return <div style={{ minHeight: '100vh', background: '#f3f4f6', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#5b6673' }}>Memeriksa akun...</div>;
+  }
 
   // SUCCESS STATE
   if (status.success) {
@@ -319,13 +336,13 @@ export default function Laporan() {
           <div style={{ background: '#f7f8f9', padding: '24px', borderRadius: '6px', marginBottom: '32px' }}>
             <div style={{ fontSize: '0.85rem', color: '#5b6673', marginBottom: '8px' }}>Kode Tiket Laporan</div>
             <div style={{ fontSize: '1.4rem', fontWeight: '700', color: '#1f6b47', letterSpacing: '2px' }}>{status.kode}</div>
-            <div style={{ fontSize: '0.8rem', color: '#8a939d', marginTop: '8px' }}>Simpan kode ini untuk mengecek status laporan Anda.</div>
+            <div style={{ fontSize: '0.8rem', color: '#8a939d', marginTop: '8px' }}>Kabar penanganan laporan dikirim ke email {akun?.email}.</div>
           </div>
-          <button onClick={() => navigate('/cek-status', { state: { kode: status.kode } })} style={{
+          <button onClick={() => navigate('/laporan-saya')} style={{
             width: '100%', padding: '16px', background: '#1f6b47',
             color: 'white', border: 'none', borderRadius: '6px', fontSize: '1rem',
             fontWeight: '700', cursor: 'pointer', fontFamily: 'inherit', marginBottom: '10px',
-          }}>Cek Status Laporan</button>
+          }}>Lihat di Laporan Saya</button>
           <button onClick={() => navigate('/')} style={{
             width: '100%', padding: '14px', background: 'white', color: '#17533a',
             border: '1.5px solid #b9d8c6', borderRadius: '6px', fontSize: '1rem',
@@ -404,19 +421,10 @@ export default function Laporan() {
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '18px', fontSize: '0.98rem', fontWeight: '600', color: '#1f2933', borderBottom: '1px solid #eceff2', paddingBottom: '8px' }}>
                 <User size={16} color="#1f6b47" /> Identitas Pelapor
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '18px' }}>
-                <div>
-                  <label style={labelStyle}>Nama Lengkap</label>
-                  <input placeholder="Cth: Budi Santoso" required value={formData.nama_pelapor}
-                    onChange={e => setFormData({...formData, nama_pelapor: e.target.value})}
-                    style={inputStyle} {...focusHandlers} />
-                </div>
-                <div>
-                  <label style={labelStyle}>Nomor WhatsApp</label>
-                  <input placeholder="Cth: 0812..." type="tel" required value={formData.nomor_telepon}
-                    onChange={e => setFormData({...formData, nomor_telepon: e.target.value})}
-                    style={inputStyle} {...focusHandlers} />
-                </div>
+              <div style={{ background: '#f7f8f9', border: '1px solid #e4e7eb', borderRadius: '4px', padding: '10px 12px', fontSize: '0.9rem', lineHeight: 1.6 }}>
+                <div><strong>{akun?.nama}</strong></div>
+                <div style={{ color: '#5b6673' }}>WhatsApp {akun?.no_wa} · {akun?.email}</div>
+                <div style={{ color: '#8a939d', fontSize: '0.8rem' }}>Data diambil dari akun Anda. Ubah di menu <Link to="/laporan-saya" style={{ color: '#1f6b47' }}>Laporan Saya</Link>.</div>
               </div>
             </div>
 

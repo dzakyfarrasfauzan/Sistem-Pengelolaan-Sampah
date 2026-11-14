@@ -6,6 +6,7 @@
 // ============================================
 const db = require('../database/db');
 const notifikasi = require('./notifikasi');
+const email = require('./email');
 
 const SUMBER = ['website', 'telepon', 'whatsapp', 'surat', 'datang langsung'];
 
@@ -37,9 +38,29 @@ function selesaikanDariJadwal(jadwal, { foto, catatan, namaSopir }) {
                 WHERE id = ? AND status != 'selesai'`).run(jadwal.sopir_id, catatan || null, foto || null, jadwal.laporan_id);
     const l = db.prepare('SELECT kode_laporan FROM laporan_masyarakat WHERE id = ?').get(jadwal.laporan_id);
     if (!l) return;
+    kabariPelapor(jadwal.laporan_id, 'selesai');
     const isi = { jenis: 'laporan_selesai', judul: 'Laporan masyarakat selesai ditangani', pesan: `${l.kode_laporan} sudah ditangani oleh ${namaSopir || 'sopir'}.` };
     notifikasi.kirim({ peran: 'admin' }, { ...isi, pesan: isi.pesan + ' Kabari pelapor lewat WhatsApp.', tautan: '/admin/laporan-masyarakat' });
     notifikasi.kirim({ peran: 'pengawas' }, { ...isi, tautan: '/pengawas/laporan' });
 }
 
-module.exports = { SUMBER, buatKodeLaporan, jadwalAktif, kembalikanKeMasuk, selesaikanDariJadwal };
+// Email ke pelapor yang punya akun: laporan diterima, dijadwalkan, dan selesai
+const NAMA_HARI = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+function tanggalIndo(tgl) {
+    const d = new Date(`${tgl}T00:00:00Z`);
+    return `${NAMA_HARI[d.getUTCDay()]}, ${d.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' })}`;
+}
+function kabariPelapor(laporanId, jenis, info = {}) {
+    const l = db.prepare(`SELECT lm.kode_laporan, lm.alamat_lokasi, lm.deskripsi, m.email, m.nama
+                          FROM laporan_masyarakat lm JOIN masyarakat m ON m.id = lm.masyarakat_id WHERE lm.id = ?`).get(laporanId);
+    if (!l) return;
+    const lokasi = l.alamat_lokasi ? `<p style="color:#5b6673">Lokasi: ${l.alamat_lokasi}</p>` : '';
+    const isi = {
+        diterima: [`Laporan ${l.kode_laporan} diterima`, `<p>Halo ${l.nama}, laporan Anda sudah kami terima dan akan ditinjau admin Koordinator Wilayah.</p>${lokasi}<p>Status laporan dapat dipantau di menu <b>Laporan Saya</b>.</p>`],
+        dijadwalkan: [`Laporan ${l.kode_laporan} dijadwalkan`, `<p>Halo ${l.nama}, pengangkutan sampah untuk laporan Anda dijadwalkan pada <b>${info.tanggal ? tanggalIndo(info.tanggal) : '-'}</b>${info.jam ? ` pukul <b>${info.jam}</b>` : ''}.</p>${lokasi}`],
+        selesai: [`Laporan ${l.kode_laporan} selesai ditangani`, `<p>Halo ${l.nama}, sampah pada laporan Anda sudah diangkut petugas.</p>${lokasi}<p>Foto hasil pengangkutan dapat dilihat di menu <b>Laporan Saya</b>. Mohon beri penilaian atas pelayanan kami.</p>`],
+    }[jenis];
+    if (isi) email.kirim(l.email, isi[0], isi[1]);
+}
+
+module.exports = { SUMBER, buatKodeLaporan, jadwalAktif, kembalikanKeMasuk, selesaikanDariJadwal, kabariPelapor };

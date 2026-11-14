@@ -3,6 +3,11 @@ import Home from './pages/Home'
 import Login from './pages/Login'
 import Laporan from './pages/Laporan'
 import CekStatus from './pages/CekStatus'
+import MasukMasyarakat from './pages/masyarakat/Masuk'
+import DaftarMasyarakat from './pages/masyarakat/Daftar'
+import VerifikasiEmail from './pages/masyarakat/Verifikasi'
+import LupaPassword from './pages/masyarakat/LupaPassword'
+import LaporanSaya from './pages/masyarakat/LaporanSaya'
 import AdminLayout from './components/AdminLayout'
 import AdminDashboard from './pages/admin/Dashboard'
 import AdminTPS from './pages/admin/TPS'
@@ -28,6 +33,11 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/laporan" element={<Laporan />} />
+        <Route path="/masuk" element={<MasukMasyarakat />} />
+        <Route path="/daftar" element={<DaftarMasyarakat />} />
+        <Route path="/verifikasi" element={<VerifikasiEmail />} />
+        <Route path="/lupa-password" element={<LupaPassword />} />
+        <Route path="/laporan-saya" element={<LaporanSaya />} />
         <Route path="/cek-status" element={<CekStatus />} />
         
         {/* Admin routes with Layout */}

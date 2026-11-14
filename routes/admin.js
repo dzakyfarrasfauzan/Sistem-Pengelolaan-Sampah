@@ -589,6 +589,7 @@ router.post('/laporan-masyarakat/:id/jadwalkan', (req, res) => {
             jenis: 'jadwal_baru', judul: `Jadwal tambahan dari laporan ${laporan.kode_laporan} (prioritas ${prio})`,
             pesan: `${teksJadwal(infoJadwal(jadwalId))}. Periksa armada sebelum berangkat.`, tautan: '/sopir/jadwal',
         });
+        L.kabariPelapor(laporan.id, 'dijadwalkan', { tanggal: b.tanggal, jam: b.jam });
         res.json({ success: true, message: `Laporan ${laporan.kode_laporan} dijadwalkan pada ${b.tanggal} pukul ${b.jam}.` });
     } catch (err) { res.status(500).json({ success: false, message: err.message }); }
 });

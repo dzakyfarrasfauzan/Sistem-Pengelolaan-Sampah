@@ -3,10 +3,10 @@ import { Phone, Mail, MapPin } from 'lucide-react';
 import KepalaSitus from '../components/KepalaSitus';
 
 const LANGKAH = [
-  ['Buka formulir laporan', 'Pilih menu Lapor Sampah. Tidak perlu membuat akun.'],
-  ['Isi data dan ambil foto', 'Tuliskan nama, nomor WhatsApp, dan keterangan, lalu foto tumpukan sampah langsung dari kamera.'],
+  ['Masuk atau daftar akun', 'Daftar dengan email (diverifikasi kode yang dikirim ke email) atau masuk dengan akun Google.'],
+  ['Isi laporan dan ambil foto', 'Buka menu Lapor Sampah, tuliskan keterangan, lalu foto tumpukan sampah langsung dari kamera.'],
   ['Tentukan lokasi', 'Lokasi terisi dari GPS ponsel. Geser penanda di peta bila kurang tepat dan tambahkan patokan.'],
-  ['Simpan kode laporan', 'Setelah terkirim Anda mendapat kode laporan untuk memantau status dan memberi penilaian.'],
+  ['Pantau di Laporan Saya', 'Status laporan dapat dilihat di menu Laporan Saya, dan kabar penanganannya dikirim ke email Anda.'],
 ];
 
 const STATUS = [

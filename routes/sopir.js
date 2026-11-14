@@ -209,6 +209,7 @@ router.put('/laporan/:id', uploadFoto, (req, res) => {
             const isi = { jenis: 'laporan_selesai', judul: 'Laporan masyarakat selesai ditangani', pesan: `${l.kode_laporan} sudah ditangani oleh ${req.session.user.name}.` };
             notifikasi.kirim({ peran: 'admin' }, { ...isi, pesan: isi.pesan + ' Kabari pelapor lewat WhatsApp.', tautan: '/admin/laporan-masyarakat' });
             notifikasi.kirim({ peran: 'pengawas' }, { ...isi, tautan: '/pengawas/laporan' });
+            L.kabariPelapor(laporan.id, 'selesai');
         }
         res.json({ success: true, message: 'Status laporan berhasil diperbarui' });
     } catch (err) { res.status(500).json({ success: false, message: err.message }); }

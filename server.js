@@ -6,6 +6,9 @@
 const express = require('express');
 const http = require('http');
 const path = require('path');
+
+// Konfigurasi rahasia (email pengirim, Google Client ID) dibaca dari file .env bila ada
+try { process.loadEnvFile(path.join(__dirname, '.env')); } catch { /* .env opsional */ }
 const session = require('express-session');
 
 // Initialize database (triggers schema + seed)
@@ -51,6 +54,9 @@ app.use('/api/public', require('./routes/public'));
 
 // Authentication routes
 app.use('/', require('./routes/auth'));
+
+// Akun masyarakat (daftar, OTP email, masuk, Google, laporan saya)
+app.use('/masyarakat', require('./routes/masyarakat'));
 
 // Admin routes
 app.use('/admin', require('./routes/admin'));
