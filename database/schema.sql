@@ -159,7 +159,7 @@ CREATE TABLE IF NOT EXISTS laporan_masyarakat (
     longitude REAL,
     alamat_lokasi TEXT,
     masyarakat_id INTEGER REFERENCES masyarakat(id), -- akun pelapor (laporan lewat website)
-    sumber TEXT DEFAULT 'website' CHECK(sumber IN ('website','telepon','whatsapp','surat','datang langsung')),
+    sumber TEXT DEFAULT 'website' CHECK(sumber IN ('website','telepon','whatsapp')),
     dicatat_oleh INTEGER REFERENCES users(id), -- admin yang mencatat laporan dari telepon/WhatsApp
     prioritas TEXT CHECK(prioritas IN ('tinggi','sedang','rendah')), -- NULL = belum ditentukan admin
     status TEXT DEFAULT 'masuk' CHECK(status IN ('masuk','diproses','selesai')),

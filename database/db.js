@@ -244,11 +244,44 @@ tambahKolom('laporan_masyarakat', 'dinilai_at', 'DATETIME');
 tambahKolom('laporan_masyarakat', 'teguran_pengawas', 'TEXT');
 tambahKolom('laporan_masyarakat', 'teguran_at', 'DATETIME');
 tambahKolom('laporan_masyarakat', 'notif_terlambat_at', 'DATETIME');
-tambahKolom('laporan_masyarakat', 'sumber', "TEXT DEFAULT 'website' CHECK(sumber IN ('website','telepon','whatsapp','surat','datang langsung'))");
+tambahKolom('laporan_masyarakat', 'sumber', "TEXT DEFAULT 'website' CHECK(sumber IN ('website','telepon','whatsapp'))");
 tambahKolom('laporan_masyarakat', 'dicatat_oleh', 'INTEGER REFERENCES users(id)');
 tambahKolom('users', 'juga_kru', 'INTEGER DEFAULT 0');
 tambahKolom('laporan_masyarakat', 'masyarakat_id', 'INTEGER REFERENCES masyarakat(id)');
 tambahKolom('jadwal_pengangkutan', 'laporan_id', 'INTEGER REFERENCES laporan_masyarakat(id)');
+
+// Sumber laporan masyarakat hanya website, telepon, dan WhatsApp.
+// Database lama masih mengizinkan 'surat' dan 'datang langsung'; SQLite tidak bisa mengubah CHECK,
+// sehingga tabel dibangun ulang dari schema.sql (data tetap). Laporan lama bersumber surat
+// atau datang langsung dicatat sebagai telepon.
+try {
+    const lm = db.prepare("SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'laporan_masyarakat'").get();
+    if (lm && lm.sql.includes("'surat'")) {
+        const schemaSql = fs.readFileSync(path.join(__dirname, 'schema.sql'), 'utf-8');
+        const buat = schemaSql.match(/CREATE TABLE IF NOT EXISTS laporan_masyarakat \([\s\S]*?\n\);/)[0]
+            .replace('CREATE TABLE IF NOT EXISTS laporan_masyarakat', 'CREATE TABLE laporan_masyarakat_baru');
+        db.pragma('foreign_keys = OFF');
+        try {
+            const diubah = db.transaction(() => {
+                const n = db.prepare("UPDATE laporan_masyarakat SET sumber = 'telepon' WHERE sumber IN ('surat', 'datang langsung')").run().changes;
+                db.exec(buat);
+                const baru = db.prepare('PRAGMA table_info(laporan_masyarakat_baru)').all().map(c => c.name);
+                const kolom = db.prepare('PRAGMA table_info(laporan_masyarakat)').all().map(c => c.name).filter(k => baru.includes(k)).join(', ');
+                db.exec(`INSERT INTO laporan_masyarakat_baru (${kolom}) SELECT ${kolom} FROM laporan_masyarakat`);
+                db.exec('DROP TABLE laporan_masyarakat');
+                db.exec('ALTER TABLE laporan_masyarakat_baru RENAME TO laporan_masyarakat');
+                return n;
+            })();
+            console.log(`✅ Sumber laporan masyarakat dibatasi website, telepon, dan WhatsApp (${diubah} laporan lama dicatat sebagai telepon)`);
+        } finally {
+            db.pragma('foreign_keys = ON');
+        }
+        const salah = db.pragma('foreign_key_check');
+        if (salah.length) console.error('⚠️  Pemeriksaan foreign key:', salah.length, 'baris bermasalah');
+    }
+} catch (err) {
+    console.error('❌ Gagal memperbarui sumber laporan masyarakat:', err.message);
+}
 
 // Seed default data if tables are empty
 try {

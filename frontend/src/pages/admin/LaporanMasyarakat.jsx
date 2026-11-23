@@ -14,7 +14,7 @@ function linkWhatsApp(l) {
   return `https://wa.me/${nomor}?text=${encodeURIComponent(pesan)}`;
 }
 
-const SUMBER_LABEL = { website: 'Website', telepon: 'Telepon', whatsapp: 'WhatsApp', surat: 'Surat', 'datang langsung': 'Datang langsung' };
+const SUMBER_LABEL = { website: 'Website', telepon: 'Telepon', whatsapp: 'WhatsApp' };
 const hariIni = () => new Date(Date.now() + 7 * 3600 * 1000).toISOString().slice(0, 10);
 const LAPORAN_KOSONG = { nama_pelapor: '', nomor_telepon: '', sumber: 'telepon', alamat_lokasi: '', patokan: '', deskripsi: '', prioritas: '' };
 
