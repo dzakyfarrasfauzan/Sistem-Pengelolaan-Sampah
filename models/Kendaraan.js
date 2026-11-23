@@ -41,6 +41,11 @@ class Kendaraan {
         return k.status_penggunaan === 'maintenance' ? 'Kendaraan sedang dalam perbaikan (maintenance) dan tidak dapat dijadwalkan' : null;
     }
 
+    // Kendaraan yang kondisinya tidak baik (untuk dashboard admin)
+    static perluPerbaikan() {
+        return db.prepare(`SELECT id, nomor_polisi, jenis_kendaraan, kondisi FROM kendaraan WHERE kondisi != 'baik' ORDER BY nomor_polisi`).all();
+    }
+
     // Kondisi dan status kendaraan mengikuti hasil pemeriksaan sopir
     static perbaruiKondisi(id, kondisi, statusPenggunaan) {
         db.prepare('UPDATE kendaraan SET kondisi = ?, status_penggunaan = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?').run(kondisi, statusPenggunaan, id);

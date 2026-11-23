@@ -270,6 +270,67 @@ class LaporanMasyarakat {
     }
 
     // ---------- Angka ringkas ----------
+    // Ringkasan laporan untuk dashboard admin
+    static ringkasanAdmin(today) {
+        const hitung = (sql) => db.prepare(sql).get().count;
+        const jumlah = {
+            teguranPengawas: hitung("SELECT COUNT(*) as count FROM laporan_masyarakat WHERE teguran_pengawas IS NOT NULL AND status != 'selesai'"),
+            masuk: hitung("SELECT COUNT(*) as count FROM laporan_masyarakat WHERE status = 'masuk'"),
+            belumDitangani: hitung("SELECT COUNT(*) as count FROM laporan_masyarakat WHERE status != 'selesai'"),
+            selesai: hitung("SELECT COUNT(*) as count FROM laporan_masyarakat WHERE status = 'selesai'"),
+        };
+        const terbaru = db.prepare(`SELECT * FROM laporan_masyarakat ORDER BY created_at DESC LIMIT 5`).all();
+        // Laporan masuk dan selesai per bulan, 6 bulan terakhir (bulan tanpa laporan tetap ditampilkan 0)
+        const rekap = db.prepare(`SELECT strftime('%Y-%m', created_at) AS bulan, COUNT(*) AS masuk,
+                                  SUM(CASE WHEN status = 'selesai' THEN 1 ELSE 0 END) AS selesai
+                                  FROM laporan_masyarakat GROUP BY bulan`).all();
+        const perBulan = [];
+        const d = new Date(`${today}T00:00:00Z`);
+        for (let i = 5; i >= 0; i--) {
+            const t = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() - i, 1));
+            const bulan = t.toISOString().slice(0, 7);
+            const r = rekap.find(x => x.bulan === bulan) || {};
+            perBulan.push({ bulan, masuk: r.masuk || 0, selesai: r.selesai || 0 });
+        }
+        // Daftar "perlu tindakan hari ini"
+        const perluJadwal = db.prepare(`SELECT id, kode_laporan, nama_pelapor, alamat_lokasi, prioritas, created_at FROM laporan_masyarakat
+            WHERE status = 'masuk'
+            ORDER BY CASE prioritas WHEN 'tinggi' THEN 0 WHEN 'sedang' THEN 1 WHEN 'rendah' THEN 2 ELSE 3 END, created_at ASC LIMIT 8`).all();
+        const teguran = db.prepare(`SELECT id, kode_laporan, teguran_pengawas FROM laporan_masyarakat
+            WHERE teguran_pengawas IS NOT NULL AND status != 'selesai' ORDER BY created_at ASC LIMIT 5`).all();
+        return { jumlah, terbaru, perBulan, perluJadwal, teguran };
+    }
+
+    // Ringkasan pemantauan untuk dashboard pengawas
+    static ringkasanPemantauan() {
+        const satu = (sql) => db.prepare(sql).get();
+        const stats = {
+            batasJam: BATAS_TERLAMBAT_JAM,
+            totalLaporan: satu('SELECT COUNT(*) AS c FROM laporan_masyarakat').c,
+            belumDiprioritaskan: satu("SELECT COUNT(*) AS c FROM laporan_masyarakat WHERE status = 'masuk' AND prioritas IS NULL").c,
+            diproses: satu("SELECT COUNT(*) AS c FROM laporan_masyarakat WHERE status = 'diproses'").c,
+            selesai: satu("SELECT COUNT(*) AS c FROM laporan_masyarakat WHERE status = 'selesai'").c,
+            terlambat: satu(`SELECT COUNT(*) AS c FROM laporan_masyarakat WHERE status != 'selesai' AND (julianday('now') - julianday(created_at)) * 24 > ${BATAS_TERLAMBAT_JAM}`).c,
+            rataJamPenanganan: satu("SELECT ROUND(AVG((julianday(selesai_at) - julianday(created_at)) * 24), 1) AS c FROM laporan_masyarakat WHERE status = 'selesai' AND selesai_at IS NOT NULL").c,
+            rataRating: satu('SELECT ROUND(AVG(rating), 1) AS c FROM laporan_masyarakat WHERE rating IS NOT NULL').c,
+            jumlahPenilaian: satu('SELECT COUNT(*) AS c FROM laporan_masyarakat WHERE rating IS NOT NULL').c,
+        };
+        const peringatan = LaporanMasyarakat.tampilPemantauan(`WHERE lm.status != 'selesai' AND (julianday('now') - julianday(lm.created_at)) * 24 > ${BATAS_TERLAMBAT_JAM} ORDER BY lm.created_at ASC`);
+        // Rekap laporan per bulan untuk melihat kecenderungan pengaduan
+        const perBulan = db.prepare(`
+            SELECT strftime('%Y-%m', created_at) AS bulan, COUNT(*) AS jumlah,
+                   SUM(CASE WHEN status = 'selesai' THEN 1 ELSE 0 END) AS selesai
+            FROM laporan_masyarakat GROUP BY bulan ORDER BY bulan DESC LIMIT 6
+        `).all();
+        const belumDiprioritaskan = LaporanMasyarakat.tampilPemantauan(`WHERE lm.status = 'masuk' AND lm.prioritas IS NULL ORDER BY lm.created_at ASC LIMIT 8`);
+        return { stats, peringatan, perBulan, belumDiprioritaskan };
+    }
+
+    // Jumlah laporan yang ditugaskan kepada sopir dan belum selesai
+    static jumlahDitugaskan(sopirId) {
+        return db.prepare("SELECT COUNT(*) as count FROM laporan_masyarakat WHERE ditangani_oleh = ? AND status != 'selesai'").get(sopirId).count;
+    }
+
     static statistik() {
         const satu = (sql) => db.prepare(sql).get().c;
         return {

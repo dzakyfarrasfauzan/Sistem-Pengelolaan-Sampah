@@ -27,13 +27,13 @@ class Sopir extends User {
         const today = hariIni();
         const jadwalMendatang = JadwalPengangkutan.tampilUntukSopir(id,
             `AND j.tanggal >= ? AND j.tanggal <= ? AND j.status != 'batal' ORDER BY j.tanggal ASC, j.jam ASC`, today, tambahHari(today, 7));
+        const r = JadwalPengangkutan.ringkasanSopir(id);
         const stats = {
-            totalJadwal: db.prepare('SELECT COUNT(*) as count FROM jadwal_pengangkutan WHERE sopir_id = ?').get(id).count,
-            belumDiperiksa: db.prepare(`SELECT COUNT(*) as count FROM jadwal_pengangkutan j WHERE j.sopir_id = ? AND j.status = 'menunggu'
-                AND NOT EXISTS (SELECT 1 FROM pemeriksaan_kendaraan p WHERE p.jadwal_id = j.id AND p.jenis = 'sebelum berangkat')`).get(id).count,
+            totalJadwal: r.totalJadwal,
+            belumDiperiksa: r.belumDiperiksa,
             totalPemeriksaan: PemeriksaanKendaraan.jumlahOleh(id),
-            jadwalSelesai: db.prepare("SELECT COUNT(*) as count FROM jadwal_pengangkutan WHERE sopir_id = ? AND status = 'selesai'").get(id).count,
-            laporanDitugaskan: db.prepare("SELECT COUNT(*) as count FROM laporan_masyarakat WHERE ditangani_oleh = ? AND status != 'selesai'").get(id).count,
+            jadwalSelesai: r.jadwalSelesai,
+            laporanDitugaskan: LaporanMasyarakat.jumlahDitugaskan(id),
         };
         return { stats, jadwalMendatang };
     }

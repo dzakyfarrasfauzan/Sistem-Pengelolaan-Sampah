@@ -113,13 +113,9 @@ class JadwalRutin {
               AND NOT EXISTS (SELECT 1 FROM jadwal_pengangkutan j WHERE j.jadwal_rutin_id = r.id AND j.tanggal = ?)
         `).all(hari, tanggal);
         if (!rutin.length) return 0;
-        const insJadwal = db.prepare(`INSERT INTO jadwal_pengangkutan (jenis, jadwal_rutin_id, jalur_id, kendaraan_id, sopir_id, tanggal, jam, durasi_jam, ritase, catatan)
-            VALUES ('rutin', ?, ?, ?, ?, ?, ?, ?, ?, ?)`);
+        const JadwalPengangkutan = require('./JadwalPengangkutan');
         db.transaction(() => {
-            for (const r of rutin) {
-                const { lastInsertRowid } = insJadwal.run(r.id, r.jalur_id, r.kendaraan_id, r.sopir_id, tanggal, r.jam, r.durasi, r.ritase || 1, r.catatan || null);
-                JadwalKru.salinDariRutin(lastInsertRowid, r.id);
-            }
+            for (const r of rutin) JadwalPengangkutan.tambahDariRutin(r, tanggal);
         })();
         if (beriNotifikasi) {
             for (const r of rutin) {

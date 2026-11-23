@@ -69,6 +69,25 @@ class JadwalPengangkutan {
         return db.prepare(`${sql} WHERE j.tanggal = ? AND j.status != 'batal' ORDER BY j.jam ASC`).all(tanggal);
     }
 
+    static jumlahTanggal(tanggal) {
+        return db.prepare("SELECT COUNT(*) as count FROM jadwal_pengangkutan WHERE tanggal = ? AND status != 'batal'").get(tanggal).count;
+    }
+
+    static statusTanggal(tanggal) {
+        return db.prepare(`SELECT status, COUNT(*) AS jumlah FROM jadwal_pengangkutan WHERE tanggal = ? AND status != 'batal' GROUP BY status`).all(tanggal);
+    }
+
+    // Ringkasan jadwal milik seorang sopir (untuk dashboard sopir)
+    static ringkasanSopir(sopirId) {
+        const hitung = (sql) => db.prepare(sql).get(sopirId).count;
+        return {
+            totalJadwal: hitung('SELECT COUNT(*) as count FROM jadwal_pengangkutan WHERE sopir_id = ?'),
+            belumDiperiksa: hitung(`SELECT COUNT(*) as count FROM jadwal_pengangkutan j WHERE j.sopir_id = ? AND j.status = 'menunggu'
+                AND NOT EXISTS (SELECT 1 FROM pemeriksaan_kendaraan p WHERE p.jadwal_id = j.id AND p.jenis = 'sebelum berangkat')`),
+            jadwalSelesai: hitung("SELECT COUNT(*) as count FROM jadwal_pengangkutan WHERE sopir_id = ? AND status = 'selesai'"),
+        };
+    }
+
     // Daftar jadwal untuk pengawas (tanpa hasil pemeriksaan)
     static tampilRingkas(dari, sampai) {
         return db.prepare(`SELECT ${KOLOM_JADWAL} ${JOIN_JADWAL} WHERE j.tanggal BETWEEN ? AND ? ORDER BY j.tanggal DESC, j.jam ASC`).all(dari, sampai);
@@ -132,6 +151,14 @@ class JadwalPengangkutan {
     }
 
     // ---------- Mengubah data ----------
+    // Jadwal harian dari satu jadwal rutin pada tanggal tertentu, kru disalin dari jadwal rutin
+    static tambahDariRutin(r, tanggal) {
+        const { lastInsertRowid } = db.prepare(`INSERT INTO jadwal_pengangkutan (jenis, jadwal_rutin_id, jalur_id, kendaraan_id, sopir_id, tanggal, jam, durasi_jam, ritase, catatan)
+            VALUES ('rutin', ?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(r.id, r.jalur_id, r.kendaraan_id, r.sopir_id, tanggal, r.jam, r.durasi, r.ritase || 1, r.catatan || null);
+        JadwalKru.salinDariRutin(lastInsertRowid, r.id);
+        return lastInsertRowid;
+    }
+
     // Jadwal tambahan dari laporan masyarakat. Hasilnya id jadwal baru.
     static tambah({ laporan_id, lokasi, pemohon, kendaraan_id, sopir_id, tanggal, jam, durasi_jam, ritase, catatan, kruIds }) {
         const { lastInsertRowid } = db.prepare(`INSERT INTO jadwal_pengangkutan (jenis, laporan_id, lokasi, pemohon, kendaraan_id, sopir_id, tanggal, jam, durasi_jam, ritase, catatan)
