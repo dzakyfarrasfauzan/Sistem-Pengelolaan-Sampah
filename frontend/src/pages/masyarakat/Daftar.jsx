@@ -5,7 +5,8 @@ import { API_URL } from '../../config';
 import { KotakAkun, Pesan, TombolGoogle } from '../../components/AkunForm';
 import { gaya } from '../../components/akunGaya';
 
-// Pendaftaran akun masyarakat. Setelah daftar, akun langsung aktif dan masuk.
+// Pendaftaran akun masyarakat. Setelah daftar, kode verifikasi dikirim ke email;
+// akun aktif setelah kode dimasukkan di halaman Verifikasi.
 export default function Daftar() {
   const navigate = useNavigate();
   const [params] = useSearchParams();
@@ -22,8 +23,10 @@ export default function Daftar() {
     if (f.password !== f.ulangi) return setGalat('Ulangi password tidak sama');
     setProses(true);
     try {
-      await axios.post(`${API_URL}/masyarakat/daftar`, f, { withCredentials: true });
-      navigate(lanjut, { replace: true });
+      const r = await axios.post(`${API_URL}/masyarakat/daftar`, f, { withCredentials: true });
+      if (r.data.perluVerifikasi) {
+        navigate(`/verifikasi?email=${encodeURIComponent(r.data.email)}&lanjut=${encodeURIComponent(lanjut)}&pesan=${encodeURIComponent(r.data.message)}`, { replace: true });
+      } else navigate(lanjut, { replace: true });
     } catch (err) {
       setGalat(err.response?.data?.message || 'Gagal mendaftar. Coba lagi.');
     } finally { setProses(false); }
@@ -34,7 +37,7 @@ export default function Daftar() {
   }, [navigate, lanjut]);
 
   return (
-    <KotakAkun judul="Daftar Akun" keterangan="Akun dipakai untuk membuat laporan dan menerima kabar penanganannya lewat email.">
+    <KotakAkun judul="Daftar Akun" keterangan="Akun dipakai untuk membuat laporan dan menerima kabar penanganannya lewat email. Kode verifikasi akan dikirim ke email Anda.">
       <Pesan>{galat}</Pesan>
       <form onSubmit={kirim}>
         <label style={gaya.label} htmlFor="nama">Nama lengkap</label>

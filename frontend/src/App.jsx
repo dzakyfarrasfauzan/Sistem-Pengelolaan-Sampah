@@ -6,6 +6,7 @@ import CekStatus from './pages/CekStatus'
 import MasukMasyarakat from './pages/masyarakat/Masuk'
 import DaftarMasyarakat from './pages/masyarakat/Daftar'
 import LupaPassword from './pages/masyarakat/LupaPassword'
+import Verifikasi from './pages/masyarakat/Verifikasi'
 import LaporanSaya from './pages/masyarakat/LaporanSaya'
 import AdminLayout from './components/AdminLayout'
 import AdminDashboard from './pages/admin/Dashboard'
@@ -35,6 +36,7 @@ function App() {
         <Route path="/masuk" element={<MasukMasyarakat />} />
         <Route path="/daftar" element={<DaftarMasyarakat />} />
         <Route path="/lupa-password" element={<LupaPassword />} />
+        <Route path="/verifikasi" element={<Verifikasi />} />
         <Route path="/laporan-saya" element={<LaporanSaya />} />
         <Route path="/cek-status" element={<CekStatus />} />
         

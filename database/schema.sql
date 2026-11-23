@@ -24,7 +24,7 @@ CREATE TABLE IF NOT EXISTS users (
 );
 
 -- Akun masyarakat (pelapor). Terpisah dari akun petugas.
--- Daftar dengan email + password (diverifikasi kode OTP) atau dengan akun Google.
+-- Daftar dengan email + password (aktif setelah kode OTP dari email dimasukkan) atau dengan akun Google.
 CREATE TABLE IF NOT EXISTS masyarakat (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     nama TEXT NOT NULL,
@@ -37,11 +37,12 @@ CREATE TABLE IF NOT EXISTS masyarakat (
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
--- Kode OTP yang dikirim ke email (verifikasi pendaftaran / atur ulang password)
+-- Kode OTP yang dikirim ke email: verifikasi pendaftaran, atur ulang password,
+-- ganti email (kode ke email baru), dan ganti nomor WhatsApp (kode ke email akun)
 CREATE TABLE IF NOT EXISTS otp_email (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     email TEXT NOT NULL,
-    tujuan TEXT NOT NULL CHECK(tujuan IN ('verifikasi','reset')),
+    tujuan TEXT NOT NULL CHECK(tujuan IN ('verifikasi','reset','ganti_email','ganti_wa')),
     kode_hash TEXT NOT NULL,
     kedaluwarsa DATETIME NOT NULL,
     percobaan INTEGER DEFAULT 0,

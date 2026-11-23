@@ -4,6 +4,7 @@ const db = require('../database/db');
 const upload = require('../middleware/upload');
 const https = require('https');
 const notifikasi = require('../utils/notifikasi');
+const email = require('../utils/email');
 
 // Reverse geocoding via Nominatim (OpenStreetMap) - backend fallback
 function reverseGeocode(lat, lon) {
@@ -38,6 +39,7 @@ router.post('/laporan', (req, res, next) => {
     if (!req.session.masyarakat) return res.status(401).json({ success: false, message: 'Silakan masuk atau daftar terlebih dahulu untuk membuat laporan' });
     const akun = db.prepare('SELECT * FROM masyarakat WHERE id = ?').get(req.session.masyarakat.id);
     if (!akun) return res.status(401).json({ success: false, message: 'Silakan masuk kembali' });
+    if (!akun.email_terverifikasi && email.aktif()) return res.status(403).json({ success: false, message: 'Verifikasi email akun Anda terlebih dahulu' });
     if (!akun.no_wa) return res.status(400).json({ success: false, message: 'Lengkapi nomor WhatsApp di profil akun terlebih dahulu' });
     upload.single('foto')(req, res, async function (err) {
         if (err) {

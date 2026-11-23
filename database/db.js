@@ -118,6 +118,15 @@ try {
     console.error('❌ Gagal migrasi petugas operasional:', err.message);
 }
 
+// Tabel kode OTP versi lama hanya mengenal tujuan 'verifikasi' dan 'reset'.
+// Isinya hanya kode sementara, jadi tabel dibuang lalu dibuat ulang oleh schema.sql.
+try {
+    const otp = db.prepare("SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'otp_email'").get();
+    if (otp && !otp.sql.includes('ganti_email')) db.exec('DROP TABLE otp_email');
+} catch (err) {
+    console.error('❌ Gagal memperbarui tabel otp_email:', err.message);
+}
+
 // Read and execute schema
 try {
     const schemaPath = path.join(__dirname, 'schema.sql');

@@ -24,7 +24,12 @@ export default function Masuk() {
       await axios.post(`${API_URL}/masyarakat/masuk`, { email, password }, { withCredentials: true });
       navigate(lanjut, { replace: true });
     } catch (err) {
-      setGalat(err.response?.data?.message || 'Gagal masuk. Coba lagi.');
+      const d = err.response?.data;
+      if (d?.perluVerifikasi) {
+        navigate(`/verifikasi?email=${encodeURIComponent(d.email)}&lanjut=${encodeURIComponent(lanjut)}&pesan=${encodeURIComponent(d.message)}`);
+        return;
+      }
+      setGalat(d?.message || 'Gagal masuk. Coba lagi.');
     } finally { setProses(false); }
   };
 

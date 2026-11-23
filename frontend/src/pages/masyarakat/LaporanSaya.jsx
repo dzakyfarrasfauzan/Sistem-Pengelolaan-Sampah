@@ -6,6 +6,7 @@ import { API_URL } from '../../config';
 import KepalaSitus from '../../components/KepalaSitus';
 import { Pesan } from '../../components/AkunForm';
 import { gaya } from '../../components/akunGaya';
+import GantiKontak from '../../components/GantiKontak';
 
 const STATUS = {
   masuk: { label: 'Masuk', ket: 'Menunggu ditinjau admin Korwil', warna: '#5b6673', latar: '#eef0f2' },
@@ -73,6 +74,7 @@ export default function LaporanSaya() {
   const [laporan, setLaporan] = useState([]);
   const [memuat, setMemuat] = useState(true);
   const [profil, setProfil] = useState(null);   // form ubah profil
+  const [ganti, setGanti] = useState(null);     // 'email' | 'wa': ganti dengan kode OTP
   const [galat, setGalat] = useState('');
   const [info, setInfo] = useState('');
 
@@ -130,16 +132,21 @@ export default function LaporanSaya() {
                     <label style={gaya.label} htmlFor="nama">Nama lengkap</label>
                     <input id="nama" required value={profil.nama} onChange={e => setProfil({ ...profil, nama: e.target.value })} style={gaya.input} />
                   </div>
-                  <div>
-                    <label style={gaya.label} htmlFor="wa">Nomor WhatsApp</label>
-                    <input id="wa" type="tel" required placeholder="08xxxxxxxxxx" value={profil.no_wa} onChange={e => setProfil({ ...profil, no_wa: e.target.value })} style={gaya.input} />
-                  </div>
+                  {!akun.no_wa && (
+                    <div>
+                      <label style={gaya.label} htmlFor="wa">Nomor WhatsApp</label>
+                      <input id="wa" type="tel" required placeholder="08xxxxxxxxxx" value={profil.no_wa} onChange={e => setProfil({ ...profil, no_wa: e.target.value })} style={gaya.input} />
+                    </div>
+                  )}
                 </div>
                 <div style={{ display: 'flex', gap: '8px' }}>
                   <button type="submit" style={{ ...gaya.tombol, width: 'auto', padding: '8px 16px' }}>Simpan</button>
                   {akun.no_wa && <button type="button" onClick={() => setProfil(null)} style={{ padding: '8px 16px', background: 'white', border: '1px solid #b9c2cb', borderRadius: '4px', cursor: 'pointer' }}>Batal</button>}
                 </div>
               </form>
+            ) : ganti ? (
+              <GantiKontak jenis={ganti} akun={akun} onBatal={() => setGanti(null)}
+                onSelesai={(a, pesan) => { setAkun(a); setGanti(null); setInfo(pesan); }} />
             ) : (
               <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap', alignItems: 'center' }}>
                 <div style={{ fontSize: '0.92rem', lineHeight: 1.6 }}>
@@ -147,7 +154,13 @@ export default function LaporanSaya() {
                   <div style={{ color: '#5b6673' }}>{akun.email}{akun.pakai_google ? ' · terhubung dengan Google' : ''}</div>
                   <div style={{ color: '#5b6673' }}>WhatsApp: {akun.no_wa || '-'}</div>
                 </div>
-                <button type="button" onClick={() => setProfil({ nama: akun.nama, no_wa: akun.no_wa || '' })} style={{ padding: '7px 14px', background: 'white', border: '1px solid #b9c2cb', borderRadius: '4px', cursor: 'pointer' }}>Ubah Profil</button>
+                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                  {[['Ubah Nama', () => { setInfo(''); setProfil({ nama: akun.nama, no_wa: akun.no_wa || '' }); }],
+                    ['Ganti Email', () => { setInfo(''); setGanti('email'); }],
+                    ['Ganti No. WA', () => { setInfo(''); setGanti('wa'); }]].map(([label, aksi]) => (
+                    <button key={label} type="button" onClick={aksi} style={{ padding: '7px 14px', background: 'white', border: '1px solid #b9c2cb', borderRadius: '6px', cursor: 'pointer' }}>{label}</button>
+                  ))}
+                </div>
               </div>
             )}
           </section>
