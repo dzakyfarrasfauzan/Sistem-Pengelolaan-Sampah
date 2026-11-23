@@ -1,111 +1,43 @@
 // ============================================
-// API Routes (JSON endpoints for AJAX)
-// Sistem Pengelolaan Sampah - DLH Sukabumi
+// Controller API (data satuan dan notifikasi untuk akun yang login)
 // ============================================
-
 const express = require('express');
 const router = express.Router();
-const db = require('../database/db');
 const { requireLogin } = require('../middleware/auth');
+const Tps = require('../models/Tps');
+const Kendaraan = require('../models/Kendaraan');
+const User = require('../models/User');
+const JadwalPengangkutan = require('../models/JadwalPengangkutan');
+const LaporanMasyarakat = require('../models/LaporanMasyarakat');
+const Notifikasi = require('../models/Notifikasi');
 
-// Require login for all API routes
 router.use(requireLogin);
 
-// ============================================
-// TPS API
-// ============================================
-router.get('/tps/:id', (req, res) => {
+// Ambil satu data berdasarkan id; jawaban berformat { error } bila tidak ada
+const ambilSatu = (cari, pesanTidakAda, label) => (req, res) => {
     try {
-        const tps = db.prepare('SELECT * FROM tps WHERE id = ?').get(req.params.id);
-        if (!tps) {
-            return res.status(404).json({ error: 'TPS tidak ditemukan' });
-        }
-        res.json(tps);
+        const data = cari(req.params.id);
+        if (!data) return res.status(404).json({ error: pesanTidakAda });
+        res.json(data);
     } catch (err) {
-        console.error('API TPS error:', err.message);
+        console.error(`API ${label} error:`, err.message);
         res.status(500).json({ error: 'Terjadi kesalahan server' });
     }
-});
+};
 
-// ============================================
-// Kendaraan API
-// ============================================
-router.get('/kendaraan/:id', (req, res) => {
-    try {
-        const kendaraan = db.prepare('SELECT * FROM kendaraan WHERE id = ?').get(req.params.id);
-        if (!kendaraan) {
-            return res.status(404).json({ error: 'Kendaraan tidak ditemukan' });
-        }
-        res.json(kendaraan);
-    } catch (err) {
-        console.error('API Kendaraan error:', err.message);
-        res.status(500).json({ error: 'Terjadi kesalahan server' });
-    }
-});
+router.get('/tps/:id', ambilSatu((id) => Tps.tampilSatu(id), 'TPS tidak ditemukan', 'TPS'));
+router.get('/kendaraan/:id', ambilSatu((id) => Kendaraan.tampilSatu(id), 'Kendaraan tidak ditemukan', 'Kendaraan'));
+router.get('/petugas/:id', ambilSatu((id) => User.tampilSatu(id), 'Petugas tidak ditemukan', 'Petugas'));
+router.get('/jadwal/:id', ambilSatu((id) => JadwalPengangkutan.tampilSatu(id), 'Jadwal tidak ditemukan', 'Jadwal'));
+router.get('/laporan-masyarakat/:id', ambilSatu((id) => LaporanMasyarakat.tampilSatu(id), 'Laporan tidak ditemukan', 'Laporan'));
 
-// ============================================
-// Petugas Operasional API (sopir dan kru)
-// ============================================
-router.get('/petugas/:id', (req, res) => {
-    try {
-        const petugas = db.prepare("SELECT id, name, username, role AS peran, phone, address, status, created_at, updated_at FROM users WHERE id = ? AND role IN ('sopir','kru')").get(req.params.id);
-        if (!petugas) {
-            return res.status(404).json({ error: 'Petugas tidak ditemukan' });
-        }
-        res.json(petugas);
-    } catch (err) {
-        console.error('API Petugas error:', err.message);
-        res.status(500).json({ error: 'Terjadi kesalahan server' });
-    }
-});
-
-// ============================================
-// Jadwal API
-// ============================================
-router.get('/jadwal/:id', (req, res) => {
-    try {
-        const J = require('../utils/jadwal');
-        const jadwal = db.prepare(`SELECT ${J.KOLOM_JADWAL} ${J.JOIN_JADWAL} WHERE j.id = ?`).get(req.params.id);
-
-        if (!jadwal) {
-            return res.status(404).json({ error: 'Jadwal tidak ditemukan' });
-        }
-        res.json(jadwal);
-    } catch (err) {
-        console.error('API Jadwal error:', err.message);
-        res.status(500).json({ error: 'Terjadi kesalahan server' });
-    }
-});
-
-// ============================================
-// Laporan Masyarakat API
-// ============================================
-router.get('/laporan-masyarakat/:id', (req, res) => {
-    try {
-        const laporan = db.prepare('SELECT * FROM laporan_masyarakat WHERE id = ?').get(req.params.id);
-        if (!laporan) {
-            return res.status(404).json({ error: 'Laporan tidak ditemukan' });
-        }
-        res.json(laporan);
-    } catch (err) {
-        console.error('API Laporan error:', err.message);
-        res.status(500).json({ error: 'Terjadi kesalahan server' });
-    }
-});
-
-// ============================================
 // Notifikasi akun yang sedang login (riwayat 30 hari)
-// ============================================
-const notifikasi = require('../utils/notifikasi');
-
 router.get('/notifikasi', (req, res) => {
     try {
-        notifikasi.bersihkan();
-        if (req.session.user.role === 'pengawas') notifikasi.periksaLaporanTerlambat();
-        const userId = req.session.user.id;
-        const list = db.prepare('SELECT * FROM notifikasi WHERE user_id = ? ORDER BY created_at DESC, id DESC LIMIT 100').all(userId);
-        const belumDibaca = db.prepare('SELECT COUNT(*) AS c FROM notifikasi WHERE user_id = ? AND dibaca = 0').get(userId).c;
-        res.json({ success: true, data: list, belumDibaca, masaSimpanHari: notifikasi.MASA_SIMPAN_HARI });
+        Notifikasi.bersihkan();
+        if (req.session.user.role === 'pengawas') Notifikasi.periksaLaporanTerlambat();
+        const { data, belumDibaca } = Notifikasi.tampil(req.session.user.id);
+        res.json({ success: true, data, belumDibaca, masaSimpanHari: Notifikasi.MASA_SIMPAN_HARI });
     } catch (err) {
         res.status(500).json({ success: false, message: err.message });
     }
@@ -113,14 +45,14 @@ router.get('/notifikasi', (req, res) => {
 
 router.put('/notifikasi/baca-semua', (req, res) => {
     try {
-        db.prepare('UPDATE notifikasi SET dibaca = 1 WHERE user_id = ?').run(req.session.user.id);
+        Notifikasi.tandaiDibaca(req.session.user.id);
         res.json({ success: true });
     } catch (err) { res.status(500).json({ success: false, message: err.message }); }
 });
 
 router.put('/notifikasi/:id/baca', (req, res) => {
     try {
-        db.prepare('UPDATE notifikasi SET dibaca = 1 WHERE id = ? AND user_id = ?').run(req.params.id, req.session.user.id);
+        Notifikasi.tandaiDibaca(req.session.user.id, req.params.id);
         res.json({ success: true });
     } catch (err) { res.status(500).json({ success: false, message: err.message }); }
 });

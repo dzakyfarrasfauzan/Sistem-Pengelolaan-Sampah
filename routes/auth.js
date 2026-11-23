@@ -1,36 +1,21 @@
+// ============================================
+// Controller Login admin, pengawas, dan sopir
+// Kelas User menentukan akun yang boleh login (kru tidak memiliki akun).
+// ============================================
 const express = require('express');
 const router = express.Router();
-const bcrypt = require('bcryptjs');
-const db = require('../database/db');
+const User = require('../models/User');
 
-// POST /api/login - Process login
+// POST /api/login
 router.post('/login', (req, res) => {
     try {
         const { username, password } = req.body;
-
         if (!username || !password) {
             return res.status(400).json({ success: false, message: 'Username dan password harus diisi' });
         }
-
-        // Hanya admin, pengawas, dan sopir yang memiliki akun login; kru tidak login
-        const user = db.prepare("SELECT * FROM users WHERE username = ? AND status = 'aktif' AND role IN ('admin','pengawas','sopir') AND password IS NOT NULL").get(username);
-
-        if (!user) {
-            return res.status(401).json({ success: false, message: 'Username atau password salah' });
-        }
-
-        const isMatch = bcrypt.compareSync(password, user.password);
-        if (!isMatch) {
-            return res.status(401).json({ success: false, message: 'Username atau password salah' });
-        }
-
-        req.session.user = {
-            id: user.id,
-            name: user.name,
-            username: user.username,
-            role: user.role
-        };
-
+        const user = User.login(username, password);
+        if (!user) return res.status(401).json({ success: false, message: 'Username atau password salah' });
+        req.session.user = user.keSesi();
         res.json({ success: true, user: req.session.user });
     } catch (err) {
         console.error('Login error:', err.message);
@@ -38,24 +23,19 @@ router.post('/login', (req, res) => {
     }
 });
 
-// POST /api/logout - Logout user
+// POST /api/logout
 router.post('/logout', (req, res) => {
     req.session.destroy((err) => {
-        if (err) {
-            return res.status(500).json({ success: false, message: 'Gagal logout' });
-        }
+        if (err) return res.status(500).json({ success: false, message: 'Gagal logout' });
         res.clearCookie('connect.sid');
         res.json({ success: true, message: 'Logout berhasil' });
     });
 });
 
-// GET /api/me - Get current user
+// GET /api/me - akun yang sedang login
 router.get('/me', (req, res) => {
-    if (req.session.user) {
-        res.json({ success: true, user: req.session.user });
-    } else {
-        res.status(401).json({ success: false, message: 'Belum login' });
-    }
+    if (req.session.user) res.json({ success: true, user: req.session.user });
+    else res.status(401).json({ success: false, message: 'Belum login' });
 });
 
 module.exports = router;
