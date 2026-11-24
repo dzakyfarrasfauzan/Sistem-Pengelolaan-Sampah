@@ -50,25 +50,25 @@ app.use(sessionMiddleware);
 // ============================================
 
 // Public routes
-app.use('/api/public', require('./routes/public'));
+app.use('/api/public', require('./routes/PublicController'));
 
 // Authentication routes
-app.use('/', require('./routes/auth'));
+app.use('/', require('./routes/AuthController'));
 
 // Akun masyarakat (daftar, OTP email, masuk, Google, laporan saya)
-app.use('/masyarakat', require('./routes/masyarakat'));
+app.use('/masyarakat', require('./routes/MasyarakatController'));
 
 // Admin routes
-app.use('/admin', require('./routes/admin'));
+app.use('/admin', require('./routes/AdminController'));
 
 // Pengawas (Bidang) routes
-app.use('/pengawas', require('./routes/pengawas'));
+app.use('/pengawas', require('./routes/PengawasController'));
 
 // Sopir routes
-app.use('/sopir', require('./routes/sopir'));
+app.use('/sopir', require('./routes/SopirController'));
 
 // API routes
-app.use('/api', require('./routes/api'));
+app.use('/api', require('./routes/ApiController'));
 
 // ============================================
 // Error Handling

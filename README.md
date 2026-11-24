@@ -123,7 +123,10 @@ web/
 ├── middleware/        # Auth (session) & konfigurasi upload foto
 ├── public/
 │   └── uploads/       # Foto laporan masyarakat
-├── routes/            # Router Express (Admin, Petugas, Publik, Auth, API)
+├── models/            # Kelas sesuai class diagram (User dan turunannya, Masyarakat, Jadwal, Laporan, dll.)
+├── routes/            # Controller: AdminController, SopirController, PengawasController,
+│                      #   MasyarakatController, PublicController, AuthController, ApiController
+├── utils/             # Bantuan: waktu, bentrok jadwal, email, socket
 ├── server.js          # Entry point backend
 │
 └── frontend/          # Aplikasi React (Vite)
